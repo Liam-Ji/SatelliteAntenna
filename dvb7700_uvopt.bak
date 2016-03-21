@@ -2314,31 +2314,31 @@
     <ActiveMDIGroup>0</ActiveMDIGroup>
     <MDIGroup>
       <Size>100</Size>
-      <ActiveTab>2</ActiveTab>
+      <ActiveTab>1</ActiveTab>
       <Documents>
         <Doc>
           <Name>.\main.c</Name>
-          <ColumnNumber>9</ColumnNumber>
-          <TopLine>55</TopLine>
+          <ColumnNumber>11</ColumnNumber>
+          <TopLine>61</TopLine>
           <CurrentLine>77</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\antenna.c</Name>
-          <ColumnNumber>5</ColumnNumber>
-          <TopLine>663</TopLine>
-          <CurrentLine>675</CurrentLine>
+          <ColumnNumber>13</ColumnNumber>
+          <TopLine>789</TopLine>
+          <CurrentLine>810</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\protcol.c</Name>
-          <ColumnNumber>26</ColumnNumber>
-          <TopLine>1185</TopLine>
-          <CurrentLine>1185</CurrentLine>
+          <ColumnNumber>24</ColumnNumber>
+          <TopLine>276</TopLine>
+          <CurrentLine>276</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\station.c</Name>
-          <ColumnNumber>49</ColumnNumber>
-          <TopLine>187</TopLine>
-          <CurrentLine>196</CurrentLine>
+          <ColumnNumber>12</ColumnNumber>
+          <TopLine>49</TopLine>
+          <CurrentLine>49</CurrentLine>
         </Doc>
       </Documents>
     </MDIGroup>

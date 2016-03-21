@@ -38,20 +38,17 @@ int main(void)
 	Uart1Init();							//串口1初始化
 
 
-//	plorF = 1;									//极化转动标志，plorF==1转动，plorF==0停止
-	
+//	plorF = 1;									//极化转动标志，plorF==1转动，plorF==0停止	
 	status = INIT;						     	//天线开始状态为天线初始化
-
 //	tempmin = 5000;
 //	tempmax = -1;
 //	POLAR_LEFT;
-	
 	while(1)
 	{
 /*		;
 		StationPol = GetComPolA();
-//		if(PloarAngleStage == 1)
-//		   	plorF++;
+		if(PloarAngleStage == 1)
+		   	plorF++;
 		while(!plorF)
 		{
 			LEDRED;

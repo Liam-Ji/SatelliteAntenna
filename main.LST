@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   MAIN                                                                  03/18/2016 16:14:07 PAGE 1   
+C51 COMPILER V9.00   MAIN                                                                  03/21/2016 15:25:58 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
@@ -47,66 +47,63 @@ line level    source
   38   1              Uart1Init();                                                    //串口1初始化
   39   1      
   40   1      
-  41   1      //      plorF = 1;                                                                      //极化转动标志，plorF==1转动，plorF==0停止
-  42   1              
-  43   1              status = INIT;                                                  //天线开始状态为天线初始化
-  44   1      
-  45   1      //      tempmin = 5000;
-  46   1      //      tempmax = -1;
-  47   1      //      POLAR_LEFT;
-  48   1              
-  49   1              while(1)
-  50   1              {
-  51   2      /*              ;
-  52   2                      StationPol = GetComPolA();
-  53   2      //              if(PloarAngleStage == 1)
-  54   2      //                      plorF++;
-  55   2                      while(!plorF)
-C51 COMPILER V9.00   MAIN                                                                  03/18/2016 16:14:07 PAGE 2   
+  41   1      //      plorF = 1;                                                                      //极化转动标志，plorF==1转动，plorF==0停止      
+  42   1              status = INIT;                                                  //天线开始状态为天线初始化
+  43   1      //      tempmin = 5000;
+  44   1      //      tempmax = -1;
+  45   1      //      POLAR_LEFT;
+  46   1              while(1)
+  47   1              {
+  48   2      /*              ;
+  49   2                      StationPol = GetComPolA();
+  50   2                      if(PloarAngleStage == 1)
+  51   2                              plorF++;
+  52   2                      while(!plorF)
+  53   2                      {
+  54   2                              LEDRED;
+  55   2                              Delay(40000);
+C51 COMPILER V9.00   MAIN                                                                  03/21/2016 15:25:58 PAGE 2   
 
-  56   2                      {
-  57   2                              LEDRED;
-  58   2                              Delay(40000);
-  59   2                              LEDCLOSE;
-  60   2                              Delay(40000);
-  61   2                              StationPol = GetComPolA();
-  62   2                      }
-  63   2                      while(!ELMidLimit)
-  64   2                      {
-  65   2                              plorF = 0;
-  66   2                              POLAR_STOP;
-  67   2                              break;
-  68   2                      }
-  69   2      */
-  70   2      
-  71   2                      if(status == INIT)
-  72   2                      {
-  73   3                              AntennaInit();                                  //天线初始化函数
-  74   3                      }
-  75   2                      if(status == SEARCHREADY)
-  76   2                      {
-  77   3                              AntennaReadySearch();                   //天线准备搜索函数
-  78   3                      }
-  79   2                      if(status == SEARCHING)
-  80   2                      {
-  81   3                              AntennaTimeSearch();                    //天线搜索函数
-  82   3                      }
-  83   2                      if(status == TRACKING)
-  84   2                      {
-  85   3                              AntennaTracking();                              //天线跟踪函数
-  86   3                      }
-  87   2                      if(status == MANUALMODE)
-  88   2                      {
-  89   3                              AntennaManual();                                //天线手动函数
-  90   3                      }
-  91   2                      if(status == STORESTATUS)
-  92   2                      {
-  93   3                              AntennaStore();                                 //天线收藏函数
-  94   3                      }
-  95   2              
-  96   2              }
-  97   1              return 0;
-  98   1      }
+  56   2                              LEDCLOSE;
+  57   2                              Delay(40000);
+  58   2                              StationPol = GetComPolA();
+  59   2                      }
+  60   2                      while(!ELMidLimit)
+  61   2                      {
+  62   2                              plorF = 0;
+  63   2                              POLAR_STOP;
+  64   2                              break;
+  65   2                      }
+  66   2      */
+  67   2      
+  68   2                      if(status == INIT)
+  69   2                      {
+  70   3                              AntennaInit();                                  //天线初始化函数
+  71   3                      }
+  72   2                      if(status == SEARCHREADY)
+  73   2                      {
+  74   3                              AntennaReadySearch();                   //天线准备搜索函数
+  75   3                      }
+  76   2                      if(status == SEARCHING)
+  77   2                      {
+  78   3                              AntennaTimeSearch();                    //天线搜索函数
+  79   3                      }
+  80   2                      if(status == TRACKING)
+  81   2                      {
+  82   3                              AntennaTracking();                              //天线跟踪函数
+  83   3                      }
+  84   2                      if(status == MANUALMODE)
+  85   2                      {
+  86   3                              AntennaManual();                                //天线手动函数
+  87   3                      }
+  88   2                      if(status == STORESTATUS)
+  89   2                      {
+  90   3                              AntennaStore();                                 //天线收藏函数
+  91   3                      }
+  92   2              
+  93   2              }
+  94   1              return 0;
+  95   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
