@@ -1,0 +1,303 @@
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE EXTSHARPBS2S7HZ6306
+OBJECT MODULE PLACED IN ExtSharpBS2S7HZ6306.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ExtSharpBS2S7HZ6306.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2           *           Copyright 2007-2009 Availink, Inc.
+   3           *
+   4           *  This software contains Availink proprietary information and
+   5           *  its use and disclosure are restricted solely to the terms in
+   6           *  the corresponding written license agreement. It shall not be 
+   7           *  disclosed to anyone other than valid licensees without
+   8           *  written permission of Availink, Inc.
+   9           *
+  10           */
+  11          
+  12          
+  13          //$Revision: 776 $ 
+  14          //$Date: 2009-05-18 13:48:32 -0400 (Mon, 18 May 2009) $
+  15          // 
+  16          #include "SharpBS2S7HZ6306.h"
+  17          #include "ExtSharpBS2S7HZ6306.h"
+  18          #include "II2CRepeater.h"
+  19          #include "IBSP.h"
+  20          #include "II2C.h"
+  21          #include "IBase.h"
+  22          
+  23          A2108_ErrorCode SharpBS2S7HZ6306Regs_SetLPF( AVL_uint16 uiLPF_10kHz, struct SharpBS2S7HZ6306_Registers * p
+             -TunerRegs )
+  24          {
+  25   1              uiLPF_10kHz /=100;
+  26   1              if( uiLPF_10kHz <10 )
+  27   1              {
+  28   2                      uiLPF_10kHz = 10;
+  29   2              }
+  30   1              if( uiLPF_10kHz>34 )
+  31   1              {
+  32   2                      uiLPF_10kHz = 34;
+  33   2              }
+  34   1              pTunerRegs->m_ucLPF = (AVL_uchar)((uiLPF_10kHz-10)/2+3);  //LPF转换成字
+  35   1              return(A2108_EC_OK);
+  36   1      }
+  37          
+  38              /*根据BBGain的值设定pTunerRegs中的m_ucRegData[0]*/
+  39          A2108_ErrorCode SharpBS2S7HZ6306_SetBBGain( enum SharpBS2S7HZ6306_BBGain BBGain, struct SharpBS2S7HZ6306_R
+             -egisters * pTunerRegs )
+  40          {
+  41   1              pTunerRegs->m_ucRegData[0] &=  ~(0x3<<5);
+  42   1              pTunerRegs->m_ucRegData[0] |= ((AVL_uchar)(BBGain)<<5);  //5、6位存放BBGain
+  43   1              return(A2108_EC_OK);
+  44   1      }
+  45          
+  46           /*根据Current的值设定pTunerRegs中的m_ucRegData[2]*/
+  47          A2108_ErrorCode SharpBS2S7HZ6306_SetChargePump( enum SharpBS2S7HZ6306_PumpCurrent Current, struct SharpBS2
+             -S7HZ6306_Registers * pTunerRegs )
+  48          {
+  49   1              pTunerRegs->m_ucRegData[2] &= ~(0x3<<5);        //5、6位置0
+  50   1              pTunerRegs->m_ucRegData[2] |= ((AVL_uchar)(Current)<<5);  //data[2]的5、6位存放current
+  51   1              return(A2108_EC_OK);
+  52   1      }
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 2   
+
+  53          
+  54          
+  55          
+  56           /*根据载波频率uiFrequency，设定pTunerRegs*/
+  57          A2108_ErrorCode SharpBS2S7HZ6306_SetFrequency( AVL_uint16 uiFrequency_100kHz, struct SharpBS2S7HZ6306_Regi
+             -sters * pTunerRegs)
+  58          {
+  59   1              AVL_uint16 P, N, A, DIV;         /*data[3]中存放和BA2、BA1、BA0、PSC、DIV相关*/
+  60   1                                                                        /*data[0]放高频率字高五位*/
+  61   1                                                                        /*data[1]放高频率字低三位和低频率字*/
+  62   1      
+  63   1              if( uiFrequency_100kHz<9500 )       //<950Mhz,错误
+  64   1              {
+  65   2                      return(A2108_EC_GeneralFail);
+  66   2              }
+  67   1              else if( uiFrequency_100kHz<9860 )  //[950，986) ,
+  68   1              {
+  69   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);        //把5、6、7为置0
+  70   2                      pTunerRegs->m_ucRegData[3] |= (0x5<<5);     //5、7位置1
+  71   2                      P = 16;
+  72   2                      DIV = 1;
+  73   2              }
+  74   1              else if( uiFrequency_100kHz<10730 )
+  75   1              {
+  76   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+  77   2                      pTunerRegs->m_ucRegData[3] |= (0x6<<5);   //6、7位置1
+  78   2                      P = 16;
+  79   2                      DIV = 1;
+  80   2              }
+  81   1              else if( uiFrequency_100kHz<11540 )
+  82   1              {
+  83   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+  84   2                      pTunerRegs->m_ucRegData[3] |= (0x7<<5);  //5、6、7置1
+  85   2                      P = 32;
+  86   2                      DIV = 1;
+  87   2              }
+  88   1              else if( uiFrequency_100kHz<12910 )
+  89   1              {
+  90   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+  91   2                      pTunerRegs->m_ucRegData[3] |= (0x1<<5);   //5置1
+  92   2                      P = 32;
+  93   2                      DIV = 0;
+  94   2              }
+  95   1              else if( uiFrequency_100kHz<14470 )
+  96   1              {
+  97   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+  98   2                      pTunerRegs->m_ucRegData[3] |= (0x2<<5);
+  99   2                      P = 32;
+ 100   2                      DIV = 0;
+ 101   2              }
+ 102   1              else if( uiFrequency_100kHz<16150 )
+ 103   1              {
+ 104   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+ 105   2                      pTunerRegs->m_ucRegData[3] |= (0x3<<5);
+ 106   2                      P = 32;
+ 107   2                      DIV = 0;
+ 108   2              }
+ 109   1              else if( uiFrequency_100kHz<17910 )
+ 110   1              {
+ 111   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+ 112   2                      pTunerRegs->m_ucRegData[3] |= (0x4<<5);
+ 113   2                      P = 32;
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 3   
+
+ 114   2                      DIV = 0;
+ 115   2              }
+ 116   1              else if( uiFrequency_100kHz<19720 )
+ 117   1              {
+ 118   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+ 119   2                      pTunerRegs->m_ucRegData[3] |= (0x5<<5);
+ 120   2                      P = 32;
+ 121   2                      DIV = 0;
+ 122   2              }
+ 123   1              else if( uiFrequency_100kHz<=21500 )
+ 124   1              {
+ 125   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
+ 126   2                      pTunerRegs->m_ucRegData[3] |= (0x6<<5);//6、7位置1
+ 127   2                      P = 32;
+ 128   2                      DIV = 0;
+ 129   2              }
+ 130   1              else
+ 131   1              {
+ 132   2                      return(A2108_EC_GeneralFail);
+ 133   2              }
+ 134   1      
+ 135   1              A = (uiFrequency_100kHz/10)%P;    // A中式频率的低位   0——31
+ 136   1              N = (uiFrequency_100kHz/10)/P;    // N是频率的高位        0-255
+ 137   1      
+ 138   1              pTunerRegs->m_ucRegData[3] &= ~(0x1<<4);   //4位psc为0
+ 139   1              if( P==16 )
+ 140   1              {
+ 141   2                      pTunerRegs->m_ucRegData[3] |= (0x1<<4);    // 如果p=16，4位psc置1 ，
+ 142   2              }                                  /*上面两句把根据位4  P把PSC设置好*/
+ 143   1      
+ 144   1              pTunerRegs->m_ucRegData[3] &= ~(0x1<<1);    //第二位置0
+ 145   1              pTunerRegs->m_ucRegData[3] |= (AVL_uchar)(DIV<<1); //设置第二位DIV
+ 146   1                                      /*上面两句把位2 DIV设置好*/     
+ 147   1      
+ 148   1      
+ 149   1      
+ 150   1              pTunerRegs->m_ucRegData[1] &= ~(0x1f<<0); // 把0、1、2、3、4位置零
+ 151   1              pTunerRegs->m_ucRegData[1] |= (AVL_uchar)(A<<0); 
+ 152   1                                                       /*把低频率字A用 data1的低五位表示*/     
+ 153   1              pTunerRegs->m_ucRegData[1] &= ~(0x7<<5);   // 5、6、7位置零
+ 154   1              pTunerRegs->m_ucRegData[1] |= (AVL_uchar)(N<<5);
+ 155   1                                                       /*把高频率字N的低3位用data1的5、6、7位表示*/  
+ 156   1              pTunerRegs->m_ucRegData[0] &= ~(0x1f<<0);       //data0的0、1、2、3、4位置零
+ 157   1              pTunerRegs->m_ucRegData[0] |= (AVL_uchar)((N>>3)<<0);
+ 158   1                                    /*把高频率字的高5位用data0表示*/
+ 159   1      
+ 160   1              return(A2108_EC_OK);
+ 161   1      }
+ 162          
+ 163          A2108_ErrorCode SharpBS2S7HZ6306_CommitSetting(const struct AVL_Tuner * pTuner , struct SharpBS2S7HZ6306_R
+             -egisters * pTunerRegs )
+ 164          {
+ 165   1              A2108_ErrorCode r;
+ 166   1              pTunerRegs->m_ucRegData[0] &= 0x7f;       //data0的7位置0
+ 167   1              pTunerRegs->m_ucRegData[2] |= 0x80;       //data2的7位置1
+ 168   1      //      pTunerRegs->m_ucRegData[2] |= 0x01;       //data2的0位置1        +++++++++++++++++++++++++++++++修改
+ 169   1              pTunerRegs->m_ucRegData[2] &= ~(0x7<<2);  //data2的2、3、4位置0
+ 170   1              pTunerRegs->m_ucRegData[3] &= ~(0x3<<2);  //data3的2、3位置0
+ 171   1      
+ 172   1              r = A2108_II2CRepeater_SendData((AVL_uchar)(pTuner->m_uiSlaveAddress), pTunerRegs->m_ucRegData, 4, pTuner
+             -->m_pAVLChip );
+ 173   1              if( r != A2108_EC_OK )
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 4   
+
+ 174   1              {
+ 175   2                      return(r);
+ 176   2              }
+ 177   1              pTunerRegs->m_ucRegData[2] |= (0x1<<2);   //TM置1
+ 178   1      
+ 179   1              r |= A2108_II2CRepeater_SendData((AVL_uchar)(pTuner->m_uiSlaveAddress), (pTunerRegs->m_ucRegData)+2, 1, p
+             -Tuner->m_pAVLChip );
+ 180   1              if( r != A2108_EC_OK )
+ 181   1              {
+ 182   2                      return(r);
+ 183   2              }
+ 184   1              A2108_IBSP_Delay_ms(12);
+ 185   1      
+ 186   1      /*根据LPF设置PD3、4、6、6*/
+ 187   1              r |= SharpBS2S7HZ6306Regs_SetLPF ((AVL_uint16)(pTuner->m_uiLPF_100kHz*10), pTunerRegs);
+ 188   1              pTunerRegs->m_ucRegData[2] |= ((((pTunerRegs->m_ucLPF)>>1)&0x1)<<3); /* PD4 */
+ 189   1              pTunerRegs->m_ucRegData[2] |= ((((pTunerRegs->m_ucLPF)>>0)&0x1)<<4); /* PD5 */
+ 190   1              pTunerRegs->m_ucRegData[3] |= ((((pTunerRegs->m_ucLPF)>>3)&0x1)<<2); /* PD2 */
+ 191   1              pTunerRegs->m_ucRegData[3] |= ((((pTunerRegs->m_ucLPF)>>2)&0x1)<<3); /* PD3 */
+ 192   1      
+ 193   1              r |= A2108_II2CRepeater_SendData((AVL_uchar)(pTuner->m_uiSlaveAddress), (pTunerRegs->m_ucRegData)+2, 2, p
+             -Tuner->m_pAVLChip );
+ 194   1      
+ 195   1              return(r);
+ 196   1      }
+ 197          
+ 198          //*******************************************************************************************
+ 199          
+ 200          A2108_ErrorCode ExtSharpBS2S7HZ6306_Initialize(struct AVL_Tuner * pTuner)
+ 201          {
+ 202   1              A2108_ErrorCode r;
+ 203   1              r = A2108_II2C_Write16((AVL_uint16)(pTuner->m_pAVLChip->m_SlaveAddr), rc_tuner_slave_addr_addr, pTuner->m
+             -_uiSlaveAddress); //把tuner地址写入
+ 204   1              r |= A2108_II2C_Write16((AVL_uint16)(pTuner->m_pAVLChip->m_SlaveAddr), rc_tuner_use_internal_control_addr
+             -, 0);
+ 205   1              r |= A2108_II2C_Write16((AVL_uint16)(pTuner->m_pAVLChip->m_SlaveAddr), rc_tuner_LPF_margin_100kHz_addr, 0
+             -);        //为盲扫清除空余，对于外部驱动必须设置为0 clean up the LPF margin for blind scan. for external driver, this must be z
+             -ero.
+ 206   1              r |= A2108_II2C_Write16((AVL_uint16)(pTuner->m_pAVLChip->m_SlaveAddr), rc_tuner_max_LPF_100kHz_addr, 320)
+             -;        //为盲扫管理步长设置正确的LPF  set up the right LPF for blind scan to regulate the freq_step. This field should corres
+             -ponding the flat response part of the LPF.
+ 207   1              r |= A2108_II2CRepeater_Initialize(pTuner->m_uiI2CBusClock_kHz, pTuner->m_pAVLChip); //I2C repeater初始化
+ 208   1      
+ 209   1              return(r);
+ 210   1      }
+ 211          
+ 212          
+ 213          A2108_ErrorCode ExtSharpBS2S7HZ6306_GetLockStatus(struct AVL_Tuner * pTuner )
+ 214          {
+ 215   1              A2108_ErrorCode r;
+ 216   1              AVL_uchar ucTemp;         //+++++++++++++++++修改 原来是16无符号型
+ 217   1              r = A2108_II2CRepeater_ReadData((AVL_uchar)(pTuner->m_uiSlaveAddress), (AVL_puchar)(&ucTemp), 1, pTuner->
+             -m_pAVLChip );
+ 218   1              if( A2108_EC_OK == r )
+ 219   1              {
+ 220   2      
+ 221   2                      if( 0 == (ucTemp & 0x40) )
+ 222   2                      {
+ 223   3                              r = A2108_EC_Running ;
+ 224   3                      }
+ 225   2              }
+ 226   1              return(r);
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 5   
+
+ 227   1      }
+ 228          
+ 229          A2108_ErrorCode ExtSharpBS2S7HZ6306_Lock(struct AVL_Tuner * pTuner)
+ 230          {
+ 231   1              A2108_ErrorCode r;
+ 232   1              struct SharpBS2S7HZ6306_Registers TunerRegs;
+ 233   1              struct SharpBS2S7HZ6306_TunerPara * pPara;
+ 234   1      
+ 235   1              TunerRegs.m_ucRegData[0] = 0;
+ 236   1              TunerRegs.m_ucRegData[1] = 0;
+ 237   1              TunerRegs.m_ucRegData[2] = 0;
+ 238   1              TunerRegs.m_ucRegData[3] = 0; 
+ 239   1         /*根据载波频率m_uiFrequency，设定TunerRegs*/
+ 240   1              r = SharpBS2S7HZ6306_SetFrequency(pTuner->m_uiFrequency_100kHz, &TunerRegs );
+ 241   1              if( 0 == pTuner->m_pParameters )        //use default values
+ 242   1              {       
+ 243   2              /*设定pTunerRegs中的m_ucRegData[2]的5、6位存放PC_360_694_Sharp*/
+ 244   2                      r |= SharpBS2S7HZ6306_SetChargePump(PC_360_694_Sharp, &TunerRegs);//2, PC_360_694_Sharp是枚举常量        < = 2
+             - min +/- 360 uA; typical +/- 555 uA; Max +/- 694 uA
+ 245   2              /*设定pTunerRegs中的m_ucRegData[0]的5、6位存放Bbg-4-sharp*/
+ 246   2                      r |= SharpBS2S7HZ6306_SetBBGain(Bbg_4_Sharp, &TunerRegs);                 //3,Bbg_4_Sharp为枚举常量
+ 247   2              }
+ 248   1              else            //use custom value
+ 249   1              {
+ 250   2                      pPara = (struct SharpBS2S7HZ6306_TunerPara *)(pTuner->m_pParameters);
+ 251   2                      r |= SharpBS2S7HZ6306_SetChargePump(pPara->m_ChargPump, &TunerRegs);
+ 252   2                      r |= SharpBS2S7HZ6306_SetBBGain(pPara->m_BBGain, &TunerRegs);
+ 253   2              }
+ 254   1              r = SharpBS2S7HZ6306_CommitSetting(pTuner, &TunerRegs);
+ 255   1              return(r);
+ 256   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3405    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     54    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

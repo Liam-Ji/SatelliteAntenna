@@ -1,0 +1,2237 @@
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE PROTCOL
+OBJECT MODULE PLACED IN protcol.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE protcol.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          //filename:Protcol.c
+   2          //author:wangyi,fengjiaji
+   3          //date:2008,1,15
+   4          //function:define the protcol of the sover and the controller
+   5          //功能：定义了监控函数和一系列的协议处理函数，对从串口1收到的一串命令，逐个进行处理，
+   6          //并将天线作出的反应以相应的数据格式再发给监控端。
+   7          #include "c8051f120.h"
+   8          #include "cpu.h"
+   9          #include "public.h"
+  10          #include "uart.h"
+  11          #include "adc.h"
+  12          #include "rweeprom.h"
+  13          #include "Protcol.h"
+  14          #include "Antenna.h"
+  15          
+  16          #include "sharp.h"
+  17          #include "math.h"
+  18          #include "timer.h"
+  19          #include "station.h"
+  20          #include "polar.h"
+  21          
+  22          
+  23          static void SendRelease(void);                          //返回版本号
+  24          static void ReturnSta(void);                            //返回站点方位俯仰，如果为搜索状态返回搜索状态信息，如果为跟踪状态返回跟踪
+             -状态
+  25          static void ReturnGPS(void);                            //返回GPS的经纬度信息
+  26          static void ReturnStationStatus(void);          //返回天线各个模块状态及天线本身状态
+  27          static void ReturnAZEL(void);                           //返回方位俯仰
+  28          static void ReturnAGCPloar(void);                       //返回AGC极化
+  29          static void ReturnSatLongPloarVet(void);        //返回目标卫星经度及极化方式
+  30          static void ReturnRecFreq(void);                        //返回信标频率，或者sharp频率
+  31          static void ReturnStaLong(void);
+  32          static void ReturnStaLatitude(void);
+  33          static void ReturnXinBiaoAGCThreshold(void);
+  34          static void ReturnRecKind(void);                        //返回接收机类型
+  35          static void ReturnCal(void);
+  36          
+  37          static void SetStaLongPlo(void);        //设置目标卫星经度和极化
+  38          static void ChangeXinbiaoFreq(void);//改变信标频率
+  39          static void SetThreshold(void);         //设置门限
+  40          static void SetStationLongLat(void);//设置天线所在地经纬度
+  41          static void SetRecKind(void);           //设置接收机的类型
+  42          
+  43          
+  44          static void SetPloRight(void);          //设置极化较零
+  45          static void SetAZRight(void);           //设置方位较零
+  46          static void SetELRight(void);           //设置俯仰较零
+  47          
+  48          
+  49          static void DLRight(void);
+  50          static void DRRight(void);
+  51          static void DURight(void);
+  52          static void DAzaRight(void);
+  53          static void DAzbRight(void);
+  54          static void DSRight(void);
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 2   
+
+  55          static void TotReturn(void);
+  56          
+  57          
+  58          static void AddEL(char c);                      //增加俯仰
+  59          static void DelEL(char c);                      //减少俯仰
+  60          static void AddAZ(char c);                      //增加方位
+  61          static void DelAZ(char c);                      //减少方位
+  62          static void GotoAZ(void);                       //去自定义方位
+  63          static void GotoEL(void);                       //去自定义俯仰
+  64          static void GotoPolar(void);
+  65          static void DelPlo(char c);
+  66          static void AddPlo(char c);
+  67          
+  68          
+  69          static void ReturnWarning(void);        //返回告警信息
+  70          
+  71          static void Reset(void);                        //复位
+  72          static void SetAutoMode(void);          //设置自动模式
+  73          static void SetManulMode(void);         //设置手动模式
+  74          
+  75          static void SendSearching(void);        //发送搜索状态信息
+  76          static void SendTacking(void);          //发送锁定状态信息
+  77          static void SendWarning(void);          //发送各个模块的状态信息
+  78          
+  79          
+  80          static void ElRange(void);                  //2008-11-27发送俯仰边界
+  81          
+  82          
+  83          static void RetBaseStarData(void);                              //发 参考卫星的参数
+  84          static void ReturnEnBaseStar(void);                             //发送当前是否用到参考卫星
+  85          static void ReturnBitS(float TSymbolRate);              //返回目标符号率
+  86          static void StoreData(void);                                    //保存参考卫星数据
+  87          static void retYorN(void);
+  88          static void StorBSarr(UINT8 ch);
+  89          static void RetFlag1(void);
+  90          static void RetFlag2(void);
+  91          
+  92          
+  93          static int xdata CKcount1;
+  94          static int xdata CKcount2;
+  95          
+  96          static int xdata SelectBaseStar;
+  97          
+  98          char *head=Uart1ReceData;
+  99          
+ 100          int     i=0;
+ 101          /***********************************************************************
+ 102          函数原型：void watch(void)
+ 103          入口参数：无
+ 104          出口参数：无
+ 105          功能描述：天线控制器不定时的对串口1的接收发送数据进行监控，
+ 106                            如果有命令要处理则作出相应动作，此时一般会有数据要发送给人机对话端；
+ 107          ***********************************************************************/
+ 108          void watch(void)
+ 109          {
+ 110   1              //The first char of all commands from the Uart1 is between the char A and C;
+ 111   1              //Judge a command need judgeing the first char ;
+ 112   1              //char *head=Uart1ReceData;//把这个指针作为全局变量，可以省时间
+ 113   1              int commandlength;//处理完的命令长度
+ 114   1              char temp;
+ 115   1              float Tp;
+ 116   1              Tp = GetT();
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 3   
+
+ 117   1              
+ 118   1              if(Tp > 56.0)
+ 119   1              {
+ 120   2                      Tempearter = 1;
+ 121   2              }
+ 122   1              if(Tp < 50.0)
+ 123   1              {
+ 124   2                      Tempearter = 0;
+ 125   2              }
+ 126   1      
+ 127   1      
+ 128   1              temp = ReadEEPROM(wireaddr);
+ 129   1      
+ 130   1              if((SWWIPORT == 0) && (temp != '0') && (status > SEARCHREADY))
+ 131   1              {
+ 132   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 133   2                      watchwire();
+ 134   2              }
+ 135   1              if((SWWIPORT == BIT4) && (temp != '1') && (status > SEARCHREADY))
+ 136   1              {
+ 137   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 138   2                      watchwire();
+ 139   2              }
+ 140   1      
+ 141   1      /*2009/11/3加入手动自动复位功能*/
+ 142   1              if(MAkit == 0 && status != INIT && status != STORESTATUS)
+ 143   1              {
+ 144   2                      
+ 145   2                      Delay(20);
+ 146   2                      if(MAkit == 0)
+ 147   2                      {
+ 148   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 149   3                              if(status == SEARCHREADY)                               //2010/6/30复位时再次复位用
+ 150   3                              {
+ 151   4                                      AntReadySearchF = 0;            
+ 152   4                              }
+ 153   3                              OpenTimer0Interrupt();
+ 154   3                              while(OverflowT0 < 30 && MAkit == 0)
+ 155   3                              {
+ 156   4                                      if((OverflowT0 & 7) == 0)
+ 157   4                                      {
+ 158   5                                              LEDLOCKLOST;
+ 159   5                                      }
+ 160   4                                      if((OverflowT0 & 7) == 4)
+ 161   4                                      {
+ 162   5                                              LEDREDCOPEN;
+ 163   5                                      }
+ 164   4                              }
+ 165   3                              CloseTimer0Interrupt();
+ 166   3      
+ 167   3                              if(OverflowT0 > 29)
+ 168   3                              {
+ 169   4                                      while(MAkit == 0)                               //等待按键放开
+ 170   4                                      {
+ 171   5                                              LEDREDCOPEN;
+ 172   5                                      }
+ 173   4                                      Reset();                                                //2009/12/8
+ 174   4                              }
+ 175   3                              else
+ 176   3                              {
+ 177   4                                      if(status == MANUALMODE)                //天线状态切换
+ 178   4                                      {
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 4   
+
+ 179   5                                              status = SEARCHING;
+ 180   5                                              RetFlag2();
+ 181   5                                      }
+ 182   4                                      else
+ 183   4                                      {
+ 184   5                                              status = MANUALMODE;
+ 185   5                                              RetFlag1();
+ 186   5                                      }                               
+ 187   4                              }
+ 188   3                      }
+ 189   2                      LEDLOCKLOST;
+ 190   2              }
+ 191   1      
+ 192   1      
+ 193   1      
+ 194   1              if(ChangeKit == 0 && status != INIT && status != STORESTATUS)
+ 195   1              {
+ 196   2                      Delay(20);
+ 197   2                      if(ChangeKit == 0)
+ 198   2                      {
+ 199   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 200   3                              if(status == SEARCHREADY)                               //2010/6/30复位时再次复位用
+ 201   3                              {
+ 202   4                                      AntReadySearchF = 0;            
+ 203   4                              }
+ 204   3                              OpenTimer0Interrupt();
+ 205   3                              while(OverflowT0 < 30 && ChangeKit == 0)
+ 206   3                              {
+ 207   4                                      if((OverflowT0 & 7) == 0)
+ 208   4                                      {
+ 209   5                                              LEDCLOSE;
+ 210   5                                      }
+ 211   4                                      if((OverflowT0 & 7) == 4)
+ 212   4                                      {
+ 213   5                                              LEDRED;
+ 214   5                                      }
+ 215   4                              }
+ 216   3                              CloseTimer0Interrupt();
+ 217   3                              LEDRED;
+ 218   3                              if(OverflowT0 > 29)
+ 219   3                              {
+ 220   4                                      status = STORESTATUS;
+ 221   4                              }
+ 222   3                      }
+ 223   2              }
+ 224   1      
+ 225   1              if(NumberOfComand>0)
+ 226   1              {
+ 227   2                      CKcount1 = 0;
+ 228   2                      CKcount2 = 0;
+ 229   2                      while(CKcount2 < 20 && \
+ 230   2                       Uart1ReceData[Uart1ReceDataLength-1]!='\r')     //等待一个命令接收完毕
+ 231   2                      {
+ 232   3                              CKcount1++;
+ 233   3                              if(CKcount1 > 6000)
+ 234   3                              {
+ 235   4                                       CKcount1 = 0;
+ 236   4                                       CKcount2++;
+ 237   4                              }
+ 238   3                      }
+ 239   2              }
+ 240   1              //CloseUart1();//要不要关串口1还需要测试
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 5   
+
+ 241   1              i=0;
+ 242   1      
+ 243   1              head=Uart1ReceData;
+ 244   1              while(NumberOfComand>0)
+ 245   1              {
+ 246   2                      switch (Uart1ReceData[i])
+ 247   2                      {
+ 248   3                              case 'S':
+ 249   3                              {
+ 250   4                                      NoMonitorF = 0;
+ 251   4                                      if(Uart1ReceData[i+1]=='t' && Uart1ReceData[i+4]=='\r')//协议:Sta?<cr>  
+ 252   4                                              ReturnSta();//返回卫星信息
+ 253   4                                      else if(Uart1ReceData[i+1]=='e' && Uart1ReceData[i+4]=='\r')//协议:Set?<cr>
+ 254   4                                              ReturnSet();//返回天线设置
+ 255   4                                      else if(Uart1ReceData[i+1]=='_' && Uart1ReceData[i+2]=='?')//协议:S_?<cr>
+ 256   4                                      ReturnStationStatus();
+ 257   4                                      break;
+ 258   4                              }
+ 259   3                              case 'Q':
+ 260   3                              {
+ 261   4                                      TimeTest(2);  //2008-08-25
+ 262   4                                      break;
+ 263   4                              }
+ 264   3                              case 'L':
+ 265   3                              {
+ 266   4                                      if(Uart1ReceData[i+7]=='P' && Uart1ReceData[i+9]=='\r')//协议:L****P*<cr>
+ 267   4                                      {
+ 268   5                                              if(status == SEARCHREADY)
+ 269   5                                              {
+ 270   6                                                      AntReadySearchF = 0;  //2009/10/12复位后再次复位用
+ 271   6                                              }
+ 272   5                                              SetStaLongPlo();//设置目标卫星经度和极化
+ 273   5                                      }
+ 274   4                                      break;
+ 275   4                              }
+ 276   3                              case 'F':
+ 277   3                              {
+ 278   4                                      if(Uart1ReceData[i+8]=='\r')//协议:F*******<cr>
+ 279   4                                              ChangeXinbiaoFreq();
+ 280   4                                      break;
+ 281   4                              }
+ 282   3                              case 'H':
+ 283   3                              {
+ 284   4                                      if(Uart1ReceData[i+3]=='\r')//协议:H**<cr>
+ 285   4                                              SetThreshold();//设置门限                               
+ 286   4                                      break;                          
+ 287   4                              }
+ 288   3                              case 'P':
+ 289   3                              {
+ 290   4                                      if(status!=INIT)
+ 291   4                                      {
+ 292   5                                              if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='+' && status!=STORESTATUS)//P*+<cr>
+ 293   5                                                      AddEL(Uart1ReceData[1]);//加几度
+ 294   5                                              else if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='-' && status!=STORESTATUS)//P*-<cr>
+ 295   5                                                      DelEL(Uart1ReceData[1]);//减几度
+ 296   5                                              else if(Uart1ReceData[i+10]=='\r' && Uart1ReceData[i+1]=='Z' && Uart1ReceData[i+6]=='V'&& status!=STO
+             -RESTATUS)//PZ+***V***<cr>或者PZ-***V***<cr>
+ 297   5                                                      GotoEL();//以某个速度自定义加减俯仰
+ 298   5                                      }
+ 299   4                                      break;
+ 300   4                              }
+ 301   3                              case 'A':
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 6   
+
+ 302   3                              {
+ 303   4                                      if(status!=INIT)
+ 304   4                                      {
+ 305   5                                              if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='+' && status!=STORESTATUS)//A*+<cr>
+ 306   5                                                      AddAZ(Uart1ReceData[1]);//加几度
+ 307   5                                              else if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='-'&& status!=STORESTATUS)//A*-<cr>
+ 308   5                                                      DelAZ(Uart1ReceData[i+1]);//减几度
+ 309   5                                              else if(Uart1ReceData[i+11]=='\r' && Uart1ReceData[i+1]=='Z' && Uart1ReceData[i+7]=='V' && status!=ST
+             -ORESTATUS)//AZ+****V***<cr>或者AZ-****V***<cr>
+ 310   5                                                      GotoAZ();//以某个速度自定义加减方位
+ 311   5                                      }
+ 312   4                                      break;
+ 313   4                                      
+ 314   4                              }
+ 315   3                              case 'C'://C**<cf>
+ 316   3                              {
+ 317   4                                      if(status!=INIT)
+ 318   4                                      {
+ 319   5                                              if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='+' && status!=STORESTATUS)
+ 320   5                                                      AddPlo(Uart1ReceData[1]);//加几度极化
+ 321   5                                              else if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='-'&& status!=STORESTATUS)
+ 322   5                                                      DelPlo(Uart1ReceData[1]);//减几度计划
+ 323   5                                              else if(Uart1ReceData[i+1]=='Z' && status!=STORESTATUS)
+ 324   5                                              //CZ+***V***<cr>或者CZ-***V***<cr>
+ 325   5                                                      GotoPolar();
+ 326   5                                      }
+ 327   4                                      break;
+ 328   4                              }
+ 329   3      
+ 330   3                              case 'D'://Dp****<cf>,Da****<cf>,De****<cf>
+ 331   3                              {
+ 332   4                                      if(Uart1ReceData[i+6]=='\r' && Uart1ReceData[i+1]=='p')
+ 333   4                                      {
+ 334   5                                              SetPloRight();//设置极化较零
+ 335   5                                      }
+ 336   4                                      if(Uart1ReceData[i+6]=='\r' && Uart1ReceData[i+1]=='a')
+ 337   4                                      {
+ 338   5                                              SetAZRight();//设置方位较零
+ 339   5                                      }
+ 340   4                                      else if(Uart1ReceData[i+6]=='\r' && Uart1ReceData[i+1]=='e')
+ 341   4                                      {
+ 342   5                                              SetELRight();//设置俯仰较零
+ 343   5                                      }
+ 344   4                                      else if(Uart1ReceData[i+1]=='L')
+ 345   4                                      {
+ 346   5                                              DLRight();
+ 347   5                                      }
+ 348   4                                      else if(Uart1ReceData[i+1]=='R')
+ 349   4                                      {
+ 350   5                                              DRRight();
+ 351   5                                      }
+ 352   4                                      else if(Uart1ReceData[i+1]=='U')
+ 353   4                                      {
+ 354   5                                              DURight();
+ 355   5                                      }
+ 356   4                                      else if(Uart1ReceData[i+1]=='S')
+ 357   4                                      {
+ 358   5                                              DSRight();//2008-11-14
+ 359   5                                      }
+ 360   4                                      else if(Uart1ReceData[i+1]=='A' && (Uart1ReceData[i+3]=='a'))
+ 361   4                                      {
+ 362   5                                              DAzaRight();
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 7   
+
+ 363   5                                      }
+ 364   4                                      else if((Uart1ReceData[i+1]=='A') && (Uart1ReceData[i+3]=='b'))
+ 365   4                                      {
+ 366   5                                              DAzbRight();    
+ 367   5                                      }
+ 368   4                                      break;
+ 369   4                              }
+ 370   3                              case 'W'://Wa?<cf>
+ 371   3                              {
+ 372   4                                      if(Uart1ReceData[i+3]=='\r')
+ 373   4                                      {
+ 374   5                                              ReadGPS(); 
+ 375   5                                              ReturnWarning();//返回告警信息
+ 376   5                                      }
+ 377   4                                      break;
+ 378   4                              }
+ 379   3                              case 'M':
+ 380   3                              {
+ 381   4                                      if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='R')//M_R<cf>,M_A<cf>,M_M<cf>
+ 382   4                                              Reset();//复位
+ 383   4                                      else if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='A')
+ 384   4                                              SetAutoMode();//设置自动模式
+ 385   4                                      else if(Uart1ReceData[i+3]=='\r' && Uart1ReceData[i+2]=='M')
+ 386   4                                      {
+ 387   5                                              SetManulMode();//设置手动模式
+ 388   5                                              if(NumberOfComand > 1)
+ 389   5                                              {
+ 390   6                                                      Delay(1);
+ 391   6                                              }
+ 392   5                                      }
+ 393   4                                      break; 
+ 394   4                              }
+ 395   3                              case 'O'://O****T***<cf>
+ 396   3                              {
+ 397   4                                      if(Uart1ReceData[i+13]=='\r' && Uart1ReceData[i+7]=='T')
+ 398   4                                              SetStationLongLat();//设置天线所在地经纬度
+ 399   4                                      break;
+ 400   4                              }
+ 401   3                              case 'B': //Ba!<cf>
+ 402   3                              {
+ 403   4                                      if(Uart1ReceData[i+3]=='\r')
+ 404   4                                      {
+ 405   5                                              status = STORESTATUS;//如果此时状态不是收藏状态，再设置成一次收藏状态
+ 406   5                                      }
+ 407   4                                      else
+ 408   4                                      {
+ 409   5                                              SrcStarKbS = (Uart1ReceData[i + 1] - '0') * 10000.0 + \
+ 410   5                                                                       (Uart1ReceData[i + 2] - '0') * 1000.0 + \
+ 411   5                                                                       (Uart1ReceData[i + 3] - '0') * 100.0 + \
+ 412   5                                                                       (Uart1ReceData[i + 4] - '0') * 10.0 + \
+ 413   5                                                                        Uart1ReceData[i + 5] - '0';                                                             
+ 414   5                                              StoreData();
+ 415   5                                              SelectBaseStar = 0;
+ 416   5                                      }                                 
+ 417   4                                      break;
+ 418   4                              }
+ 419   3                                      
+ 420   3                              case 'G'://Go!<cf>,边瓣安装完毕
+ 421   3                              {
+ 422   4                                      if(Uart1ReceData[i+3]=='\r')
+ 423   4                                      {
+ 424   5                                              if(status == INIT)//如果当前状态是初始化
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 8   
+
+ 425   5                                              {
+ 426   6                                                      BianBanFlag=1;//边瓣安装开始
+ 427   6                                              }
+ 428   5                                              else if(status == STORESTATUS)//如果当前状态是收藏状态
+ 429   5                                              {
+ 430   6                                                      UninstallBianbanFlag=1;//边瓣卸载完毕
+ 431   6                                                      ReturnStoreSuccess();
+ 432   6                                              }
+ 433   5                                              break;
+ 434   5                                      }       
+ 435   4      
+ 436   4                              }
+ 437   3                              case 'g' ://gps?<cf>//返回GPS读数
+ 438   3                              {
+ 439   4                                 if(Uart1ReceData[i+4]=='\r')
+ 440   4                                 {
+ 441   5                                              ReadGPS();              
+ 442   5                                              ReturnGPS();
+ 443   5                                      }
+ 444   4                                      break;
+ 445   4      
+ 446   4                              }
+ 447   3                              case 'R'://R*<cf>
+ 448   3                              {
+ 449   4                                 if(Uart1ReceData[i+2]=='\r')
+ 450   4                                              SetRecKind();
+ 451   4                                      break;
+ 452   4      
+ 453   4                              }
+ 454   3      
+ 455   3                              /*2009/6/11加入新的协议*/
+ 456   3                              case '$':
+ 457   3                              {
+ 458   4                                      if(Uart1ReceData[i + 1] == '1')
+ 459   4                                      {       
+ 460   5                                              TimeTest(2);
+ 461   5                                      }
+ 462   4                                      EnStorSrcPara = 1;
+ 463   4                                      SelectBaseStar = 0;
+ 464   4                                      if(Uart1ReceData[i + 1] == '2')
+ 465   4                                      {
+ 466   5                                              TimeTest(1);
+ 467   5                                              EnStorSrcPara = 0;
+ 468   5                                              SelectBaseStar = 1;
+ 469   5                                              BaseStarFlagThree = 2;
+ 470   5                                      }
+ 471   4                                      if(Uart1ReceData[i + 1] == '?')
+ 472   4                                      {
+ 473   5                                              RetBaseStarData();      
+ 474   5                                      }
+ 475   4                                      break;
+ 476   4                              }
+ 477   3                              case '0':
+ 478   3                              case '1':
+ 479   3                              case '2':
+ 480   3                              case '3':
+ 481   3                              case '4':
+ 482   3                              {
+ 483   4                                      retYorN();
+ 484   4                                      break;
+ 485   4                              }
+ 486   3      
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 9   
+
+ 487   3                              case 'T': //TU,TR,TL等测试上台，左右收藏
+ 488   3                              {
+ 489   4                                      if(status > SEARCHREADY && status < STORESTATUS)
+ 490   4                                      {
+ 491   5                                              status=MANUALMODE;      
+ 492   5                                      }
+ 493   4                                      else
+ 494   4                                      {
+ 495   5                                              TotReturn();
+ 496   5                                              break;                                  
+ 497   5                                      }
+ 498   4                                      if(Uart1ReceData[i + 1] == 'O')
+ 499   4                                      {
+ 500   5                                              TotReturn();
+ 501   5                                              break;  
+ 502   5                                      }
+ 503   4                                      TotReturn();
+ 504   4      
+ 505   4                                      TestStor(Uart1ReceData[i + 1]);
+ 506   4      
+ 507   4                                      break;
+ 508   4                              }
+ 509   3                              default:
+ 510   3                                      break;
+ 511   3                      }
+ 512   2                      NumberOfComand--;//处理下一个命令
+ 513   2                      if(NumberOfComand==0)
+ 514   2                      {
+ 515   3                              Uart1ReceDataLength=0;
+ 516   3                              head=Uart1ReceData;
+ 517   3                      }
+ 518   2                      else
+ 519   2                      {               
+ 520   3                              while(*(head++)!='\r');//找这个命令的结尾
+ 521   3                              commandlength=head-(Uart1ReceData+i);
+ 522   3                              i=i+commandlength;
+ 523   3                      }
+ 524   2              }
+ 525   1              Uart1TX();
+ 526   1      }
+ 527          
+ 528          
+ 529          /***********************************************************************
+ 530          函数原型：void ReturnSta(void)
+ 531          入口参数：无
+ 532          出口参数：无
+ 533          功能描述：返回天线方位/俯仰/极化角度，agc值
+ 534          协议格式：Sta?<cr>
+ 535          ***********************************************************************/
+ 536          static void ReturnSta(void)
+ 537          {
+ 538   1              SetAutoMode();
+ 539   1              ReturnRecKind();
+ 540   1              ReturnAZEL();
+ 541   1              ReturnAGCPloar();
+ 542   1      
+ 543   1              ReturnSatLongPloarVet();
+ 544   1              ReturnRecFreq();        
+ 545   1              ReturnStaLong();
+ 546   1      
+ 547   1              ReturnStaLatitude();
+ 548   1      
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 10  
+
+ 549   1              ReturnXinBiaoAGCThreshold();
+ 550   1              if(LockFlag==0)//一旦锁定成功
+ 551   1                      SendSearching();//发搜索状态信息
+ 552   1              else 
+ 553   1                      SendTacking();//发锁定信息
+ 554   1      //      SendRelease();//返回版本号2008-12-4
+ 555   1      
+ 556   1              ReturnBitS(SSrcStarKbS);
+ 557   1      }
+ 558          /***********************************************************************
+ 559          函数原型：static void ReturnGPS(void)
+ 560          入口参数：无
+ 561          出口参数：无
+ 562          功能描述：返回GPS的经纬度输出
+ 563          协议格式：Sta?<cr>
+ 564          ***********************************************************************/
+ 565          static void ReturnGPS(void)
+ 566          {
+ 567   1              char temp[4];
+ 568   1              itoa(GPSLong*10,temp,4);
+ 569   1              Uart1SendData[Uart1TXMAXLenth++]='J';
+ 570   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+ 571   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+ 572   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+ 573   1              Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+ 574   1              Uart1SendData[Uart1TXMAXLenth++]='Z';
+ 575   1              if(GPSEastFlag==EAST)
+ 576   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+ 577   1              else
+ 578   1                      Uart1SendData[Uart1TXMAXLenth++]='2';   
+ 579   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+ 580   1              itoa(GPSLat*10,temp,3);
+ 581   1              Uart1SendData[Uart1TXMAXLenth++]='W';
+ 582   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+ 583   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+ 584   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+ 585   1              Uart1SendData[Uart1TXMAXLenth++]='Z';
+ 586   1              if(GPSNorthFlag==NORTH)
+ 587   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+ 588   1              else
+ 589   1                      Uart1SendData[Uart1TXMAXLenth++]='2';   
+ 590   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+ 591   1      
+ 592   1      }
+ 593          /***********************************************************************
+ 594          函数原型：void ReturnSet(void)
+ 595          入口参数：无
+ 596          出口参数：无
+ 597          功能描述：返回卫星经度，极化方式，信标频率，地球站经纬度,接收机类型
+ 598          协议格式：Set?<cr>
+ 599          ***********************************************************************/
+ 600          void ReturnSet(void)
+ 601          {
+ 602   1              ReturnEnBaseStar();
+ 603   1              ReturnSatLongPloarVet();
+ 604   1              ReturnRecFreq();
+ 605   1              ReturnStaLong();
+ 606   1              ReturnStaLatitude();
+ 607   1              ReturnXinBiaoAGCThreshold();
+ 608   1              ReturnRecKind();
+ 609   1              ElRange();                                                              //2008-11-27发送边界
+ 610   1              ReturnBitS(SSrcStarKbS);
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 11  
+
+ 611   1              SendRelease();                                                  //返回版本号2008-12-4
+ 612   1      }
+ 613          
+ 614          /***********************************************************************
+ 615          函数原型：void SetStaLongPlo(void)
+ 616          入口参数：无
+ 617          出口参数：无
+ 618          功能描述：设置目标卫星经度和极化
+ 619          协议格式：L****P*<cr>
+ 620          ***********************************************************************/
+ 621          static void SetStaLongPlo(void)
+ 622          {
+ 623   1              float t;
+ 624   1              t=(Uart1ReceData[i+1]-'0')*100+(Uart1ReceData[i+2]-'0')*10+(Uart1ReceData[i+3]-'0')+(Uart1ReceData[i+4]-'
+             -0')*0.1; 
+ 625   1              if(SelectBaseStar == 1)
+ 626   1              {
+ 627   2                      BaseStarLONG = t;
+ 628   2                      if(Uart1ReceData[i+8]=='H')
+ 629   2                              BaseStarPol=H;
+ 630   2                      else
+ 631   2                              BaseStarPol=V;
+ 632   2                      if(Uart1ReceData[i+6]=='1')
+ 633   2                      {
+ 634   3                              BaseStarLONGEF = 1;
+ 635   3                      }
+ 636   2                      else
+ 637   2                      {
+ 638   3                              BaseStarLONGEF = 0;
+ 639   3                      }
+ 640   2                      /****************************************************           
+ 641   2                      *以下存储卫星东西经标致,存储方法如下
+ 642   2                      *存储0或者1
+ 643   2                      ****************************************************/   
+ 644   2                      WriteEEPROM(BaseStarLONGEF, BaseStarLONGEFAddr);
+ 645   2              }
+ 646   1              else
+ 647   1              {
+ 648   2                      SatLong = t;
+ 649   2                      if(Uart1ReceData[i+8]=='H')
+ 650   2                              StationPloMode=H;
+ 651   2                      else
+ 652   2                              StationPloMode=V;
+ 653   2                      if(Uart1ReceData[i+6]=='1')
+ 654   2                      {
+ 655   3                              SatLongEastFlag = 1;
+ 656   3                      }
+ 657   2                      else
+ 658   2                      {
+ 659   3                              SatLongEastFlag = 0;
+ 660   3                      }       
+ 661   2              }       
+ 662   1      
+ 663   1              //status=SearchReady;
+ 664   1      }
+ 665          /***********************************************************************
+ 666          函数原型：void ChangeXinbiaoFreq(void)
+ 667          入口参数：无
+ 668          出口参数：无
+ 669          功能描述：改变信标接收机的频率
+ 670          协议格式：F*******<cr>
+ 671          ***********************************************************************/
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 12  
+
+ 672          static void ChangeXinbiaoFreq(void)
+ 673          {
+ 674   1              double t;
+ 675   1              t = (Uart1ReceData[i+1]-'0')*1000.0+(Uart1ReceData[i+2]-'0')*100.0+(Uart1ReceData[i+3]-'0')*10.0+(Uart1Re
+             -ceData[i+4]-'0')*1.0+(Uart1ReceData[i+5]-'0')*0.1+(Uart1ReceData[i+6]-'0')*0.01+(Uart1ReceData[i+7]-'0')*0.001; 
+ 676   1              if(SelectBaseStar == 1)
+ 677   1              {
+ 678   2                      BaseStarFreq = t;       
+ 679   2              }
+ 680   1              else
+ 681   1              {
+ 682   2                      if(ReceiverKindFlag==XINBIAOREC)
+ 683   2                      {
+ 684   3                              XinBiaoRecFreq = t;
+ 685   3                      }
+ 686   2                      else
+ 687   2                      {
+ 688   3                              SharpRecFreq = t;
+ 689   3                      }
+ 690   2              //status=SearchReady;
+ 691   2              }
+ 692   1      }
+ 693          /***********************************************************************
+ 694          函数原型：void SetThreshold(void)
+ 695          入口参数：无
+ 696          出口参数：无
+ 697          功能描述：设置门限
+ 698          协议格式：H**<cr>
+ 699          ***********************************************************************/
+ 700          static void SetThreshold(void)
+ 701          {
+ 702   1              if(ReceiverKindFlag==XINBIAOREC)
+ 703   1                      XinBiaoThreshold=(Uart1ReceData[i+1]-'0')+(Uart1ReceData[i+2]-'0')*0.1;
+ 704   1              else
+ 705   1                      SharpThreshold= (Uart1ReceData[i+1]-'0')+(Uart1ReceData[i+2]-'0')*0.1;
+ 706   1              status=SEARCHREADY;     
+ 707   1      }
+ 708          /***********************************************************************
+ 709          函数原型：void SetThreshold(void)
+ 710          入口参数：无
+ 711          出口参数：无
+ 712          功能描述：设置接收机类型
+ 713          协议格式：R*<cr>
+ 714          ***********************************************************************/
+ 715          static void SetRecKind(void)
+ 716          {
+ 717   1              if(SelectBaseStar == 1)
+ 718   1              {
+ 719   2                      BaseStarRType = Uart1ReceData[i+1] - '0';       
+ 720   2              }
+ 721   1              else
+ 722   1              {
+ 723   2                      if(Uart1ReceData[i+1]=='0')
+ 724   2                      {
+ 725   3                              ReceiverKindFlag=XINBIAOREC;
+ 726   3                      }
+ 727   2                      else
+ 728   2                      {
+ 729   3                              ReceiverKindFlag=SHARPREC;              
+ 730   3                      }
+ 731   2              }
+ 732   1      
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 13  
+
+ 733   1         //status=SearchReady;
+ 734   1      }
+ 735          /***********************************************************************
+ 736          函数原型：void AddEL(char c)
+ 737          入口参数：字符，取值1，2，或3
+ 738          出口参数：无
+ 739          功能描述：增加俯仰1.0,0.3或者0.1
+ 740          协议格式：P*+<cr>
+ 741          ***********************************************************************/
+ 742          static void AddEL(char c)
+ 743          {
+ 744   1              float i;
+ 745   1              switch(c)
+ 746   1              {
+ 747   2                      case '1':
+ 748   2                              i = 1.0;
+ 749   2                              break;
+ 750   2                      case '2':
+ 751   2                              i = 0.3;
+ 752   2                              break;
+ 753   2                      case '3':
+ 754   2                              i = 0.1;
+ 755   2                              break;
+ 756   2                      default:
+ 757   2                              i = 0.0;
+ 758   2                              break;          
+ 759   2              }
+ 760   1              MotorCtrl(UPDOWN, StationEl + i, SpeedSearchEl);
+ 761   1              ReturnAGCPloar();
+ 762   1              ReturnAZEL();
+ 763   1              Uart1TX();
+ 764   1      }
+ 765          /***********************************************************************
+ 766          函数原型：void DelEL(char c)
+ 767          入口参数：字符，取值1，2，或3
+ 768          出口参数：无
+ 769          功能描述：减少俯仰1.0,0.3或者0.1
+ 770          协议格式：P*-<cr>
+ 771          ***********************************************************************/
+ 772          static void DelEL(char c)
+ 773          {
+ 774   1              float i;
+ 775   1              switch(c)
+ 776   1              {
+ 777   2                      case '1':
+ 778   2                              i = 1.0;
+ 779   2                              break;
+ 780   2                      case '2':
+ 781   2                              i = 0.3;
+ 782   2                              break;
+ 783   2                      case '3':
+ 784   2                              i = 0.1;
+ 785   2                              break;
+ 786   2                      default:
+ 787   2                              i = 0.0;
+ 788   2                              break;          
+ 789   2              }
+ 790   1      
+ 791   1              MotorCtrl(UPDOWN, StationEl - i, SpeedSearchEl);
+ 792   1              ReturnAGCPloar();
+ 793   1              ReturnAZEL();
+ 794   1              Uart1TX();
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 14  
+
+ 795   1      }
+ 796          /***********************************************************************
+ 797          函数原型：void AddAZ(char c)
+ 798          入口参数：字符，取值1，2，或3
+ 799          出口参数：无
+ 800          功能描述：增加方位1.0,0.3或者0.1
+ 801          协议格式：A*+<cr>
+ 802          ***********************************************************************/
+ 803          static void AddAZ(char c)
+ 804          {
+ 805   1              float i;
+ 806   1              switch(c)
+ 807   1              {
+ 808   2                      case '1':
+ 809   2                              i = 1.0;
+ 810   2                              break;
+ 811   2                      case '2':
+ 812   2                              i = 0.3;
+ 813   2                              break;
+ 814   2                      case '3':
+ 815   2                              i = 0.1;
+ 816   2                              break;
+ 817   2                      default:
+ 818   2                              i = 0.0;
+ 819   2                              break;          
+ 820   2              }
+ 821   1      
+ 822   1              MotorCtrl(RIGHTLEFT, StationAz + i, SpeedSearchAzF);
+ 823   1              ReturnAGCPloar();
+ 824   1              ReturnAZEL();
+ 825   1              Uart1TX();
+ 826   1      }
+ 827          /***********************************************************************
+ 828          函数原型：void DelAZ(char c)
+ 829          入口参数：字符，取值1，2，或3
+ 830          出口参数：无
+ 831          功能描述：减少方位1.0,0.3或者0.1
+ 832          协议格式：A*-<cr>
+ 833          ***********************************************************************/
+ 834          static void DelAZ(char c)
+ 835          {
+ 836   1              float i;
+ 837   1              switch(c)
+ 838   1              {
+ 839   2                      case '1':
+ 840   2                              i = 1.0;
+ 841   2                              break;
+ 842   2                      case '2':
+ 843   2                              i = 0.3;
+ 844   2                              break;
+ 845   2                      case '3':
+ 846   2                              i = 0.1;
+ 847   2                              break;
+ 848   2                      default:
+ 849   2                              i = 0.0;
+ 850   2                              break;          
+ 851   2              }
+ 852   1      
+ 853   1              MotorCtrl(RIGHTLEFT, StationAz - i, SpeedSearchAzF);
+ 854   1              ReturnAGCPloar();
+ 855   1              ReturnAZEL();
+ 856   1              Uart1TX();
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 15  
+
+ 857   1      }
+ 858          
+ 859          /***********************************************************************
+ 860          函数原型：void GotoAZ(void)
+ 861          入口参数：无
+ 862          出口参数：无
+ 863          功能描述：以某个速度自定义加减方位
+ 864          协议格式：AZ+****V***<cr>或者AZ-****V***<cr>
+ 865          ***********************************************************************/
+ 866          static void GotoAZ(void)
+ 867          {
+ 868   1              float az;
+ 869   1              int speed;
+ 870   1              az=(Uart1ReceData[i+3]-'0')*100+(Uart1ReceData[i+4]-'0')*10+(Uart1ReceData[i+5]-'0')+(Uart1ReceData[i+6]-
+             -'0')*0.1;
+ 871   1              speed=(Uart1ReceData[i+8]-'0')*100+(Uart1ReceData[i+9]-'0')*10+(Uart1ReceData[i+10]-'0');
+ 872   1      
+ 873   1              if(Uart1ReceData[i+2]=='+')
+ 874   1              { 
+ 875   2                      az += StationAz;
+ 876   2              }
+ 877   1              else 
+ 878   1              { 
+ 879   2                      az = StationAz - az;
+ 880   2              }
+ 881   1              MotorCtrl(RIGHTLEFT, az, SpeedInitF - (1000 - speed));
+ 882   1              ReturnAGCPloar();
+ 883   1              ReturnAZEL();
+ 884   1              Uart1TX();
+ 885   1      }
+ 886          /***********************************************************************
+ 887          函数原型：void GotoEL(void)
+ 888          入口参数：无
+ 889          出口参数：无
+ 890          功能描述：以某个速度自定义加减俯仰
+ 891          协议格式：PZ+***V***<cr>或者PZ-***V***<cr>
+ 892          ***********************************************************************/
+ 893          static void GotoEL(void)
+ 894          {
+ 895   1              float el;
+ 896   1              int speed;
+ 897   1              el=(Uart1ReceData[i+3]-'0')*10+(Uart1ReceData[i+4]-'0')+(Uart1ReceData[i+5]-'0')*0.1;
+ 898   1              speed=(Uart1ReceData[i+7]-'0')*100+(Uart1ReceData[i+8]-'0')*10+(Uart1ReceData[i+9]-'0');
+ 899   1              
+ 900   1              if(Uart1ReceData[i+2]=='+')
+ 901   1              { 
+ 902   2                      el += StationEl;
+ 903   2              }
+ 904   1              else 
+ 905   1              { 
+ 906   2                      el = StationEl - el;
+ 907   2              }
+ 908   1      
+ 909   1              MotorCtrl(UPDOWN, el, SpeedInitS - (1000 - speed));
+ 910   1              ReturnAGCPloar();
+ 911   1              ReturnAZEL();
+ 912   1              Uart1TX();
+ 913   1      }
+ 914          
+ 915          
+ 916           /***********************************************************************
+ 917          函数原型：void SetPloRight(void)
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 16  
+
+ 918          入口参数：无
+ 919          出口参数：无
+ 920          功能描述：设置极化较零
+ 921          协议格式：
+ 922          ***********************************************************************/
+ 923          static void SetPloRight(void)
+ 924          {
+ 925   1          float RightPol;                                     //人为设置的正确极化角
+ 926   1              float StoreDeltaPol;                    //最终算出来的要存储的差值
+ 927   1              float ReadDeltaPol = 0.0;               //读出来的差值
+ 928   1              float newpol = 0.0;
+ 929   1      
+ 930   1              newpol = GetComPolA();
+ 931   1              if(ReadEEPROM(PolCompensateAddress)=='+')               //如果读出来的是正值
+ 932   1              {
+ 933   2                      ReadDeltaPol=ReadEEPROM(PolCompensateAddress+1);
+ 934   2              }
+ 935   1              else if(ReadEEPROM(PolCompensateAddress)=='-')  //如果读出来的是负值
+ 936   1              {
+ 937   2                      ReadDeltaPol=0.0-ReadEEPROM(PolCompensateAddress+1);
+ 938   2              }
+ 939   1      
+ 940   1              RightPol=(Uart1ReceData[i+3]-'0')*10.0+(Uart1ReceData[i+4]-'0')*1.0+(Uart1ReceData[i+5]-'0')*0.1;
+ 941   1              if(Uart1ReceData[i+2]=='1')
+ 942   1                      RightPol=0.0-RightPol;  
+ 943   1      
+ 944   1              StoreDeltaPol=ReadDeltaPol+(RightPol-newpol);//算出正确的误差值
+ 945   1              AngleCom=StoreDeltaPol;
+ 946   1              if(StoreDeltaPol>0)//如果存储的差值为正
+ 947   1              {
+ 948   2                      WriteEEPROM('+',PolCompensateAddress);//存正号
+ 949   2                      WriteEEPROM(StoreDeltaPol,PolCompensateAddress+1);
+ 950   2              }
+ 951   1              else
+ 952   1              {
+ 953   2                      WriteEEPROM('-',PolCompensateAddress);//存负号
+ 954   2                      StoreDeltaPol=0-StoreDeltaPol;//变成正的
+ 955   2                      WriteEEPROM(StoreDeltaPol,PolCompensateAddress+1);
+ 956   2              }
+ 957   1              PolarFlag = 0;
+ 958   1              ReturnAZEL();
+ 959   1              ReturnAGCPloar();
+ 960   1              Uart1TX();
+ 961   1      }
+ 962          
+ 963          
+ 964          /***********************************************************************
+ 965          函数原型：void SetAZRight(void)
+ 966          入口参数：无
+ 967          出口参数：无
+ 968          功能描述：设置方位较零
+ 969          协议格式：
+ 970          ***********************************************************************/
+ 971          static void SetAZRight(void)
+ 972          {
+ 973   1              float RightAz;                          //人为设置的正确方位
+ 974   1              float StoreDeltaAz;                     //最终算出来的要存储的差值
+ 975   1              float ReadDeltaAz = 0.0;        //读出来的差值
+ 976   1      
+ 977   1              if(ReadEEPROM(AZCompensateAddress)=='+')                //如果读出来的是正值
+ 978   1              {
+ 979   2                      ReadDeltaAz=    ReadEEPROM(AZCompensateAddress+1)/10.0;
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 17  
+
+ 980   2              }
+ 981   1              else if(ReadEEPROM(AZCompensateAddress)=='-')   //如果读出来的是负值
+ 982   1              {
+ 983   2                      ReadDeltaAz=0.0-ReadEEPROM(AZCompensateAddress+1)/10.0;
+ 984   2              }
+ 985   1              RightAz=(Uart1ReceData[i+2]-'0')*100.0+(Uart1ReceData[i+3]-'0')*10.0+(Uart1ReceData[i+4]-'0')*1.0+(Uart1R
+             -eceData[i+5]-'0')*0.1;
+ 986   1      
+ 987   1              StoreDeltaAz=ReadDeltaAz+(RightAz-StationAz);//算出正确的误差值
+ 988   1              if(StoreDeltaAz>0)//如果存储的差值为正
+ 989   1              {
+ 990   2                      WriteEEPROM('+',AZCompensateAddress);//存正号
+ 991   2                      WriteEEPROM(10*StoreDeltaAz,AZCompensateAddress+1);
+ 992   2              }
+ 993   1              else
+ 994   1              {
+ 995   2                      WriteEEPROM('-',AZCompensateAddress);//存负号
+ 996   2                      StoreDeltaAz=0-StoreDeltaAz;//变成正的
+ 997   2                      WriteEEPROM(10*StoreDeltaAz,AZCompensateAddress+1);
+ 998   2              }
+ 999   1              StationAz=RightAz;
+1000   1              ReturnAZEL();
+1001   1              ReturnAGCPloar();
+1002   1              Uart1TX();      
+1003   1      }
+1004          /***********************************************************************
+1005          函数原型：void SetELRight(void)
+1006          入口参数：无
+1007          出口参数：无
+1008          功能描述：设置俯仰较零
+1009          协议格式：
+1010          ***********************************************************************/
+1011          static void SetELRight(void)
+1012          {
+1013   1              float RightEl;                          //人为设置的正确俯仰角
+1014   1              float StoreDeltaEl;                     //最终算出来的要存储的差值
+1015   1              float ReadDeltaEl = 0.0;        //读出来的差值
+1016   1      
+1017   1              if(ReadEEPROM(ELCompensateAddress)=='+')                //如果读出来的是正值
+1018   1              {
+1019   2                      ReadDeltaEl=ReadEEPROM(ELCompensateAddress+1)/10.0;
+1020   2              }
+1021   1              else if(ReadEEPROM(ELCompensateAddress)=='-')   //如果读出来的是负值
+1022   1              {
+1023   2                      ReadDeltaEl=0.0-ReadEEPROM(ELCompensateAddress+1)/10.0;
+1024   2              }
+1025   1              RightEl=(Uart1ReceData[i+3]-'0')*10.0+(Uart1ReceData[i+4]-'0')*1.0+(Uart1ReceData[i+5]-'0')*0.1;
+1026   1              StoreDeltaEl=ReadDeltaEl+(RightEl-StationEl);//算出正确的误差值
+1027   1              GradientRightR = StoreDeltaEl;
+1028   1              if(StoreDeltaEl>0)//如果存储的差值为正
+1029   1              {
+1030   2                      WriteEEPROM('+',ELCompensateAddress);//存正号
+1031   2                      WriteEEPROM(10*StoreDeltaEl,ELCompensateAddress+1);
+1032   2              }
+1033   1              else
+1034   1              {
+1035   2                      WriteEEPROM('-',ELCompensateAddress);//存负号
+1036   2                      StoreDeltaEl=0-StoreDeltaEl;//变成正的
+1037   2                      WriteEEPROM(10*StoreDeltaEl,ELCompensateAddress+1);
+1038   2              }
+1039   1              StationEl=RightEl;
+1040   1              ReturnAZEL();
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 18  
+
+1041   1              ReturnAGCPloar();
+1042   1              Uart1TX();
+1043   1      }
+1044          /***********************************************************************
+1045          函数原型：void ReturnWarning()
+1046          入口参数：无
+1047          出口参数：无
+1048          功能描述：检测倾斜仪，GPS，极化，并返回状态信息
+1049          ***********************************************************************/
+1050          static void ReturnWarning()//返回告警信息
+1051          {
+1052   1      //      PloarNormal=0;//先置极化不正常
+1053   1      //      StationPol=GetComPolA();
+1054   1      //      if(StationPol<95.0 && StationPol>-95.0)
+1055   1      //              PloarNormal=1;//直接采样如果极化角正常则极化认为正常
+1056   1              SendWarning();
+1057   1      
+1058   1      }
+1059          /***********************************************************************
+1060          函数原型：static void ReturnRecKind(void)
+1061          入口参数：无
+1062          出口参数：无
+1063          功能描述：返回接收机类型
+1064          ***********************************************************************/
+1065          static void ReturnRecKind(void)//返回接收机类型
+1066          {       
+1067   1              Uart1SendData[Uart1TXMAXLenth++]='R';
+1068   1              if(ReceiverKindFlag==XINBIAOREC)
+1069   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1070   1              else
+1071   1                      Uart1SendData[Uart1TXMAXLenth++]='1';   
+1072   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1073   1      }
+1074          /***********************************************************************
+1075          函数原型：static void Reset()
+1076          入口参数：无
+1077          出口参数：无
+1078          功能描述：准备重新开始对星
+1079          ***********************************************************************/
+1080          static void Reset()//复位
+1081          {
+1082   1              ResetFlag = 1;                          //收到一次复位命令后，标志置真
+1083   1              if(status == SEARCHREADY)
+1084   1              {
+1085   2                      AntReadySearchF = 0;            //2009/10/12复位时再次复位用
+1086   2              }
+1087   1              status = SEARCHREADY;
+1088   1      }
+1089          /***********************************************************************
+1090          函数原型：void SetAutoMode()
+1091          入口参数：无
+1092          出口参数：无
+1093          功能描述：设置自动模式
+1094          ***********************************************************************/
+1095          static void SetAutoMode()
+1096          {
+1097   1              if(status > SEARCHREADY && status < STORESTATUS)
+1098   1              {
+1099   2                      status=SEARCHING;       
+1100   2              }
+1101   1      }
+1102          /***********************************************************************
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 19  
+
+1103          函数原型：void SetManulMode()
+1104          入口参数：无
+1105          出口参数：无
+1106          功能描述：设置手动模式
+1107          ***********************************************************************/
+1108          static void SetManulMode()
+1109          {
+1110   1              ReturnAZEL();
+1111   1              ReturnAGCPloar();
+1112   1              ReturnCal();
+1113   1              SendRelease();
+1114   1              if(status > INIT && status < STORESTATUS)
+1115   1              {
+1116   2                      status=MANUALMODE;      
+1117   2              }
+1118   1      }
+1119          
+1120          /***********************************************************************
+1121          函数原型：void SetStationLongLat()
+1122          入口参数：无
+1123          出口参数：无
+1124          功能描述：天线控制器重新设置地球站经纬度
+1125          ***********************************************************************/
+1126          static void SetStationLongLat()//设置天线所在地经纬度
+1127          {
+1128   1              StationLong=(Uart1ReceData[i+1]-'0')*100.0+(Uart1ReceData[i+2]-'0')*10.0+(Uart1ReceData[i+3]-'0')*1.0+(Ua
+             -rt1ReceData[i+4]-'0')*0.1;
+1129   1              StationLat=(Uart1ReceData[i+8]-'0')*10.0+(Uart1ReceData[i+9]-'0')*1.0+(Uart1ReceData[i+10]-'0')*0.1;
+1130   1              if(Uart1ReceData[i+6] == '1')
+1131   1              {
+1132   2                      StationEastFlag = 1;
+1133   2              }
+1134   1              else
+1135   1              {
+1136   2                      StationEastFlag = 0;
+1137   2              }
+1138   1              if(Uart1ReceData[i+12] == '1')
+1139   1              {
+1140   2                      StationNorthFlag = 1;
+1141   2              }
+1142   1              else
+1143   1              {
+1144   2                      StationNorthFlag = 0;
+1145   2              }
+1146   1              ReturnAGCPloar();
+1147   1              ReturnAZEL();
+1148   1              status=SEARCHREADY;
+1149   1      }
+1150          /***********************************************************************
+1151          函数原型：static void ReturnAZEL(void)
+1152          入口参数：无
+1153          出口参数：无
+1154          功能描述：天线控制器向监控服务器返回目前天线的方位和俯仰；
+1155          协议格式：A****E***<LF>
+1156          ***********************************************************************/
+1157          static void ReturnAZEL(void)
+1158          {
+1159   1              char temp[4];
+1160   1              itoa(StationAz*10,temp,4);
+1161   1              Uart1SendData[Uart1TXMAXLenth++]='A';
+1162   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1163   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 20  
+
+1164   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1165   1              Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1166   1              Uart1SendData[Uart1TXMAXLenth++]='E';
+1167   1              itoa(StationEl*10,temp,3);
+1168   1              if(StationEl>0.0)
+1169   1                      Uart1SendData[Uart1TXMAXLenth++]='+';
+1170   1              else
+1171   1                      Uart1SendData[Uart1TXMAXLenth++]='-';
+1172   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];       
+1173   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1174   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];       
+1175   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1176   1              ElRange();                                                              //2008-11-27发送边界    
+1177   1      }
+1178          /***********************************************************************
+1179          函数原型：static void ReturnAGCPloar(void)
+1180          入口参数：无
+1181          出口参数：无
+1182          功能描述：天线控制器向监控服务器返回目前天线AGC和极化角度；
+1183          协议格式：G****R****<LF>
+1184          ***********************************************************************/
+1185          static void ReturnAGCPloar(void)
+1186          {
+1187   1              char temp[4];
+1188   1              AGC=GetAGC();//这里不应该再采了
+1189   1              itoa(AGC*100,temp,4);
+1190   1              Uart1SendData[Uart1TXMAXLenth++]='G';
+1191   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1192   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1193   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1194   1              Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1195   1              Uart1SendData[Uart1TXMAXLenth++]='R';
+1196   1              StationPol=GetComPolA();//这个是否也要等转完了再采
+1197   1              if(StationPol < 90.0)
+1198   1              {
+1199   2                      Uart1SendData[Uart1TXMAXLenth++]='-';
+1200   2              }
+1201   1              else
+1202   1              { 
+1203   2                      Uart1SendData[Uart1TXMAXLenth++]='+';
+1204   2                      StationPol -= 360;
+1205   2              }
+1206   1              itoa(fabs(StationPol) * 10, temp, 3);
+1207   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1208   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1209   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1210   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1211   1      }
+1212          
+1213          
+1214          /***********************************************************************
+1215          函数原型：static void ReturnSatLongPloarVet(void)
+1216          入口参数：无
+1217          出口参数：无
+1218          功能描述：天线控制器向监控服务器返回目前设置的卫星经度和极化方式
+1219          协议格式：L****Z*P*<LF>
+1220          ***********************************************************************/
+1221          static void ReturnSatLongPloarVet(void)
+1222          {
+1223   1              char temp[4];
+1224   1              itoa(SatLong*10,temp,4);
+1225   1              Uart1SendData[Uart1TXMAXLenth++]='L';
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 21  
+
+1226   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1227   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1228   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1229   1              Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1230   1              Uart1SendData[Uart1TXMAXLenth++]='Z';
+1231   1              if(SatLongEastFlag == 1)
+1232   1              {
+1233   2                      Uart1SendData[Uart1TXMAXLenth++]='1';   
+1234   2              }
+1235   1              else
+1236   1              {
+1237   2                      Uart1SendData[Uart1TXMAXLenth++]='2';
+1238   2              }
+1239   1              Uart1SendData[Uart1TXMAXLenth++]='P';
+1240   1              if(StationPloMode==H)
+1241   1                      Uart1SendData[Uart1TXMAXLenth++]='H';
+1242   1              else
+1243   1                      Uart1SendData[Uart1TXMAXLenth++]='V';           
+1244   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1245   1      
+1246   1      }
+1247          
+1248          /***********************************************************************
+1249          函数原型：static void ReturnRecFreq(void)
+1250          入口参数：无
+1251          出口参数：无
+1252          功能描述：天线控制器向监控服务器返回目前设置的信标频率或者夏普接收机频率
+1253          协议格式：F*******<LF>
+1254          ***********************************************************************/
+1255          static void ReturnRecFreq(void)
+1256          {
+1257   1              char temp[4],temp1[3];
+1258   1              double FreqInt;//整数
+1259   1              double FreqDec;//小数   
+1260   1              if(ReceiverKindFlag==XINBIAOREC)
+1261   1              {
+1262   2                      FreqDec=modf(XinBiaoRecFreq,&FreqInt);
+1263   2                      itoa(FreqInt,temp,4);
+1264   2                      itoa(FreqDec*1000,temp1,3);
+1265   2                      Uart1SendData[Uart1TXMAXLenth++]='F';
+1266   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1267   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1268   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1269   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1270   2                      Uart1SendData[Uart1TXMAXLenth++]=temp1[0];
+1271   2                      Uart1SendData[Uart1TXMAXLenth++]=temp1[1];
+1272   2                      Uart1SendData[Uart1TXMAXLenth++]=temp1[2];
+1273   2                      Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1274   2              }
+1275   1              else//sharp接收机带宽较大，所以只精确到小数点第一位
+1276   1              {
+1277   2                      //itoa((long int)(SharpRecFreq*10),temp,4);
+1278   2                      FreqDec=modf(SharpRecFreq,&FreqInt);
+1279   2                      itoa(FreqInt,temp,4);
+1280   2                      itoa(FreqDec*1000,temp1,3);
+1281   2                      Uart1SendData[Uart1TXMAXLenth++]='F';
+1282   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1283   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1284   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1285   2                      Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1286   2                      Uart1SendData[Uart1TXMAXLenth++]=temp1[0];
+1287   2                      Uart1SendData[Uart1TXMAXLenth++]=temp1[1];
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 22  
+
+1288   2                      Uart1SendData[Uart1TXMAXLenth++]=temp1[2];
+1289   2                      Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1290   2              }
+1291   1      }
+1292          
+1293          /***********************************************************************
+1294          函数原型：static void ReturnStaLong(void)
+1295          入口参数：无
+1296          出口参数：无
+1297          功能描述：天线控制器向监控服务器返回目前站点的经度(包括东西经信息)
+1298          协议格式：J****Z*<LF>
+1299          ***********************************************************************/
+1300          static void ReturnStaLong(void)
+1301          {
+1302   1              char temp[4];
+1303   1              itoa(StationLong*10,temp,4);
+1304   1              Uart1SendData[Uart1TXMAXLenth++]='J';
+1305   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1306   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1307   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1308   1              Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1309   1              Uart1SendData[Uart1TXMAXLenth++]='Z';
+1310   1              if(StationEastFlag==EAST)
+1311   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+1312   1              else
+1313   1                      Uart1SendData[Uart1TXMAXLenth++]='2';   
+1314   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1315   1      
+1316   1      }
+1317          /***********************************************************************
+1318          函数原型：static void ReturnStaLatitude(void)
+1319          入口参数：无
+1320          出口参数：无
+1321          功能描述：天线控制器向监控服务器返回目前站点的纬度（包括南北纬信息）
+1322          协议格式：W****Z*<LF>
+1323          ***********************************************************************/
+1324          static void ReturnStaLatitude(void)
+1325          {
+1326   1              char temp[4];
+1327   1              itoa(StationLat*10,temp,3);
+1328   1              Uart1SendData[Uart1TXMAXLenth++]='W';
+1329   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1330   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1331   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1332   1              Uart1SendData[Uart1TXMAXLenth++]='Z';
+1333   1              if(StationNorthFlag==NORTH)
+1334   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+1335   1              else
+1336   1                      Uart1SendData[Uart1TXMAXLenth++]='2';   
+1337   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1338   1      
+1339   1      }
+1340          /***********************************************************************
+1341          函数原型：static void ReturnAGCThreshold(void)
+1342          入口参数：无
+1343          出口参数：无
+1344          功能描述：天线控制器向监控服务器返回目前信标接收机设置的AGC跟踪门限值
+1345          协议格式：H**<LF>
+1346          ***********************************************************************/
+1347          static void ReturnXinBiaoAGCThreshold(void)
+1348          {
+1349   1              char temp[2];
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 23  
+
+1350   1              itoa(Threshold*10,temp,2);
+1351   1              Uart1SendData[Uart1TXMAXLenth++]='H';
+1352   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1353   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1354   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1355   1      
+1356   1      }
+1357          
+1358          
+1359          /***********************************************************************
+1360          函数原型：static void SendWarning(void)
+1361          入口参数：无
+1362          出口参数：无
+1363          功能描述：天线控制器向监控服务器返回天线告警信息
+1364          协议格式：j*q*g*l*p*<LF>
+1365          ***********************************************************************/
+1366          static void SendWarning(void)
+1367          {
+1368   1              
+1369   1              Uart1SendData[Uart1TXMAXLenth++]='j';
+1370   1              if(XinBiaoRecNormalFlag==0 && SharpRecNormalFlag==0)
+1371   1                      Uart1SendData[Uart1TXMAXLenth++]='0';//信标接收机与夏普接收机均故障
+1372   1              else if(XinBiaoRecNormalFlag==0 && SharpRecNormalFlag==1)
+1373   1                      Uart1SendData[Uart1TXMAXLenth++]='1';//信标接收机故障，夏普接收机正常
+1374   1              else if(XinBiaoRecNormalFlag==1 && SharpRecNormalFlag==0)
+1375   1                      Uart1SendData[Uart1TXMAXLenth++]='2';//信标接收机正常，夏普接收机故障
+1376   1              else
+1377   1                      Uart1SendData[Uart1TXMAXLenth++]='3';//信标接收机正常，夏普接收机正常
+1378   1      
+1379   1              Uart1SendData[Uart1TXMAXLenth++]='q';
+1380   1              if(GradientNormal==0)
+1381   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1382   1              else if(GradientNormal==1) 
+1383   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+1384   1              else 
+1385   1                      Uart1SendData[Uart1TXMAXLenth++]='2';//倾斜仪目前有三种状态
+1386   1      
+1387   1              Uart1SendData[Uart1TXMAXLenth++]='g';
+1388   1              if(GPSNormal==0)
+1389   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1390   1              else if(GPSNormal==1)
+1391   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+1392   1              else 
+1393   1                      Uart1SendData[Uart1TXMAXLenth++]='2';//GPS目前有三种状态
+1394   1      
+1395   1              Uart1SendData[Uart1TXMAXLenth++]='l';
+1396   1              Uart1SendData[Uart1TXMAXLenth++]='0';
+1397   1      
+1398   1              Uart1SendData[Uart1TXMAXLenth++]='p';
+1399   1              if(PloarNormal==0)
+1400   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1401   1              else 
+1402   1                      Uart1SendData[Uart1TXMAXLenth++]='1';//极化目前只有两种状态
+1403   1      
+1404   1      
+1405   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1406   1              Uart1TX();
+1407   1      }
+1408          
+1409          /***********************************************************************
+1410          函数原型：static void SendSearching(void)
+1411          入口参数：无
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 24  
+
+1412          出口参数：无
+1413          功能描述：天线控制器向监控服务器发送搜索状态命令
+1414          协议格式：X!
+1415          ***********************************************************************/
+1416          static void SendSearching(void)
+1417          {
+1418   1      
+1419   1              Uart1SendData[Uart1TXMAXLenth++]='X';
+1420   1              Uart1SendData[Uart1TXMAXLenth++]='!';
+1421   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1422   1      }
+1423          
+1424          /***********************************************************************
+1425          函数原型：static void SendTacking(void)
+1426          入口参数：无
+1427          出口参数：无
+1428          功能描述：天线控制器向监控服务器发送锁定状态命令
+1429          协议格式：Y!
+1430          ***********************************************************************/
+1431          static void SendTacking(void)
+1432          {
+1433   1      
+1434   1              Uart1SendData[Uart1TXMAXLenth++]='Y';
+1435   1              Uart1SendData[Uart1TXMAXLenth++]='!';
+1436   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1437   1      }
+1438          
+1439          /***********************************************************************
+1440          函数原型：static void ReturnStationStatus(void)
+1441          入口参数：无
+1442          出口参数：无
+1443          功能描述：天线控制器向监控服务器发送告警和状态信息
+1444          协议格式：j*q*g*l*p*S_*<LF>
+1445          ***********************************************************************/
+1446          void ReturnStationStatus(void)
+1447          {
+1448   1              
+1449   1              Uart1SendData[Uart1TXMAXLenth++]='j';
+1450   1              if(XinBiaoRecNormalFlag==0 && SharpRecNormalFlag==0)
+1451   1                      Uart1SendData[Uart1TXMAXLenth++]='0';//信标接收机与夏普接收机均故障
+1452   1              else if(XinBiaoRecNormalFlag==0 && SharpRecNormalFlag==1)
+1453   1                      Uart1SendData[Uart1TXMAXLenth++]='1';//信标接收机故障，夏普接收机正常
+1454   1              else if(XinBiaoRecNormalFlag==1 && SharpRecNormalFlag==0)
+1455   1                      Uart1SendData[Uart1TXMAXLenth++]='2';//信标接收机正常，夏普接收机故障
+1456   1              else
+1457   1                      Uart1SendData[Uart1TXMAXLenth++]='3';//信标接收机正常，夏普接收机正常
+1458   1      
+1459   1              Uart1SendData[Uart1TXMAXLenth++]='q';
+1460   1              if(GradientNormal==0)
+1461   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1462   1              else if(GradientNormal==1) 
+1463   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+1464   1              else 
+1465   1                      Uart1SendData[Uart1TXMAXLenth++]='2';//倾斜仪目前有三种状态
+1466   1      
+1467   1              Uart1SendData[Uart1TXMAXLenth++]='g';
+1468   1              if(GPSNormal==0)
+1469   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1470   1              else if(GPSNormal==1)
+1471   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+1472   1              else 
+1473   1                      Uart1SendData[Uart1TXMAXLenth++]='2';//GPS目前有三种状态
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 25  
+
+1474   1      
+1475   1              Uart1SendData[Uart1TXMAXLenth++]='l';
+1476   1              Uart1SendData[Uart1TXMAXLenth++]='0';
+1477   1      
+1478   1              Uart1SendData[Uart1TXMAXLenth++]='p';
+1479   1              if(PloarNormal==0)
+1480   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1481   1              else 
+1482   1                      Uart1SendData[Uart1TXMAXLenth++]='1';//极化目前只有两种状态
+1483   1      
+1484   1              Uart1SendData[Uart1TXMAXLenth++]='S';
+1485   1              Uart1SendData[Uart1TXMAXLenth++]='_';
+1486   1              if(status==INIT)
+1487   1                      Uart1SendData[Uart1TXMAXLenth++]='0';
+1488   1              else if(status==MANUALMODE)
+1489   1                      Uart1SendData[Uart1TXMAXLenth++]='2';
+1490   1              else 
+1491   1                      Uart1SendData[Uart1TXMAXLenth++]='1';
+1492   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1493   1              SendRelease();//返回版本号2008-12-4
+1494   1              Delay(1000);//2008-09-02
+1495   1              Uart1TX();
+1496   1      } 
+1497          
+1498          
+1499          /*----------------------eric.Yang  ---------------------------------*/
+1500          static void DLRight(void)
+1501          {
+1502   1              unsigned char temp;
+1503   1              temp = (Uart1ReceData[i+2]-'0') * 10 + (Uart1ReceData[i + 3] - '0');
+1504   1              WriteEEPROM(temp, rightONE);
+1505   1              return; 
+1506   1      }
+1507          
+1508          static void DRRight(void)
+1509          {
+1510   1              unsigned char temp;
+1511   1              temp = (Uart1ReceData[i+2]-'0') * 10 + (Uart1ReceData[i + 3] - '0');
+1512   1              WriteEEPROM(temp, rightTWO);
+1513   1              return;
+1514   1      }
+1515          
+1516          static void DURight(void)
+1517          {
+1518   1              unsigned char temp;
+1519   1              temp = (Uart1ReceData[i + 3]-'0') * 100 + (Uart1ReceData[i + 4] - '0') * 10 + (Uart1ReceData[i + 5] - '0'
+             -);
+1520   1              WriteEEPROM(temp, rightTHREE);
+1521   1              return;
+1522   1      }
+1523          
+1524          static void DAzaRight(void)
+1525          {
+1526   1              unsigned char temp;
+1527   1              temp = (Uart1ReceData[i+5]-'0') * 100 + (Uart1ReceData[i + 6] - '0') * 10 + (Uart1ReceData[i + 7] - '0');
+1528   1              WriteEEPROM(temp, rightFOUR);
+1529   1              return;
+1530   1      }
+1531          
+1532          static void DAzbRight(void)
+1533          {
+1534   1              unsigned char temp;
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 26  
+
+1535   1              temp = (Uart1ReceData[i+5]-'0') * 100 + (Uart1ReceData[i + 6] - '0') * 10 + (Uart1ReceData[i + 7] - '0');
+1536   1              WriteEEPROM(temp, rightFIVE);
+1537   1              return;
+1538   1      }
+1539          
+1540          
+1541          /*2008-11-14加入以下校正*/
+1542          static void DSRight(void)
+1543          {
+1544   1              unsigned char temp;
+1545   1              temp = (Uart1ReceData[i+2]-'0') * 100 + (Uart1ReceData[i + 3] - '0') * 10 + (Uart1ReceData[i + 4] - '0');
+1546   1              WriteEEPROM(temp, rightSIX);
+1547   1              return; 
+1548   1      }
+1549          
+1550          
+1551          static void TotReturn(void)
+1552          {
+1553   1              char temp[4];
+1554   1              int itemp;
+1555   1      
+1556   1              Uart1SendData[Uart1TXMAXLenth++]='T';
+1557   1              Uart1SendData[Uart1TXMAXLenth++]='O';
+1558   1      
+1559   1              itemp = (int)ReadEEPROM(rightONE);
+1560   1              if(itemp > 200)
+1561   1              {
+1562   2                      itemp = 20;     
+1563   2              }
+1564   1              itoa(itemp, temp,2);
+1565   1              Uart1SendData[Uart1TXMAXLenth++]='D';
+1566   1              Uart1SendData[Uart1TXMAXLenth++]='L';
+1567   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1568   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1569   1      
+1570   1              itemp = (int)ReadEEPROM(rightTWO);
+1571   1              if(itemp > 200)
+1572   1              {
+1573   2                      itemp = 20;     
+1574   2              }
+1575   1              itoa(itemp, temp,2);
+1576   1              Uart1SendData[Uart1TXMAXLenth++]='D';
+1577   1              Uart1SendData[Uart1TXMAXLenth++]='R';
+1578   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1579   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1580   1      
+1581   1              itemp = (int)ReadEEPROM(rightTHREE);
+1582   1              if(itemp > 200)
+1583   1              {
+1584   2                      itemp = 100;    
+1585   2              }
+1586   1              itoa(itemp, temp,3);
+1587   1              Uart1SendData[Uart1TXMAXLenth++]='D';
+1588   1              Uart1SendData[Uart1TXMAXLenth++]='U';
+1589   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1590   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1591   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1592   1      
+1593   1              itemp = (int)ReadEEPROM(rightSIX);
+1594   1              if(itemp > 200)
+1595   1              {
+1596   2                      itemp = 60;     
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 27  
+
+1597   2              }
+1598   1              itoa(itemp, temp,3);
+1599   1              Uart1SendData[Uart1TXMAXLenth++]='D';
+1600   1              Uart1SendData[Uart1TXMAXLenth++]='S';
+1601   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1602   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1603   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1604   1      
+1605   1              itemp = (int)ReadEEPROM(rightFOUR);
+1606   1              if(itemp > 200)
+1607   1              {
+1608   2                      itemp = 100;    
+1609   2              }
+1610   1              itoa(itemp, temp,3);
+1611   1              Uart1SendData[Uart1TXMAXLenth++]='D';
+1612   1              Uart1SendData[Uart1TXMAXLenth++]='A';
+1613   1              Uart1SendData[Uart1TXMAXLenth++]='z';
+1614   1              Uart1SendData[Uart1TXMAXLenth++]='a';
+1615   1              Uart1SendData[Uart1TXMAXLenth++]='0';
+1616   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1617   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1618   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1619   1      
+1620   1              itemp = (int)ReadEEPROM(rightFIVE);
+1621   1              if(itemp > 200)
+1622   1              {
+1623   2                      itemp = 100;    
+1624   2              }
+1625   1              itoa(itemp, temp,3);
+1626   1              Uart1SendData[Uart1TXMAXLenth++]='D';
+1627   1              Uart1SendData[Uart1TXMAXLenth++]='A';
+1628   1              Uart1SendData[Uart1TXMAXLenth++]='z';
+1629   1              Uart1SendData[Uart1TXMAXLenth++]='b';
+1630   1              Uart1SendData[Uart1TXMAXLenth++]='0';
+1631   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1632   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1633   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1634   1                              
+1635   1              Uart1SendData[Uart1TXMAXLenth++]='\n';//结束符
+1636   1              Uart1TX();
+1637   1              return;
+1638   1      }
+1639          
+1640          
+1641          /***********************************************************************
+1642          函数原型：void ReturnCal(void)
+1643          入口参数：无
+1644          出口参数：无
+1645          功能描述：天线反回理论计算值
+1646          ***********************************************************************/
+1647          static void ReturnCal(void)
+1648          {
+1649   1              UINT8 TempF;
+1650   1              char temp[4];
+1651   1              
+1652   1              TempF = SatLongEastFlagS;
+1653   1              SatLongEastFlagS = SatLongEastFlag;
+1654   1              FindAnt(StationLong, StationLat, SatLong, StationPloMode);
+1655   1              SatLongEastFlagS = TempF;
+1656   1      
+1657   1              itoa(StationAzCal*10,temp,4);
+1658   1              Uart1SendData[Uart1TXMAXLenth++]='a';
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 28  
+
+1659   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1660   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1661   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1662   1              Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1663   1              Uart1SendData[Uart1TXMAXLenth++]='e';
+1664   1              itoa(StationElCal*10,temp,3);
+1665   1              if(StationEl>0.0)
+1666   1                      Uart1SendData[Uart1TXMAXLenth++]='+';
+1667   1              else
+1668   1                      Uart1SendData[Uart1TXMAXLenth++]='-';
+1669   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];       
+1670   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1671   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];       
+1672   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1673   1              Uart1SendData[Uart1TXMAXLenth++]='r';
+1674   1      
+1675   1              if(StationPol < 90.0)
+1676   1                      Uart1SendData[Uart1TXMAXLenth++]='-';
+1677   1              else{ 
+1678   2                      Uart1SendData[Uart1TXMAXLenth++]='+';
+1679   2                      StationPol -= 360;
+1680   2              }
+1681   1      
+1682   1              itoa((StationPolCal - 90.0)*10,temp,3);
+1683   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1684   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1685   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1686   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1687   1      }
+1688          
+1689          
+1690          /*返回EL范围*/
+1691          static void ElRange(void)
+1692          {
+1693   1              char temp[3];
+1694   1              Uart1SendData[Uart1TXMAXLenth++]='P';
+1695   1              Uart1SendData[Uart1TXMAXLenth++]='i';
+1696   1      
+1697   1              itoa(ELDOWNlimit * 10, temp, 3);
+1698   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1699   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1700   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1701   1      
+1702   1              itoa(ELUPlimit * 10, temp, 3);
+1703   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1704   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1705   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1706   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1707   1              return;
+1708   1      }
+1709          
+1710          /***********************************************************************
+1711          函数原型：static void ReturnResetSuccess(void)
+1712          入口参数：无
+1713          出口参数：无
+1714          功能描述：天线控制器向监控服务器返回天线复位完毕
+1715          协议格式：Rs!
+1716          ***********************************************************************/
+1717          void ReturnResetSuccess(void)
+1718          {
+1719   1              Uart1SendData[Uart1TXMAXLenth++]='R';
+1720   1              Uart1SendData[Uart1TXMAXLenth++]='s';
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 29  
+
+1721   1              Uart1SendData[Uart1TXMAXLenth++]='!';
+1722   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1723   1              Uart1TX();
+1724   1      }
+1725          
+1726          /***********************************************************************
+1727          函数原型：void SendSJ(void)
+1728          入口参数：无
+1729          出口参数：无
+1730          功能描述：天线控制器向监控服务器发送关机卸载边瓣信息
+1731          协议格式：SJ!
+1732          ***********************************************************************/
+1733          void SendSJ(void)
+1734          {
+1735   1              Uart1SendData[Uart1TXMAXLenth++]='S';
+1736   1              Uart1SendData[Uart1TXMAXLenth++]='J';
+1737   1              Uart1SendData[Uart1TXMAXLenth++]='!';
+1738   1              Uart1TX();
+1739   1      }
+1740          
+1741          /*版本号 AKD10K01*/
+1742          static void SendRelease(void)
+1743          {
+1744   1          UINT8 temp;
+1745   1              Uart1SendData[Uart1TXMAXLenth++]='A';
+1746   1              Uart1SendData[Uart1TXMAXLenth++]='K';
+1747   1              Uart1SendData[Uart1TXMAXLenth++]='D';
+1748   1              temp = 0;
+1749   1              if(AZLeftLimitF == 1)
+1750   1              {
+1751   2                      temp += 1; 
+1752   2              }
+1753   1              if(AzMidLimitF == 1)
+1754   1              {
+1755   2                      temp += 2; 
+1756   2              }
+1757   1              if(AZRightLimitF == 1)
+1758   1              {
+1759   2                      temp += 4; 
+1760   2              }
+1761   1      
+1762   1              Uart1SendData[Uart1TXMAXLenth++]='0' + temp;
+1763   1              Uart1SendData[Uart1TXMAXLenth++]='0' + XinBiaoFlagNum;//beacon version:1:KuanChao;0:KenLi--kitty add on 2
+             -011/01/18 for getting beacon version;
+1764   1              Uart1SendData[Uart1TXMAXLenth++]='P';
+1765   1              Uart1SendData[Uart1TXMAXLenth++]='0';
+1766   1              Uart1SendData[Uart1TXMAXLenth++]='2';
+1767   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1768   1      }
+1769          
+1770          
+1771          
+1772          /***********************************************************************
+1773          函数原型：void AddPlo(char c)
+1774          入口参数：字符'1','2','3'
+1775          出口参数：无
+1776          功能描述：增加极化角1度
+1777          协议格式：
+1778          ***********************************************************************/
+1779          static void AddPlo(char c)
+1780          {
+1781   1              StationPol = GetComPolA();
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 30  
+
+1782   1              StationPol += (float)(c - '0');
+1783   1              GotoPolarAngle(StationPol);
+1784   1              ReturnAGCPloar();
+1785   1              Uart1TX();
+1786   1      }
+1787          /***********************************************************************
+1788          函数原型：void AddPlo(char c)
+1789          入口参数：字符'1','2','3'
+1790          出口参数：无
+1791          功能描述：减少极化角1度
+1792          协议格式：
+1793          ***********************************************************************/
+1794          static void DelPlo(char c)
+1795          {
+1796   1              StationPol = GetComPolA();
+1797   1              StationPol -= (float)(c - '0');
+1798   1              GotoPolarAngle(StationPol);
+1799   1              ReturnAGCPloar();
+1800   1              Uart1TX();
+1801   1      }
+1802           /***********************************************************************
+1803          函数原型：void GotoPolar(void)
+1804          入口参数：无
+1805          出口参数：无
+1806          功能描述：走到目标极化角
+1807          协议格式：
+1808          ***********************************************************************/
+1809          static void GotoPolar(void)
+1810          {
+1811   1              StationPol = GetComPolA();
+1812   1              if(Uart1ReceData[i+2]=='+')
+1813   1              {
+1814   2                      StationPol += (Uart1ReceData[i+3]-'0')*10.0 + \
+1815   2                                                (Uart1ReceData[i+4]-'0') + \
+1816   2                                                (Uart1ReceData[i+5]-'0') * 0.1;               
+1817   2              }
+1818   1              else 
+1819   1              {
+1820   2                      StationPol -= (Uart1ReceData[i+3]-'0')*10.0 + \
+1821   2                                                (Uart1ReceData[i+4]-'0') + \
+1822   2                                                (Uart1ReceData[i+5]-'0') * 0.1;                               
+1823   2              }
+1824   1              GotoPolarAngle(StationPol);
+1825   1              ReturnAGCPloar();
+1826   1              Uart1TX();
+1827   1      }
+1828          
+1829          /***********************************************************************
+1830          函数原型：void SendKJ(void)
+1831          入口参数：无
+1832          出口参数：无
+1833          功能描述：天线控制器向监控服务器发送开机装载边瓣信息
+1834          协议格式：KJ!
+1835          ***********************************************************************/
+1836          void SendKJ(void)
+1837          {
+1838   1              Uart1SendData[Uart1TXMAXLenth++]='K';
+1839   1              Uart1SendData[Uart1TXMAXLenth++]='J';
+1840   1              Uart1SendData[Uart1TXMAXLenth++]='!';
+1841   1              Uart1TX();
+1842   1      }
+1843          
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 31  
+
+1844          void ReturnStoreSuccess(void)
+1845          {
+1846   1              Uart1SendData[Uart1TXMAXLenth++]='P';
+1847   1              Uart1SendData[Uart1TXMAXLenth++]='o';
+1848   1              Uart1SendData[Uart1TXMAXLenth++]='!';
+1849   1              Uart1TX();
+1850   1      }
+1851          
+1852          /*2009/6/12加入以下函数*/
+1853          static void RetBaseStarData(void)
+1854          {
+1855   1              char temp[4],temp1[3];
+1856   1              double FreqInt;//整数
+1857   1              double FreqDec;
+1858   1              float TSatLong;
+1859   1              UINT8 TStationPloMode, TEFlag;
+1860   1                      
+1861   1              Uart1SendData[Uart1TXMAXLenth++]='$';     //
+1862   1              Uart1SendData[Uart1TXMAXLenth++]='2';
+1863   1      
+1864   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1865   1              TSatLong = SatLong;
+1866   1              SatLong = BaseStarLONG;                                  //
+1867   1              TStationPloMode = StationPloMode;
+1868   1              StationPloMode = BaseStarPol;
+1869   1              TEFlag = SatLongEastFlag;
+1870   1              SatLongEastFlag = BaseStarLONGEF;
+1871   1              ReturnSatLongPloarVet();
+1872   1              SatLongEastFlag = TEFlag;                                //
+1873   1              StationPloMode = TStationPloMode;
+1874   1              SatLong = TSatLong;
+1875   1      
+1876   1              FreqDec=modf(BaseStarFreq,&FreqInt);
+1877   1              itoa(FreqInt,temp,4);
+1878   1              itoa(FreqDec*1000,temp1,3);
+1879   1              Uart1SendData[Uart1TXMAXLenth++]='F';
+1880   1              Uart1SendData[Uart1TXMAXLenth++]=temp[0];
+1881   1              Uart1SendData[Uart1TXMAXLenth++]=temp[1];
+1882   1              Uart1SendData[Uart1TXMAXLenth++]=temp[2];
+1883   1              Uart1SendData[Uart1TXMAXLenth++]=temp[3];
+1884   1              Uart1SendData[Uart1TXMAXLenth++]=temp1[0];
+1885   1              Uart1SendData[Uart1TXMAXLenth++]=temp1[1];
+1886   1              Uart1SendData[Uart1TXMAXLenth++]=temp1[2];
+1887   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1888   1      
+1889   1              Uart1SendData[Uart1TXMAXLenth++] = 'R';
+1890   1              if(BaseStarRType == XINBIAOREC)
+1891   1              {
+1892   2                      Uart1SendData[Uart1TXMAXLenth++]= '0';  
+1893   2              }
+1894   1              else
+1895   1              {
+1896   2                      Uart1SendData[Uart1TXMAXLenth++]= '1';
+1897   2              }
+1898   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1899   1      
+1900   1              ReturnBitS(BaseStarKbS);
+1901   1              return;
+1902   1      }
+1903          
+1904          
+1905          static void ReturnEnBaseStar(void)
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 32  
+
+1906          {
+1907   1              Uart1SendData[Uart1TXMAXLenth++]='$';
+1908   1              if(EnBaseStar == 1)
+1909   1              {
+1910   2                      Uart1SendData[Uart1TXMAXLenth++] = '1';
+1911   2              }
+1912   1              else
+1913   1              {
+1914   2                      Uart1SendData[Uart1TXMAXLenth++] = '0';
+1915   2              }
+1916   1              Uart1SendData[Uart1TXMAXLenth++]='\n';
+1917   1                      
+1918   1      }
+1919          
+1920          static void ReturnBitS(float TSymbolRate)
+1921          {
+1922   1              UINT16 TempKbS;
+1923   1              if(TSymbolRate > 50000.0)
+1924   1              {
+1925   2                      TSymbolRate = 50000.0;
+1926   2              }
+1927   1              TempKbS = (UINT16)TSymbolRate;
+1928   1              Uart1SendData[Uart1TXMAXLenth++] = 'B';
+1929   1              Uart1SendData[Uart1TXMAXLenth++] = TempKbS / 10000 + '0';
+1930   1              TempKbS %= 10000;
+1931   1              Uart1SendData[Uart1TXMAXLenth++] = TempKbS / 1000 + '0';
+1932   1              TempKbS %= 1000;
+1933   1              Uart1SendData[Uart1TXMAXLenth++] = TempKbS / 100 + '0';
+1934   1              TempKbS %= 100;
+1935   1              Uart1SendData[Uart1TXMAXLenth++] = TempKbS / 10 + '0';
+1936   1              TempKbS %= 10;
+1937   1              Uart1SendData[Uart1TXMAXLenth++] = TempKbS + '0';
+1938   1              Uart1SendData[Uart1TXMAXLenth++] = '\n';
+1939   1              Delay(200);
+1940   1              Uart1TX();              
+1941   1      }
+1942          
+1943          static void StoreData(void)
+1944          {
+1945   1              UINT16 TempSrcStarKbS;
+1946   1              UINT8  TempAddr;
+1947   1              int a, b, c, d, i, j;
+1948   1      
+1949   1              if(SrcStarKbS - 50000.0 > 1.0)
+1950   1              {
+1951   2                      SrcStarKbS = 50000.0;   
+1952   2              }
+1953   1              if(SelectBaseStar == 1)
+1954   1              {
+1955   2                      BaseStarKbS = SrcStarKbS;
+1956   2                      TempAddr = BaseStarKbSAddr;
+1957   2              }
+1958   1              else
+1959   1              {
+1960   2                      SSrcStarKbS = SrcStarKbS;
+1961   2                      TempAddr = SSrcStarKbSAddr;
+1962   2              }
+1963   1      
+1964   1              TempSrcStarKbS = (UINT16)SrcStarKbS;
+1965   1              WriteEEPROM((UINT8)(TempSrcStarKbS / 10000), TempAddr);
+1966   1              TempSrcStarKbS %= 10000;
+1967   1              WriteEEPROM((UINT8)(TempSrcStarKbS / 100), TempAddr + 1);
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 33  
+
+1968   1              TempSrcStarKbS %= 100;
+1969   1              WriteEEPROM((UINT8)TempSrcStarKbS, TempAddr + 2);
+1970   1      
+1971   1              if(SelectBaseStar == 1)
+1972   1              {
+1973   2                      a = (int)(BaseStarLONG);
+1974   2                      b = (BaseStarLONG - (float)a) * 100.0;
+1975   2                      WriteEEPROM(a, BaseStarLONGAddr);       
+1976   2                      WriteEEPROM(b, BaseStarLONGAddr + 1);
+1977   2                      
+1978   2                      WriteEEPROM(BaseStarRType, BaseStarRTypeAddr);
+1979   2                      WriteEEPROM(BaseStarPol, BaseStarPolAddr);                                              
+1980   2                              
+1981   2                      i = (int)(BaseStarFreq);
+1982   2                      j = (BaseStarFreq - i)*1000;
+1983   2                      a = i / 100;                                                            //a=14
+1984   2                      b = i % 100;                                                            //b=49
+1985   2                      c = j / 10;                                                                     //c=50
+1986   2                      d = ((int)j) % 10;                                                      //d=0
+1987   2                      WriteEEPROM(a, BaseStarFreqAddr);//
+1988   2                      WriteEEPROM(b, BaseStarFreqAddr + 1);//
+1989   2                      WriteEEPROM(c, BaseStarFreqAddr + 2);//
+1990   2                      WriteEEPROM(d, BaseStarFreqAddr + 3);//
+1991   2                      Delay(2000);
+1992   2              }
+1993   1              return;
+1994   1      }
+1995          
+1996          
+1997          /*得到数据并保存，为主控软件里的参考卫星数据*/
+1998          static void retYorN(void)
+1999          {
+2000   1              UINT8 Num, count, t, Flag;
+2001   1              TimeTest(1);
+2002   1      
+2003   1              Uart1SendData[Uart1TXMAXLenth++] = '$';
+2004   1      
+2005   1              Num = Uart1ReceData[i] - '0';
+2006   1              Flag = 0;
+2007   1              t = 0;
+2008   1              for(count = 1; count < Num; count++)
+2009   1              {
+2010   2                      if(Uart1ReceData[i + count] > '9'                       || \
+2011   2                         Uart1ReceData[i + count] < '0'           || \
+2012   2                         Uart1ReceData[i + count + t] > '1'           || \
+2013   2                         Uart1ReceData[i + count + t + 4] > '1'       || \
+2014   2                         Uart1ReceData[i + count + t + 5] > '1'       || \
+2015   2                         Uart1ReceData[i + count + t + 6] > '1'       || \
+2016   2                         Uart1ReceData[i + count + t + 7] > '2'       || \
+2017   2                         Uart1ReceData[i + count + t + 12] > '1')
+2018   2                      {
+2019   3                              Flag = 1;       
+2020   3                      }
+2021   2                      t += 19;
+2022   2              }
+2023   1              
+2024   1              if(Flag == 0)
+2025   1              {
+2026   2                      for(count = 0; count < Num * 19; count++)
+2027   2                      {
+2028   3                              BSarr[count] = Uart1ReceData[i + count + 1];
+2029   3                      }
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 34  
+
+2030   2                      Uart1SendData[Uart1TXMAXLenth++] = '3';
+2031   2                      StorBSarr(Uart1ReceData[i]);
+2032   2              }
+2033   1              else
+2034   1              {
+2035   2                      Uart1SendData[Uart1TXMAXLenth++] = '4';
+2036   2              }
+2037   1      
+2038   1              Uart1SendData[Uart1TXMAXLenth++] = '\n';
+2039   1              Uart1TX();              
+2040   1      }
+2041          
+2042          /*保存数据*/
+2043          static void StorBSarr(char ch)
+2044          {
+2045   1              int a, b, c, d, x, y;
+2046   1              int t, count;
+2047   1              UINT16 Ttt;
+2048   1              float Tf;
+2049   1              double freqt;
+2050   1      
+2051   1              t = ch - '0';
+2052   1              WriteEEPROM(t, BStarNumAddr);
+2053   1              BaseNumber = t; //得到参考卫星个数；
+2054   1      
+2055   1              for(count = 0; count < t; count++)
+2056   1              {
+2057   2                      Tf = (BSarr[count * 19] - '0') * 100.0 +                \
+2058   2                               (BSarr[count * 19 + 1] - '0') * 10.0 +         \
+2059   2                               (BSarr[count * 19 + 2] - '0') * 1.0 +          \
+2060   2                               (BSarr[count * 19 + 3] - '0') * 0.1;
+2061   2                      bssT[count].Long = Tf;  ///////////////////写入成员经度
+2062   2      
+2063   2                      a = (int)(Tf);
+2064   2                      b = (Tf - (float)a) * 100.0;
+2065   2                      WriteEEPROM(a, BStarAddr + count * BStarLen);   
+2066   2                      WriteEEPROM(b, BStarAddr + 1 + count * BStarLen);
+2067   2      
+2068   2                      bssT[count].PolF = BSarr[count * 19 + 4] - '0';///////
+2069   2                      WriteEEPROM(BSarr[count * 19 + 4] - '0', \
+2070   2                                              BStarAddr + count * BStarLen + BStarPolAddr);
+2071   2                      
+2072   2                      bssT[count].WEFlag = BSarr[count * 19 + 5] - '0';///////
+2073   2                      WriteEEPROM(BSarr[count * 19 + 5] - '0', \
+2074   2                                              BStarAddr + count * BStarLen + BStarEWFlagAddr);
+2075   2      
+2076   2                      bssT[count].RecF = BSarr[count * 19 + 6] - '0';///////
+2077   2                      WriteEEPROM(BSarr[count * 19 + 6] - '0', \
+2078   2                                              BStarAddr + count * BStarLen + BStarRTypeAddr);
+2079   2      
+2080   2                      Tf = (BSarr[count * 19 + 7] - '0') * 10000.0 +  \
+2081   2                               (BSarr[count * 19 + 8] - '0') * 1000.0 +       \
+2082   2                               (BSarr[count * 19 + 9] - '0') * 100.0 +        \
+2083   2                               (BSarr[count * 19 + 10] - '0') * 10.0 +        \
+2084   2                               (BSarr[count * 19 + 11] - '0')* 1.0;
+2085   2                      bssT[count].KitB = Tf;///////////////////
+2086   2      
+2087   2                      Ttt = (UINT16)Tf;
+2088   2                      WriteEEPROM((UINT8)(Ttt / 10000), \
+2089   2                                              BStarAddr + count * BStarLen + BStarKbSAddr);
+2090   2                      Ttt %= 10000;
+2091   2                      WriteEEPROM((UINT8)(Ttt / 100), \
+C51 COMPILER V9.00   PROTCOL                                                               03/18/2016 16:14:08 PAGE 35  
+
+2092   2                                              BStarAddr + count * BStarLen + BStarKbSAddr + 1);
+2093   2                      Ttt %= 100;
+2094   2                      WriteEEPROM((UINT8)Ttt, \
+2095   2                                              BStarAddr + count * BStarLen + BStarKbSAddr + 2);
+2096   2      
+2097   2                      freqt = (BSarr[count * 19 + 12] - '0') * 1000.0 +       \
+2098   2                                      (BSarr[count * 19 + 13] - '0') * 100.0 +        \
+2099   2                                      (BSarr[count * 19 + 14] - '0') * 10.0 + \
+2100   2                                      (BSarr[count * 19 + 15] - '0') * 1.0 +  \
+2101   2                                      (BSarr[count * 19 + 16] - '0')* 0.1+ \
+2102   2                                      (BSarr[count * 19 + 17] - '0')* 0.001+ \
+2103   2                                      (BSarr[count * 19 + 18] - '0')* 0.0001;
+2104   2                      bssT[count].Freq = freqt;  //////////////////////////////
+2105   2      
+2106   2                      x = (int)(freqt);
+2107   2                      y = (freqt - x)*1000;
+2108   2                      a = x / 100;                                                            //a=14
+2109   2                      b = x % 100;                                                            //b=49
+2110   2                      c = y / 10;                                                                     //c=50
+2111   2                      d = ((int)y) % 10;                                                      //d=0
+2112   2                      WriteEEPROM(a, \
+2113   2                                              BStarAddr + count * BStarLen + BStarFreqAddr);
+2114   2                                                              //存储信标接收机的频率整数部分千位百位值
+2115   2                      WriteEEPROM(b, \
+2116   2                                              BStarAddr + count * BStarLen + BStarFreqAddr + 1);
+2117   2                                                      //存储信标接收机的频率整数部分十位个位值
+2118   2                      WriteEEPROM(c, \
+2119   2                                              BStarAddr + count * BStarLen + BStarFreqAddr + 2);
+2120   2                      WriteEEPROM(d, \
+2121   2                                              BStarAddr + count * BStarLen + BStarFreqAddr + 3);                                                                                       
+2122   2              }               
+2123   1      }
+2124          
+2125          
+2126          void RetFlag1(void)
+2127          {
+2128   1              Uart1SendData[Uart1TXMAXLenth++]='*';
+2129   1              Uart1TX();      
+2130   1      }
+2131          
+2132          void RetFlag2(void)
+2133          {
+2134   1              Uart1SendData[Uart1TXMAXLenth++]='%';
+2135   1              Uart1TX();      
+2136   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  22015    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    235    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

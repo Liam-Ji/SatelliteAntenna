@@ -1,0 +1,404 @@
+C51 COMPILER V9.00   IDISEQC                                                               03/18/2016 16:14:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE IDISEQC
+OBJECT MODULE PLACED IN IDiseqc.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE IDiseqc.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2           *           Copyright 2007-2009 Availink, Inc.
+   3           *
+   4           *  This software contains Availink proprietary information and
+   5           *  its use and disclosure are restricted solely to the terms in
+   6           *  the corresponding written license agreement. It shall not be 
+   7           *  disclosed to anyone other than valid licensees without
+   8           *  written permission of Availink, Inc.
+   9           *
+  10           */
+  11          
+  12          
+  13          
+  14          //$Revision: 355 $ 
+  15          //$Date: 2008-04-21 16:12:24 -0400 (Mon, 21 Apr 2008) $
+  16          // 
+  17          #include "IDiseqc.h"
+  18          #include "II2C.h"
+  19          #include "IBSP.h"
+  20          
+  21          ///@cond
+  22          
+  23          enum A2108_Diseqc_OPStatus
+  24          {
+  25                  A2108_DOS_Uninitialized = 0,    ///< = 0  Disec has not been initialized yet.
+  26                  A2108_DOS_Initialized   = 1,    ///< = 1  Disec has been initialized yet.
+  27                  A2108_DOS_InContinuous  = 2,    ///< = 2  Disec is in continuous mode.
+  28                  A2108_DOS_InTone        = 3,    ///< = 3  Disec is in tone burst mode.
+  29                  A2108_DOS_InModulation  = 4             ///< = 4  Disec is in modulation mode.
+  30          };
+  31          
+  32          static enum A2108_Diseqc_OPStatus Diseqc_OP_Status = A2108_DOS_Uninitialized;
+  33          
+  34          /// Check if it is safe to switch Diseqc operation mode.
+  35          /// 
+  36          /// @param pAVLChip A pointer point to a ::A2108_Chip object which is used to tell function which chip it 
+             -is working on.
+  37          /// 
+  38          /// @return ::A2108_ErrorCode, 
+  39          /// Return ::A2108_EC_OK if it is OK to switch.
+  40          /// Return ::A2108_EC_Running if it is not safe to switch since the last transmit is not done yet.
+  41          /// Return ::A2108_EC_I2CFail if there is a I2C problem.
+  42          /*A2108_ErrorCode A2108_IDiseqc_IsSafeToSwitchMode( struct A2108_Chip * pAVLChip )
+  43          {
+  44                  A2108_ErrorCode r = A2108_EC_OK;
+  45                  AVL_uint32 i1;
+  46                  switch( Diseqc_OP_Status )
+  47                  {
+  48                  case A2108_DOS_InModulation:
+  49                  case A2108_DOS_InTone:
+  50                          r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_st_addr, &i1);
+  51                          if( 1 != ((i1 & 0x00000040) >> 6) )     //check if the last transmit is done
+  52                          {
+  53                                  r |= A2108_EC_Running;
+  54                          }
+C51 COMPILER V9.00   IDISEQC                                                               03/18/2016 16:14:09 PAGE 2   
+
+  55                          break;
+  56                  case A2108_DOS_InContinuous:
+  57                  case A2108_DOS_Initialized:
+  58                          break;
+  59                  default:
+  60                          r |= A2108_EC_GeneralFail;
+  61                          break;
+  62                  }
+  63                  return(r);
+  64          }        */
+  65          
+  66          ///@endcond
+  67          
+  68          A2108_ErrorCode A2108_IDiseqc_Initialize( const struct A2108_Diseqc_Para * pDiseqcPara, struct A2108_Chip 
+             -* pAVLChip )
+  69          {
+  70   1              A2108_ErrorCode r=0;
+  71   1              AVL_uint32 i1;
+  72   1      //      r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+  73   1              if( A2108_EC_OK == r )
+  74   1              {
+  75   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_srst_addr, 1);
+  76   2      
+  77   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_samp_frac_n_addr, 200);             //2M=200*10
+             -kHz
+  78   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_samp_frac_d_addr, pAVLChip->m_DemodF
+             -requency_10kHz);
+  79   2      
+  80   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tone_frac_n_addr, ((pDiseqcPara->m_T
+             -oneFrequency_kHz)<<1));
+  81   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tone_frac_d_addr, pAVLChip->m_DemodF
+             -requency_10kHz*10);
+  82   2      
+  83   2                      // Initialize the tx_control
+  84   2                      r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, &i1);
+  85   2                      i1 &= 0x00000300;
+  86   2                      i1 |= 0x20;             //reset tx_fifo
+  87   2                      i1 |= ((AVL_uint32)(pDiseqcPara->m_TXGap) << 6);
+  88   2                      i1 |= ((AVL_uint32)(pDiseqcPara->m_TxWaveForm) << 4);
+  89   2                      i1 |= (1<<3);                   //enable tx gap.
+  90   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+  91   2                      i1 &= ~(0x20);  //release tx_fifo reset
+  92   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+  93   2      
+  94   2                      // Initialize the rx_control
+  95   2                      i1 = ((AVL_uint32)(pDiseqcPara->m_RxWaveForm) << 2);
+  96   2                      i1 |= (1<<1);   //active the receiver
+  97   2                      i1 |= (1<<3);   //enveolop high when tone present
+  98   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_cntrl_addr, i1);
+  99   2                      i1 = (AVL_uint32)(pDiseqcPara->m_RxTimeout);
+ 100   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_msg_tim_addr, i1);
+ 101   2      
+ 102   2                      r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_srst_addr, 0);
+ 103   2      
+ 104   2                      if( A2108_EC_OK == r )
+ 105   2                      {
+ 106   3                              Diseqc_OP_Status = A2108_DOS_Initialized;
+ 107   3                      }
+ 108   2              }
+ 109   1      //      r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 110   1              return(r);
+ 111   1      }
+C51 COMPILER V9.00   IDISEQC                                                               03/18/2016 16:14:09 PAGE 3   
+
+ 112          
+ 113          /*A2108_ErrorCode A2108_IDiseqc_ReadModulationData( AVL_puchar pucBuff, AVL_puchar pucSize, struct A2108_C
+             -hip * pAVLChip )
+ 114          {
+ 115                  A2108_ErrorCode r;
+ 116                  AVL_uint32 i1;
+ 117                  AVL_uchar pucBuffTemp[4];
+ 118          //      r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 119          
+ 120                  if( A2108_DOS_InModulation == Diseqc_OP_Status )
+ 121                  {
+ 122                          // In modulation mode
+ 123                          r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_st_addr, &i1);
+ 124                          if( 0x00000004 == (i1 & 0x00000004) )
+ 125                          {
+ 126                                  *pucSize = (AVL_uchar)((i1 & 0x00000078)>>3);
+ 127                                  //Receive data
+ 128                                  for( i1=0; i1<*pucSize; i1++ )
+ 129                                  {
+ 130                                          r |= A2108_II2C_Read((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_fifo_map_addr, pucBuffTemp, 4);
+ 131                                          pucBuff[i1] = pucBuffTemp[3];
+ 132                                  }
+ 133                          }
+ 134                          else
+ 135                          {
+ 136                                  r = A2108_EC_GeneralFail;
+ 137                          }
+ 138                  }
+ 139                  else
+ 140                  {
+ 141                          r = A2108_EC_GeneralFail;
+ 142                  }
+ 143          
+ 144          //      r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 145                  return(r);
+ 146          }       */
+ 147          
+ 148          /*A2108_ErrorCode A2108_IDiseqc_SendModulationData( const AVL_puchar pucBuff, AVL_uchar ucSize, struct A21
+             -08_Chip * pAVLChip )
+ 149          {
+ 150                  A2108_ErrorCode r;
+ 151                  AVL_uint32 i1, i2;
+ 152                  AVL_uchar pucBuffTemp[8];
+ 153          
+ 154                  if( ucSize>8 )
+ 155                  {
+ 156                          r = A2108_EC_MemoryRunout;
+ 157                  }
+ 158                  else
+ 159                  {
+ 160          //              r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));   
+ 161                          r |= A2108_IDiseqc_IsSafeToSwitchMode(pAVLChip);
+ 162                          if( A2108_EC_OK ==  r)
+ 163                          {
+ 164                                  //reset rx_fifo
+ 165                                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_cntrl_addr, &i2);
+ 166                                  r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_cntrl_addr, (i2|0x01));
+ 167                                  r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_cntrl_addr, (i2&0xfffffffe));
+ 168          
+ 169                                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, &i1);
+ 170                                  i1 &= 0xfffffff8;       //set to modulation mode and put it to FIFO load mode
+ 171                                  r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+C51 COMPILER V9.00   IDISEQC                                                               03/18/2016 16:14:09 PAGE 4   
+
+ 172          
+ 173                                  //trunk address
+ 174                                  ChunkAddr(diseqc_tx_fifo_map_addr, pucBuffTemp);
+ 175                                  pucBuffTemp[3] = 0;
+ 176                                  pucBuffTemp[4] = 0;
+ 177                                  pucBuffTemp[5] = 0;
+ 178                                  for( i2=0; i2<ucSize; i2++ )
+ 179                                  {
+ 180                                          pucBuffTemp[6] = pucBuff[i2];
+ 181          
+ 182                                          r |= A2108_II2C_Write((AVL_uint16)(pAVLChip->m_SlaveAddr), pucBuffTemp, 7);
+ 183                                  }                           
+ 184                                  i1 |= (1<<2);  //start fifo transmit.
+ 185                                  r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+ 186          
+ 187                                  if( A2108_EC_OK == r )
+ 188                                  {
+ 189                                          Diseqc_OP_Status = A2108_DOS_InModulation;
+ 190                                  }
+ 191                          }
+ 192          ///             r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 193                  }
+ 194          
+ 195                  return(r);
+ 196          }
+ 197                    */
+ 198          /*A2108_ErrorCode A2108_IDiseqc_GetTxStatus( struct A2108_Diseqc_TxStatus * pTxStatus, struct A2108_Chip *
+             - pAVLChip )
+ 199          {
+ 200                  A2108_ErrorCode r;
+ 201                  AVL_uint32 i1;
+ 202          //      r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 203                  if( (A2108_DOS_InModulation == Diseqc_OP_Status) || (A2108_DOS_InTone == Diseqc_OP_Status) )
+ 204                  {
+ 205                          r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_st_addr, &i1);
+ 206                          pTxStatus->m_TxDone = (AVL_uchar)((i1 & 0x00000040)>>6);
+ 207                          pTxStatus->m_TxFifoCount = (AVL_uchar)((i1 & 0x0000003c)>>2);
+ 208                  }
+ 209                  else
+ 210                  {
+ 211                          r |= A2108_EC_GeneralFail;
+ 212                  }
+ 213          //      r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 214                  return(r);
+ 215          }        */
+ 216          
+ 217          /*A2108_ErrorCode A2108_IDiseqc_GetRxStatus( struct A2108_Diseqc_RxStatus * pRxStatus, struct A2108_Chip *
+             - pAVLChip )
+ 218          {
+ 219                  A2108_ErrorCode r;
+ 220                  AVL_uint32 i1;
+ 221                  r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 222                  if( A2108_DOS_InModulation == Diseqc_OP_Status )
+ 223                  {
+ 224                          r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_st_addr, &i1);
+ 225                          pRxStatus->m_RxDone = (AVL_uchar)((i1 & 0x00000004)>>2);
+ 226                          pRxStatus->m_RxFifoCount = (AVL_uchar)((i1 & 0x000000078)>>3);
+ 227                          r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_rx_parity_addr, &i1);
+ 228                          pRxStatus->m_RxFifoParChk = (AVL_uchar)(i1 & 0x000000ff);
+ 229                  }
+ 230                  else
+ 231                  {
+C51 COMPILER V9.00   IDISEQC                                                               03/18/2016 16:14:09 PAGE 5   
+
+ 232                          r |= A2108_EC_GeneralFail;
+ 233                  }
+ 234          //      r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 235                  return(r);
+ 236          }
+ 237                  */
+ 238          /*A2108_ErrorCode A2108_IDiseqc_SetLNBOut( AVL_uchar uiOut, struct A2108_Chip * pAVLChip )
+ 239          {
+ 240                  A2108_ErrorCode r;
+ 241                  AVL_uint32 i1;
+ 242                  r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 243                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, &i1);
+ 244                  i1 &= 0xfffffdff;
+ 245                  i1 |= ((uiOut & 0x1)<<9);
+ 246                  r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+ 247                  r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 248                  return(r);
+ 249          }
+ 250                   */
+ 251          /*A2108_ErrorCode A2108_IDiseqc_GetLNBOut( AVL_puchar puiOut, struct A2108_Chip * pAVLChip )
+ 252          {
+ 253                  A2108_ErrorCode r;
+ 254                  AVL_uint32 i1;
+ 255                  r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 256                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, &i1);
+ 257                  i1 &= 0x00000200;
+ 258                  *puiOut = (AVL_uchar)(i1>>9);
+ 259                  r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 260                  return(r);
+ 261          }
+ 262                    */
+ 263          /*A2108_ErrorCode A2108_IDiseqc_SendTone( AVL_uchar ucTone, AVL_uchar ucCount, struct A2108_Chip * pAVLChi
+             -p )
+ 264          {
+ 265                  A2108_ErrorCode r;
+ 266                  AVL_uint32 i1, i2;
+ 267                  AVL_uchar pucBuffTemp[8];
+ 268                  if( ucCount>8 )
+ 269                  {
+ 270                          r = A2108_EC_MemoryRunout;
+ 271                  }
+ 272                  else
+ 273                  {
+ 274                          r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 275                          r |= A2108_IDiseqc_IsSafeToSwitchMode(pAVLChip);
+ 276          
+ 277                          if( A2108_EC_OK == r )
+ 278                          {
+ 279                                  //No data in the FIFO.
+ 280                                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, &i1);
+ 281                                  i1 &= 0xfffffff8;  //put it into the FIFO load mode.
+ 282                                  if( 0 == ucTone )
+ 283                                  {
+ 284                                          i1 |= 0x01;
+ 285                                  }
+ 286                                  else
+ 287                                  {
+ 288                                          i1 |= 0x02;
+ 289                                  }
+ 290                                  r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+ 291          
+ 292                                  //trunk address
+C51 COMPILER V9.00   IDISEQC                                                               03/18/2016 16:14:09 PAGE 6   
+
+ 293                                  ChunkAddr(diseqc_tx_fifo_map_addr, pucBuffTemp);
+ 294                                  pucBuffTemp[3] = 0;
+ 295                                  pucBuffTemp[4] = 0;
+ 296                                  pucBuffTemp[5] = 0;
+ 297                                  pucBuffTemp[6] = 1;
+ 298          
+ 299                                  for( i2=0; i2<ucCount; i2++ )
+ 300                                  {
+ 301                                          r |= A2108_II2C_Write((AVL_uint16)(pAVLChip->m_SlaveAddr), pucBuffTemp, 7);
+ 302                                  }
+ 303          
+ 304                                  i1 |= (1<<2);  //start fifo transmit.
+ 305                                  r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+ 306                                  if( A2108_EC_OK == r )
+ 307                                  {
+ 308                                          Diseqc_OP_Status = A2108_DOS_InTone;
+ 309                                  }
+ 310                          }
+ 311                          r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 312                  }
+ 313                  return(r);
+ 314          }  */
+ 315          
+ 316          /*A2108_ErrorCode A2108_IDiseqc_StartContinuous (struct A2108_Chip * pAVLChip )
+ 317          {
+ 318                  A2108_ErrorCode r;
+ 319                  AVL_uint32 i1;
+ 320                  r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 321                  r |= A2108_IDiseqc_IsSafeToSwitchMode(pAVLChip);
+ 322          
+ 323                  if( A2108_EC_OK == r )
+ 324                  {
+ 325                          //No data in FIFO
+ 326                          r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, &i1);
+ 327                          i1 &= 0xfffffff8; 
+ 328                          i1 |= 0x03;             //switch to continuous mosw
+ 329                          r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+ 330          
+ 331                          //start to send out wave
+ 332                          i1 |= (1<<10);  
+ 333                          r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+ 334                          if( A2108_EC_OK == r )
+ 335                          {
+ 336                                  Diseqc_OP_Status = A2108_DOS_InContinuous;
+ 337                          }
+ 338                  }
+ 339                  r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 340                  return(r);
+ 341          }       */
+ 342          
+ 343          /*A2108_ErrorCode A2108_IDiseqc_StopContinuous (struct A2108_Chip * pAVLChip )
+ 344          {
+ 345                  A2108_ErrorCode r;
+ 346                  AVL_uint32 i1;
+ 347                  r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semDiseqc));
+ 348                  if( A2108_DOS_InContinuous == Diseqc_OP_Status )
+ 349                  {
+ 350                          r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, &i1);
+ 351                          i1 &= 0xfffff3ff;
+ 352                          r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), diseqc_tx_cntrl_addr, i1);
+ 353                  }
+ 354          
+C51 COMPILER V9.00   IDISEQC                                                               03/18/2016 16:14:09 PAGE 7   
+
+ 355                  r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semDiseqc));
+ 356                  return(r);
+ 357          }
+ 358                  */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1360    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     12    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

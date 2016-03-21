@@ -1,0 +1,442 @@
+C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE IDVBSXRX
+OBJECT MODULE PLACED IN IDVBSxRx.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE IDVBSxRx.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2           *           Copyright 2007-2009 Availink, Inc.
+   3           *
+   4           *  This software contains Availink proprietary information and
+   5           *  its use and disclosure are restricted solely to the terms in
+   6           *  the corresponding written license agreement. It shall not be 
+   7           *  disclosed to anyone other than valid licensees without
+   8           *  written permission of Availink, Inc.
+   9           *
+  10           */
+  11          
+  12          
+  13          //$Revision: 914 $ 
+  14          //$Date: 2009-07-30 09:59:11 -0400 (Thu, 30 Jul 2009) $
+  15          // 
+  16          #include "IDVBSxRx.h"
+  17          #include "IBase.h"
+  18          #include "II2C.h"
+  19          #include "IBSP.h"
+  20          
+  21          /*Initialize the demodulator.   
+  22          Parameters: 
+  23          pAVLChip;  A pointer that points to an A2108_Chip object which is used to tell the function which AVL2108 
+             -chip it is working on.   
+  24          Returns:  A2108_ErrorCode, Return A2108_EC_OK if everything is OK; Return A2108_EC_I2CFail if there is an 
+             -I2C problem.  
+  25          Remarks:  This function must be called first before all other functions declared in  this interface. 
+  26                      这个函数必须在这一层声明的其他函数之前被调用  */
+  27          A2108_ErrorCode A2108_IDVBSxRx_Initialize(const struct A2108_Chip * pAVLChip )
+  28          {
+  29   1              A2108_ErrorCode r=0;
+  30   1              // Set clk to match the PLL 
+  31   1              r = A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_int_dmd_clk_MHz_addr,  pAVLChip->m_DemodFr
+             -equency_10kHz);
+  32   1              r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_int_fec_clk_MHz_addr, pAVLChip->m_FecFreq
+             -uency_10kHz);
+  33   1              r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_int_mpeg_clk_MHz_addr, pAVLChip->m_MpegFr
+             -equency_10kHz);
+  34   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_format_addr, 1);
+  35   1      
+  36   1              return(r);
+  37   1      }
+  38          
+  39          A2108_ErrorCode A2108_IDVBSxRx_SetFreqSweepRange(AVL_uint16 uiFreqSweepRange_10kHz, const struct A2108_Chi
+             -p * pAVLChip )
+  40          {
+  41   1              if(uiFreqSweepRange_10kHz > 500)
+  42   1              {
+  43   2                      uiFreqSweepRange_10kHz = 500;
+  44   2              }
+  45   1              return A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_int_carrier_freq_half_range_MHz_addr, u
+             -iFreqSweepRange_10kHz);
+  46   1      }
+  47          
+  48          /*A2108_ErrorCode A2108_IDVBSxRx_SetChannelLockMode( struct A2108_Channel * psChannel, enum A2108_LockMode
+C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 2   
+
+             - enumChannelLockMode )
+  49          {
+  50                  if(enumChannelLockMode == A2108_LOCK_MODE_FIXED)
+  51                  {
+  52                          psChannel->m_Flags &= ~CI_FLAG_LOCK_MODE_BIT_MASK;
+  53                  }
+  54                  else
+  55                  {
+  56                          psChannel->m_Flags |= CI_FLAG_LOCK_MODE_BIT_MASK;
+  57                  }
+  58          
+  59                  return(A2108_EC_OK);
+  60          }
+  61                    */
+  62          
+  63           /* This function locks to a channel using the parameters specified in the psChannel input parameter.  Thi
+             -s function may only be called when 
+  64          the AVL2108 is in the demodulator functional mode.只有在demodulator模式才调用此函数，否则提示错误*/
+  65          A2108_ErrorCode A2108_IDVBSxRx_LockChannel( struct A2108_Channel * sChannel, struct A2108_Chip * pAVLChip 
+             -)
+  66          {
+  67   1              A2108_ErrorCode r;
+  68   1              AVL_uint32 IQ;
+  69   1              AVL_uint32 autoIQ_Detect;
+  70   1              AVL_uint16 Standard;
+  71   1              enum A2108_LockMode LockMode;   //fixed或者adaptive模式
+  72   1              enum A2108_FunctionalMode enumFunctionalMode;
+  73   1      
+  74   1              r = A2108_EC_OK;
+  75   1      
+  76   1              r |= A2108_IBase_GetFunctionalMode(&enumFunctionalMode, pAVLChip);
+  77   1              if(enumFunctionalMode == A2108_FunctMode_Demod)           //demodulator模式
+  78   1              {
+  79   2                      if( (sChannel->m_uiSymbolRate_Hz > 800000) && (sChannel->m_uiSymbolRate_Hz < 50000000) ) //800K<波特率<5
+             -0M
+  80   2                      {
+  81   3                              LockMode = (enum A2108_LockMode)((sChannel->m_Flags & CI_FLAG_LOCK_MODE_BIT_MASK) >> CI_FLAG_LOCK_MODE_
+             -BIT);
+  82   3      
+  83   3                              if(LockMode == A2108_LOCK_MODE_ADAPTIVE)  //lockmode=1，adaptive模式
+  84   3                              {
+  85   4                                      r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rp_lock_mode_addr, 1);
+  86   4                                      if(sChannel->m_uiSymbolRate_Hz < 3000000) //符号率小于3M，率扫描范围3MHz
+  87   4                                      {
+  88   5                                              r |= A2108_IDVBSxRx_SetFreqSweepRange(300, pAVLChip);
+  89   5                                      }
+  90   4                                      else
+  91   4                                      {
+  92   5                                              r = A2108_IDVBSxRx_SetFreqSweepRange(500, pAVLChip); //符号率大于或等于3M，扫描范围5MHz  
+  93   5                                      }
+  94   4                              }
+  95   3                              else   //fixed模式
+  96   3                              {
+  97   4                                      r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rp_lock_mode_addr, 0);
+  98   4                              }
+  99   3      
+ 100   3                              IQ = ((sChannel->m_Flags) & CI_FLAG_IQ_BIT_MASK)>>CI_FLAG_IQ_BIT; //是否IQ交换
+ 101   3      
+ 102   3                              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_specinv_addr, IQ);
+ 103   3                              Standard = (AVL_uint16)(((sChannel->m_Flags) & CI_FLAG_DVBS2_BIT_MASK)>>CI_FLAG_DVBS2_BIT);//符号标准
+ 104   3                              autoIQ_Detect = (((sChannel->m_Flags) & CI_FLAG_IQ_AUTO_BIT_MASK)>>CI_FLAG_IQ_AUTO_BIT); //手动还是自动
+             -配置IQ交换
+C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 3   
+
+ 105   3      
+ 106   3                              if((Standard == CI_FLAG_DVBS2_UNDEF) || (autoIQ_Detect == 1))  //不知道信号标准 或者 自动IQ交换
+ 107   3                              {
+ 108   4                                      Standard = 0x14;
+ 109   4                              }
+ 110   3                              r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_decode_mode_addr, Standard);
+ 111   3                              r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_iq_swap_mode_addr, (AVL_uint16)autoIQ_D
+             -etect);
+ 112   3                              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_int_sym_rate_Hz_addr, sChannel->m_uiSym
+             -bolRate_Hz);
+ 113   3                              r |= A2108_IBase_SendRxOP(OP_RX_INIT_GO, pAVLChip );  //发送OP_RX_INIT_GO命令给2108
+ 114   3                      }
+ 115   2                      else
+ 116   2                      {
+ 117   3                              r = A2108_EC_GeneralFail;       //符号率应该在800K和3M之间
+ 118   3                      }
+ 119   2              }
+ 120   1              else
+ 121   1              {
+ 122   2                      r = A2108_EC_GeneralFail;
+ 123   2              }
+ 124   1      
+ 125   1              return(r);
+ 126   1      }
+ 127          
+ 128           /* Check the current AVL2108 lock status.  
+ 129          Parameters: 
+ 130           puiLockStatus;  Carries back the lock status. If the AVL2108 has locked the signal,
+ 131          puiLockStatus will be 1, otherwise, it will be 0. pAVLChip;  A pointer that points
+ 132           to an A2108_Chip object which is used to tell the function which AVL2108 chip it is working on.  
+ 133           Returns: 
+ 134          A2108_ErrorCode, Return A2108_EC_OK if everything is OK; Return A2108_EC_I2CFail if there is an I2C proble
+             -m.  
+ 135           Remarks: 
+ 136          This function should be called after the A2108_IDVBSxRx_LockChannel has been called. 
+ 137           puiLockStatus用于返回状态信息，为1表示锁定信号，否则为0
+ 138           这个函数应该在LockChannel函数之后被调用 */
+ 139          A2108_ErrorCode A2108_IDVBSxRx_GetLockStatus( AVL_puint16 puiLockStatus, const struct A2108_Chip * pAVLChi
+             -p )
+ 140          {
+ 141   1              A2108_ErrorCode r;
+ 142   1              r = A2108_II2C_Read16((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_fec_lock_addr, puiLockStatus);
+ 143   1              return(r);//从2108的内部地址rs-fec-lock-addr中读取数据放到puiLockStatus指针指向的空间
+ 144   1      }
+ 145          
+ 146          
+ 147          /*This function resets the AVL2108 internal BER/PER statistics accumulation associated with the GetBER 
+ 148          and GetPER functions. This function does not reset the BER statistics accumulation that is associated with
+ 149           the GetDVBSBER function.   This function may only be called while the AVL2108 is in the demodulator funct
+             -ional
+ 150           mode.  If the AVL2108 is in the blind scan functional mode, the function returns the error code 
+ 151          A2108_EC_GeneralFail. 
+ 152           这个函数重设和GetBER and GetPER函数有关的数据集 
+ 153           不重设和GetDVBSBER函数有关的数据集
+ 154           只有在demodulator模式此函数才能被调用*/
+ 155          /*A2108_ErrorCode A2108_IDVBSxRx_ResetErrorStat( struct A2108_Chip * pAVLChip )
+ 156          {
+ 157                  enum A2108_FunctionalMode enumFunctionalMode;
+ 158                  A2108_ErrorCode r;
+ 159          
+ 160                  r = A2108_IBase_GetFunctionalMode(&enumFunctionalMode, pAVLChip);  //把功能模式值发那个如enmFunctionMode
+ 161          
+C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 4   
+
+ 162                  if(enumFunctionalMode == A2108_FunctMode_Demod) //如果是demodulator模式
+ 163                  {
+ 164                          r |= A2108_IBase_SendRxOP( OP_RX_RESET_BERPER, pAVLChip );//发送OP_RX_RESET_BERPER命令
+ 165                  }
+ 166                  else
+ 167                  {
+ 168                          r = A2108_EC_GeneralFail;
+ 169                  }
+ 170          
+ 171                  return(r);   
+ 172          }
+ 173             */
+ 174           /*Set the polarity of the RF AGC. This value should be set according to  the specific tuner voltage/gain 
+             -characteristics.
+ 175          设置RF AGC的极性        ，值的的设定必须依据具体的调谐器电压/增益描述
+ 176          Parameters:  enumAGCPola  The polarity of the RF AGC. Refer to A2108_RFAGCPola. 
+ 177          pAVLChip  A pointer that points to an A2108_Chip object which is used to tell the function which AVL2108 c
+             -hip it is working on.   
+ 178           Returns:A2108_ErrorCode, Return A2108_EC_OK if everything is OK; Return  A2108_EC_I2CFail if there is a I
+             -2C problem.  */
+ 179          A2108_ErrorCode A2108_IDVBSxRx_SetRFAGCPola( enum A2108_RfagcPola enumAGCPola, const struct A2108_Chip * p
+             -AVLChip )
+ 180          {
+ 181   1              A2108_ErrorCode r=0;
+ 182   1              AVL_uint32 uiTemp;
+ 183   1              uiTemp = (AVL_uint32)enumAGCPola;
+ 184   1              r = A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_rfagc_pol_addr, uiTemp);  //#define rc_rfa
+             -gc_pol_addr        0x0000043c
+ 185   1              return(r);
+ 186   1      }
+ 187          
+ 188          A2108_ErrorCode A2108_IDVBSxRx_SetMpegMode( const struct A2108_MpegInfo * pMpegMode, const struct A2108_Ch
+             -ip * pAVLChip )
+ 189          {
+ 190   1              A2108_ErrorCode r=0;
+ 191   1              AVL_uint32 uiTemp1;
+ 192   1              AVL_uint16 uiTemp2;
+ 193   1              uiTemp1 = (AVL_uint32)(pMpegMode->m_mpf);        //图像数据传输格式
+ 194   1              r = A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_mpeg_mode_addr, uiTemp1);
+ 195   1              uiTemp2 = (AVL_uint16)(pMpegMode->m_mpm);        //图像传输模式
+ 196   1              r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_mpeg_serial_addr, uiTemp2);
+ 197   1              uiTemp2 = (AVL_uint16)(pMpegMode->m_mpcm);        //时钟模式
+ 198   1              r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_mpeg_posedge_addr, uiTemp2);
+ 199   1              return(r);
+ 200   1      }
+ 201          
+ 202          
+ 203           /*This function gets the RF signal level. 
+ 204          Parameters: 
+ 205          puiRFSignalLevel;  Carries back the signal level as a value ranging from 0 to 65535 with 0 corresponding
+ 206           to the weakest signal level and 65535 corresponding to the strongest signal level. 
+ 207          pAVLChip;  A pointer to the A2108_Chip object for which the signal level is being read.  
+ 208           Remarks: 
+ 209          This function returns a value in the range 0 to 65535, with 0 corresponding to the weakest signal and 6553
+             -5 
+ 210          corresponding to the strongest signal. The respective signal level in units of dbm varies with 
+ 211          the tuner configuration and board design.   */
+ 212          /*A2108_ErrorCode A2108_IDVBSxRx_GetSignalLevel(AVL_puint16 puiRFSignalLevel , const struct A2108_Chip * p
+             -AVLChip )
+ 213          {
+ 214                  AVL_uint32 uiData;
+ 215                  AVL_uint32 uiPolarity;
+C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 5   
+
+ 216                  AVL_uint16 uiSignalLevel;
+ 217                  A2108_ErrorCode r;
+ 218          
+ 219                  r = A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), (rx_aagc_gain), &uiData);
+ 220                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_rfagc_pol_addr, &uiPolarity);
+ 221          
+ 222                  if( A2108_EC_OK == r )
+ 223                  {
+ 224                          uiData += 0x800000;
+ 225                          uiData &= 0xffffff;     
+ 226                          uiSignalLevel = (AVL_uint16)(uiData>>8);
+ 227                          *puiRFSignalLevel = uiSignalLevel;
+ 228                  }
+ 229                  return(r);
+ 230          }
+ 231            */
+ 232          /*A2108_ErrorCode A2108_IDVBSxRx_GetScatterData( AVL_puchar ucpData, AVL_puint16 puiSize, const struct A21
+             -08_Chip * pAVLChip )
+ 233          {
+ 234                  AVL_uint16 ucTemp1, ucTemp2;
+ 235                  A2108_ErrorCode r;
+ 236                  r = A2108_II2C_Read16((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_ScatterData_rdy_addr, &ucTemp1);
+ 237                  r |= A2108_II2C_Read16((AVL_uint16)(pAVLChip->m_SlaveAddr), scatter_data_addr, &ucTemp2);
+ 238                  if( (A2108_EC_OK != r) || (0 == ucTemp1) )
+ 239                  {
+ 240                          return(A2108_EC_Running);
+ 241                  }
+ 242                  if( ucTemp2>(*puiSize) )
+ 243                  {
+ 244                          ucTemp2 = (*puiSize);
+ 245                  }
+ 246                  else
+ 247                  {
+ 248                          (*puiSize) = ucTemp2;
+ 249                  }
+ 250          
+ 251                  r = A2108_II2C_Read((AVL_uint16)(pAVLChip->m_SlaveAddr), scatter_data_addr+2, ucpData, (AVL_uint16)(ucTem
+             -p2<<1)); //both i and q
+ 252                  ucTemp1 = 0;
+ 253                  r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_ScatterData_rdy_addr, ucTemp1);
+ 254                  return(r);
+ 255          }
+ 256                  */
+ 257          
+ 258           /*Reads back the current SNR estimate. 
+ 259           Parameters: 
+ 260          puiSNR_db;  Carries back the current estimated SNR value. The value is scaled by 100. For example, 
+ 261          reading back decimal 2578 means the SNR estimate is 25.78 db. pAVLChip;  A pointer to the A2108_Chip 
+ 262          object for which the SNR is being read.  
+ 263          Remarks: 
+ 264          It may take a few seconds for the chip to calculate a stable SNR value after FEC lock. This function 
+ 265          returns an SNR value of 0 before a stable SNR value is calculated.   */
+ 266          /*A2108_ErrorCode A2108_IDVBSxRx_GetSNR( AVL_puint32 puiSNR_db, const struct A2108_Chip * pAVLChip )
+ 267          {
+ 268                  A2108_ErrorCode r;
+ 269                  r = A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_int_SNR_dB_addr, puiSNR_db);
+ 270                  if( (*puiSNR_db) > 10000 )
+ 271                  {
+ 272                          // Not get stable SNR value yet.
+ 273                          *puiSNR_db = 0;
+ 274                  }
+ 275                  return(r);
+C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 6   
+
+ 276          } */
+ 277          
+ 278           /*     Read back the current PER calculation result. 
+ 279           puiPER;  Carries back the current PER value. The value is scaled by 1e-9. For example, reading back 
+ 280           decimal 123456 means the PER value is 0.000123456.  pAVLChip;  A pointer that points to an A2108_Chip 
+ 281           object which is used to tell the function which AVL2108 chip it is working on.  
+ 282           读取当前的PER计算结果，puiPER存放当前PER值 */
+ 283          /*A2108_ErrorCode A2108_IDVBSxRx_GetPER( AVL_puint32 puiPER, const struct A2108_Chip * pAVLChip )
+ 284          {
+ 285                  A2108_ErrorCode r;
+ 286                  r = A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rp_uint_PER_addr, puiPER);
+ 287                  return(r);
+ 288          }
+ 289             */
+ 290          
+ 291          /*        This function reports an estimated BER when a DVBS input signal is applied to the receiver. 
+ 292           The DVBS bit error rate estimate is performed after Viterbi decoding but before Reed Solomon decoding. 
+ 293            The function does not require the input of a known test pattern to the 
+ 294          receiver, and thus can be used to estimate BER for on-air DVBS 
+ 295          signals.   
+ 296            */
+ 297          /*A2108_ErrorCode A2108_IDVBSxRx_GetDVBSBER( AVL_puint32 puiBER, const struct A2108_Chip * pAVLChip )
+ 298          {
+ 299                  A2108_ErrorCode r;
+ 300          
+ 301                  r = A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rp_dvbs_ber_addr, puiBER);
+ 302                  if( 0xffffffff == (*puiBER) )
+ 303                  {
+ 304                          r |= A2108_EC_GeneralFail;
+ 305                  }
+ 306                  return(r);
+ 307          }
+ 308                   */
+ 309          
+ 310           /*Get the RF frequency offset. This is typically used to adjust the tuner to center the signal in the 
+ 311           tuner bandwidth for best performance. 
+ 312          Parameters: 
+ 313           piRFOffset_100kHz;  Carries back the offset of the RF frequency in the unit of 100kHz. For example,
+ 314            if the signal RF frequency is 1000M, the tuner is at 998M, and the rc_specinv  register is set 
+ 315            consistent to the hardware, this value will be -20 (20 x 100kHz  = -2M).  If the rc_specinv is 
+ 316            opposite to the hardware, the offset will be 20. For the setup of the rc_specinv register, please refer 
+ 317            to the SDK function A2108_IBlindScan_Scan for more information.  pAVLChip;  A pointer that points to 
+ 318            an A2108_Chip object which is used to tell the function which AVL2108 chip it is working on.      
+ 319          Remarks: 
+ 320          Call this function after the AVL2108 chip locked the input signal.    */
+ 321          /*A2108_ErrorCode A2108_IDVBSxRx_GetRFOffset( AVL_pint16 piRFOffset_100kHz, const struct A2108_Chip * pAVL
+             -Chip )
+ 322          {
+ 323                  A2108_ErrorCode r;
+ 324                  r = A2108_II2C_Read16((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_int_carrier_freq_100kHz_addr, (AVL_puint16)
+             -piRFOffset_100kHz);
+ 325                  return(r);
+ 326          }
+ 327            */
+ 328          
+ 329          /*Get the current locked signal information.
+ 330          Parameters: 
+ 331          pSignalInfo;  Carries back the detected signal information. Refer to A2108_Signal_Info.
+ 332          pAVLChip;  A pointer that points to an A2108_Chip object which is used to tell the function which AVL2108 
+             -chip it is working on.  
+ 333           结构体p_SignalInfo返回信号信息 */
+ 334          /*A2108_ErrorCode A2108_IDVBSxRx_GetSignalInfo( struct A2108_SignalInfo * pSignalInfo, const struct A2108_
+C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 7   
+
+             -Chip * pAVLChip )
+ 335          {
+ 336                  A2108_ErrorCode r = A2108_EC_OK;
+ 337                  AVL_uint32 uiTemp;
+ 338                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_pilot_addr, &uiTemp);
+ 339                  pSignalInfo->m_pilot = (enum A2108_Pilot)(uiTemp);
+ 340                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_code_rate_addr, &uiTemp);
+ 341                  pSignalInfo->m_coderate = (enum A2108_FecRate)(uiTemp);
+ 342                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rs_modulation_addr, &uiTemp);
+ 343                  pSignalInfo->m_modulation = (enum A2108_ModulationMode)(uiTemp);
+ 344                  r |= A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), rx_Rolloff_addr, &uiTemp);
+ 345                  pSignalInfo->m_rolloff = (enum A2108_RollOff)((uiTemp>>22) & 0x03);
+ 346                  return(r);
+ 347          }       */
+ 348          
+ 349          /*A2108_ErrorCode A2108_IDVBSxRx_SetDishPointingMode( AVL_uchar ucMode, const struct A2108_Chip *pAVLChip 
+             -)
+ 350          {
+ 351                  A2108_ErrorCode r = A2108_EC_OK;
+ 352                  enum A2108_FunctionalMode enumFunctionalMode;
+ 353          
+ 354                  r |= A2108_IBase_GetFunctionalMode(&enumFunctionalMode, pAVLChip);
+ 355                  if(enumFunctionalMode == A2108_FunctMode_Demod)
+ 356                  {
+ 357                          if(ucMode == 1)
+ 358                          {
+ 359                                  r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_aagc_acq_gain_addr, 12);
+ 360                                  r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rp_dishpoint_mode_addr, 1);
+ 361                          }
+ 362                          else
+ 363                          {
+ 364                                  r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rc_aagc_acq_gain_addr, 10);
+ 365                                  r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rp_dishpoint_mode_addr, 0);
+ 366                          }
+ 367                  }
+ 368                  else
+ 369                  {
+ 370                          r = A2108_EC_GeneralFail;
+ 371                  }
+ 372          
+ 373                  return(r);
+ 374          }          */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1954    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     57    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

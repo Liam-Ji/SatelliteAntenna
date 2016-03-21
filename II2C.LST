@@ -1,0 +1,465 @@
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE II2C
+OBJECT MODULE PLACED IN II2C.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE II2C.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2           *           Copyright 2007-2009 Availink, Inc.
+   3           *
+   4           *  This software contains Availink proprietary information and
+   5           *  its use and disclosure are restricted solely to the terms in
+   6           *  the corresponding written license agreement. It shall not be 
+   7           *  disclosed to anyone other than valid licensees without
+   8           *  written permission of Availink, Inc.
+   9           *
+  10           */
+  11          
+  12          
+  13          
+  14          //$Revision: 323 $ 
+  15          //$Date: 2008-03-14 11:31:11 -0400 (Fri, 14 Mar 2008) $
+  16          // 
+  17          #include "II2C.h"
+  18          #include "IBSP.h"
+  19          
+  20          //#include "CPU020.h"
+  21          //#include "Uart1.h" //+++++++++++=bj
+  22          
+  23          AVL_semaphore gI2CSem;
+  24          
+  25          unsigned char pucSendBuff[64];
+  26          
+  27          A2108_ErrorCode A2108_II2C_Initialize(void)
+  28          {
+  29   1              A2108_ErrorCode r = A2108_EC_OK;
+  30   1              static AVL_uchar gI2CSem_inited = 0;
+  31   1              if( 0 == gI2CSem_inited )
+  32   1              {
+  33   2                      gI2CSem_inited = 1;
+  34   2              //      r = A2108_IBSP_InitSemaphore(&gI2CSem);
+  35   2              }
+  36   1              return r;
+  37   1      }
+  38          
+  39          
+  40          /*Read uiSize bytes from AVL2108 to pucBuff from AVL2108 internal address uiOffset.
+  41          Parameters: 
+  42          uiSlaveAddr;  The slave address of the AVL2108 chip.   
+  43          uiOffset;  The AVL2108 internal address where the function will read data from.   
+  44          pucBuff;  Carries back the data read from the AVL2108 chip.·µ»Ø2108Ð¾Æ¬µÄÊý¾Ý   
+  45          uiSize;  Tells the function read back how many bytes. ¶Á»ØµÄ×Ö½ÚÊý 
+  46           ´Ó2108µÄuiOffsetÖÐ¶ÁÈ¡uiSize¸ö×Ö½Ú·ÅÈëpucBuffÊý×éÖÐ*/
+  47          A2108_ErrorCode A2108_II2C_Read( AVL_uint16 uiSlaveAddr, AVL_uint32 uiOffset, AVL_puchar pucBuff, AVL_uint
+             -16 uiSize)
+  48          {
+  49   1              A2108_ErrorCode r;
+  50   1              AVL_uchar pucBuffTemp[3];
+  51   1              AVL_uint16 ui1, ui2;
+  52   1              AVL_uint16 iSize;
+  53   1      
+  54   1              r = A2108_IBSP_WaitSemaphore(&(gI2CSem));
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 2   
+
+  55   1              if( A2108_EC_OK == r )
+  56   1              {
+  57   2                      ChunkAddr(uiOffset, pucBuffTemp); // pucBuffTempÊý×é¸÷ÔªËØ´æ·ÅuioffsetµÄ¸÷×Ö½Ú             
+  58   2                      ui1 = 3;
+  59   2                      r = A2108_IBSP_I2CWrite(uiSlaveAddr, pucBuffTemp, ui1);  
+  60   2                      if( A2108_EC_OK == r )
+  61   2                      {
+  62   3                              if( uiSize & 1 )
+  63   3                              {
+  64   4                                      iSize = uiSize - 1;
+  65   4                              }
+  66   3                              else
+  67   3                              {
+  68   4                                      iSize = uiSize;
+  69   4                              }
+  70   3                              ui2 = 0;
+  71   3                              while( iSize > MAX_II2C_READ_SIZE )        
+  72   3                              {
+  73   4                                      ui1 = MAX_II2C_READ_SIZE;       // #define MAX_II2C_READ_SIZE 64         #define MAX_II2C_Write_SIZE64 
+  74   4                                      r |= A2108_IBSP_I2CRead(uiSlaveAddr, pucBuff+ui2, ui1);
+  75   4                                      ui2 += MAX_II2C_READ_SIZE;
+  76   4                                      iSize -= MAX_II2C_READ_SIZE;
+  77   4                              }
+  78   3      
+  79   3                              if( 0 != iSize )         //»¹ÒªÃ»ÓÐ½ÓÊÕµÄÊý¾Ý£¬¼ÌÐø½ÓÊÕ
+  80   3                              {
+  81   4                                      r |= A2108_IBSP_I2CRead(uiSlaveAddr, pucBuff+ui2, iSize);
+  82   4                              }
+  83   3      
+  84   3                              if( uiSize & 1 )   //Èç¹ûuiSizeÊÇÆæÊý£¬ÏÂÃæ´¦Àí×îºóÒ»¸öÊý¾Ý
+  85   3                              {
+  86   4                                      ui1 = 2;
+  87   4                                      r |= A2108_IBSP_I2CRead(uiSlaveAddr, pucBuffTemp, ui1);
+  88   4                                      pucBuff[uiSize-1] = pucBuffTemp[0];
+  89   4                              }
+  90   3                      }
+  91   2              }
+  92   1              r |= A2108_IBSP_ReleaseSemaphore(&(gI2CSem)); 
+  93   1              return(r);
+  94   1      }
+  95          
+  96          /*A2108_ErrorCode A2108_II2C_ReadDirect( AVL_uint16 uiSlaveAddr, AVL_puchar pucBuff, AVL_uint16 uiSize)
+  97          {
+  98                  A2108_ErrorCode r;
+  99                  AVL_uchar pucBuffTemp[3];
+ 100                  AVL_uint16 ui1, ui2;
+ 101                  AVL_uint16 iSize;
+ 102                  r = A2108_IBSP_WaitSemaphore(&(gI2CSem));
+ 103                  if( A2108_EC_OK == r )
+ 104                  {
+ 105                          if( uiSize & 1 )
+ 106                          {
+ 107                                  iSize = uiSize - 1;
+ 108                          }
+ 109                          else
+ 110                          {
+ 111                                  iSize = uiSize;
+ 112                          }
+ 113                          ui2 = 0;
+ 114                          while( iSize > MAX_II2C_READ_SIZE )
+ 115                          {
+ 116                                  ui1 = MAX_II2C_READ_SIZE;
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 3   
+
+ 117                                  r |= A2108_IBSP_I2CRead(uiSlaveAddr, pucBuff+ui2, ui1);
+ 118                                  ui2 += MAX_II2C_READ_SIZE;
+ 119                                  iSize -= MAX_II2C_READ_SIZE;
+ 120                          }
+ 121          
+ 122                          if( 0 != iSize )
+ 123                          {
+ 124                                  r |= A2108_IBSP_I2CRead(uiSlaveAddr, pucBuff+ui2, iSize);
+ 125                          }
+ 126          
+ 127                          if( uiSize & 1 )
+ 128                          {
+ 129                                  ui1 = 2;
+ 130                                  r |= A2108_IBSP_I2CRead(uiSlaveAddr, pucBuffTemp, ui1);
+ 131                                  pucBuff[uiSize-1] = pucBuffTemp[0];
+ 132                          }
+ 133                  }
+ 134                  r |= A2108_IBSP_ReleaseSemaphore(&(gI2CSem)); 
+ 135                  return(r);
+ 136          }
+ 137                    */
+ 138            /*uiSlaveAddr  The slave address of the AVL2108 chip.   
+ 139           pucBuff  Holds the data which will be sent to AVL2108 chip.   
+ 140           uiSize  Tells the function how many bytes will be sent out. 
+ 141          Returns:  A2108_ErrorCode, Return A2108_EC_OK if everything is OK; Return A2108_EC_I2CFail if there is an 
+             -I2C problem.  
+ 142           °ÑuiSize¸ö×Ö½ÚÊý(´æÓÚpucBuff)·¢ËÍµ½2108Ð¾Æ¬*/
+ 143          A2108_ErrorCode A2108_II2C_Write( AVL_uint16 uiSlaveAddr, AVL_puchar pucBuff, AVL_uint16 uiSize)
+ 144          {        //AVL_uchar pucSendBuff[64];    //+++++++++++++++==bj
+ 145   1      //       int j;               //++++++++++++++++++++++
+ 146   1      //      unsigned char Tempch;
+ 147   1      //      unsigned char count;    
+ 148   1              A2108_ErrorCode r;
+ 149   1              AVL_uchar pucBuffTemp[5];
+ 150   1              AVL_uint16 ui1, ui2, uTemp,i;
+ 151   1              AVL_uint16 iSize;
+ 152   1              AVL_uint32 uAddr;
+ 153   1              if( uiSize<3 )
+ 154   1              {
+ 155   2                      return(A2108_EC_GeneralFail);    //ÖÁÉÙÈý¸ö×Ö½Ú
+ 156   2              }
+ 157   1      
+ 158   1              uiSize -= 3;                    //actual data size
+ 159   1              r = A2108_IBSP_WaitSemaphore(&(gI2CSem));
+ 160   1              if( A2108_EC_OK == r )
+ 161   1              {
+ 162   2                      //dump address
+ 163   2                      uAddr = pucBuff[0];
+ 164   2                      uAddr = uAddr<<8;
+ 165   2                      uAddr += pucBuff[1];
+ 166   2                      uAddr = uAddr<<8;
+ 167   2                      uAddr += pucBuff[2];  //uAddrÎªµØÖ·
+ 168   2      
+ 169   2                      if( uiSize & 1 )   //Èç¹ûuiSizeÆæÊý£¬ÔòiSize=uiSize-1£¬ Å¼ÊýiSize=uiSize
+ 170   2                      {
+ 171   3                              iSize = uiSize -1;
+ 172   3                      }
+ 173   2                      else
+ 174   2                      {
+ 175   3                              iSize = uiSize;
+ 176   3                      }
+ 177   2      
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 4   
+
+ 178   2                      uTemp = (MAX_II2C_Write_SIZE-3) & 0xfffe; //60how many bytes data we can transfer every time
+ 179   2      
+ 180   2                      ui2 = 0;
+ 181   2                      while( iSize > uTemp )
+ 182   2                      {       
+ 183   3                              ui1 = uTemp+3;      
+ 184   3                              //save the data
+ 185   3                              for(i=0; i<ui1; i++)
+ 186   3                                      pucSendBuff[i] = pucBuff[ui2+i];
+ 187   3      /*                      pucBuffTemp[0] = pucBuff[ui2];
+ 188   3                              pucBuffTemp[1] = pucBuff[ui2+1];
+ 189   3                              pucBuffTemp[2] = pucBuff[ui2+2];//ÏÈ°ÑpucBuffÖÐµÄÈý¸öÔªËØ´æÓÚÁÙÊ±Êý×étemp
+ 190   3      */
+ 191   3                              ChunkAddr(uAddr, pucSendBuff);  //°ÑuAddr¶ÔÓ¦µÄ×Ö½Ú´æ·ÅÊý×é     pucharSendBuff  
+ 192   3                      //      for(j=0;j<100;j++)
+ 193   3                      //      { 
+ 194   3                              r |= A2108_IBSP_I2CWrite(uiSlaveAddr, pucSendBuff, ui1);
+ 195   3                      //      }
+ 196   3                      /*      if(r!=0)
+ 197   3                              {
+ 198   3                                      count = 0;
+ 199   3                               for(Uart1TXMAXLenth=0;Uart1TXMAXLenth<64;Uart1TXMAXLenth++)
+ 200   3                                {     
+ 201   3                                        Tempch = (pucSendBuff[Uart1TXMAXLenth] & 0xf0) >> 4;  //
+ 202   3                                        if(Tempch > 9)
+ 203   3                                        {
+ 204   3                                                      Uart1SendData[count++]= Tempch - 10 + 'A';                                              
+ 205   3                                        }
+ 206   3                                        else
+ 207   3                                        {
+ 208   3                                                      Uart1SendData[count++]= Tempch + '0';                                           
+ 209   3                                        }
+ 210   3                                        
+ 211   3                                        Tempch = pucSendBuff[Uart1TXMAXLenth] & 0xf;    //
+ 212   3                                        if(Tempch > 9)
+ 213   3                                        {
+ 214   3                                                      Uart1SendData[count++]= Tempch - 10 + 'A';                                              
+ 215   3                                        }
+ 216   3                                        else
+ 217   3                                        {
+ 218   3                                                      Uart1SendData[count++]= Tempch + '0';                                           
+ 219   3                                        }                               
+ 220   3                                        Uart1SendData[count++]= ' '; 
+ 221   3                                          
+ 222   3                                 }
+ 223   3      
+ 224   3                                 Uart1SendData[count++]='\r';                            
+ 225   3                                      Uart1SendData[count]='\n';
+ 226   3                                      Uart1TXMAXLenth=count;
+ 227   3                                 Uart1TX(); 
+ 228   3                                 CloseUart1();
+ 229   3                              }        */
+ 230   3                      
+ 231   3      /*                      //restore data
+ 232   3                              pucBuff[ui2] = pucBuffTemp[0]; //°ÑtempÖÐµÄÊýµ¼»ØpucBuff
+ 233   3                              pucBuff[ui2+1] = pucBuffTemp[1];
+ 234   3                              pucBuff[ui2+2] = pucBuffTemp[2];
+ 235   3      */
+ 236   3                              uAddr += uTemp;    //¼Ä´æÆ÷µØÖ·¼Ó60
+ 237   3                              ui2 += uTemp;
+ 238   3                              iSize -= uTemp;                 /*ÕâÑù¿ÉÒÔ±£Ö¤pucBuff±£³Ö²»±ä*/
+ 239   3                      }
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 5   
+
+ 240   2                      ui1 = iSize+3;
+ 241   2                      for(i=0; i<ui1; i++)
+ 242   2                              pucSendBuff[i] = pucBuff[ui2+i];
+ 243   2      /*
+ 244   2                      //save the data
+ 245   2                      pucBuffTemp[0] = pucBuff[ui2];
+ 246   2                      pucBuffTemp[1] = pucBuff[ui2+1];
+ 247   2                      pucBuffTemp[2] = pucBuff[ui2+2];
+ 248   2      */
+ 249   2                      ChunkAddr(uAddr, pucSendBuff);
+ 250   2              
+ 251   2      
+ 252   2                      r |= A2108_IBSP_I2CWrite(uiSlaveAddr, pucSendBuff, ui1); 
+ 253   2                      
+ 254   2              /*      
+ 255   2                      //restore data
+ 256   2                      pucBuff[ui2] = pucBuffTemp[0];
+ 257   2                      pucBuff[ui2+1] = pucBuffTemp[1];
+ 258   2                      pucBuff[ui2+2] = pucBuffTemp[2];   */
+ 259   2                      uAddr += iSize;    // ¼Ä´æÆ÷µØÖ·¼Ó4
+ 260   2                      ui2 += iSize;     //120+4        
+ 261   2      
+ 262   2      
+ 263   2                      if( uiSize & 1 )          //Èç¹ûÎªÆæÊý
+ 264   2                      {
+ 265   3                              ChunkAddr(uAddr, pucBuffTemp);  //µ±Ç°¼Ä´æÆ÷µØÖ··ÅÈëpucTemp[0][1][2]ÖÐ
+ 266   3                              ui1 = 3;
+ 267   3                              r |= A2108_IBSP_I2CWrite(uiSlaveAddr, pucBuffTemp, ui1);//·¢ËÍ¼Ä´æÆ÷µØÖ·
+ 268   3                              ui1 = 2;
+ 269   3                              r |= A2108_IBSP_I2CRead(uiSlaveAddr, pucBuffTemp+3, ui1);//¶Á»Ø¼Ä´æÆ÷ÖÐµÄ2¸öÊý·ÅpucTemp[3][4]ÖÐ
+ 270   3                              pucBuffTemp[3] = pucBuff[ui2+3];//×îºóÒ»¸ö×Ö½Ú·ÅÈëpucTemp[3]ÖÐ
+ 271   3                              ui1 = 5;
+ 272   3                              r |= A2108_IBSP_I2CWrite(uiSlaveAddr, pucBuffTemp, ui1);  //·¢ËÍpucTempµÄ[0][1][2][3][4]
+ 273   3                      }
+ 274   2              }
+ 275   1              r |= A2108_IBSP_ReleaseSemaphore(&(gI2CSem)); 
+ 276   1      
+ 277   1              return(r);
+ 278   1      }
+ 279          
+ 280          
+ 281                  A2108_ErrorCode A2108_II2C_Read16( AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_puint16 puiData )
+ 282          {
+ 283   1              A2108_ErrorCode r;
+ 284   1              AVL_uchar pBuff[2];
+ 285   1      
+ 286   1              r = A2108_II2C_Read(uiSlaveAddr, uiAddr, pBuff, 2);             //´óÐ¡Îª2µÄpBuffÊý×é´æ·Å16Î»µÄÊý
+ 287   1              if( A2108_EC_OK == r )
+ 288   1              {
+ 289   2                      *puiData = DeChunk16(pBuff);
+ 290   2              }
+ 291   1              return(r);
+ 292   1      }
+ 293           /*Read back a 32 bits unsigned integer from AVL2108 chip. 
+ 294           ´Ó2108Ð¾Æ¬ÖÐ¶ÁÈ¡32Î»ÎÞ·ûºÅÕûÐÍ
+ 295           Parameters: 
+ 296           uiSlaveAddr  The slave address of the AVL2108 chip.  2108Ð¾Æ¬µØÖ· 
+ 297           uiAddr  The AVL2108 internal address where the function will read data from.  2108ÄÚ²¿µØÖ·£¬º¯Êý½«´ÓÖÐ¶ÁÈ
+             -¡Êý¾Ý 
+ 298           puiData  Carries back the 32 bits unsigned integer. ·µ»Ø32Î»ÎÞ·ûºÅÕûÐÍ*/
+ 299          A2108_ErrorCode A2108_II2C_Read32( AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_puint32 puiData )
+ 300          {
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 6   
+
+ 301   1              A2108_ErrorCode r;
+ 302   1              AVL_uchar pBuff[4];
+ 303   1      
+ 304   1              r = A2108_II2C_Read(uiSlaveAddr, uiAddr, pBuff, 4);
+ 305   1              if( A2108_EC_OK == r )
+ 306   1              {
+ 307   2                      *puiData = DeChunk32(pBuff);  //pBuff[0]<<24+pBuff[1]<<16+pBuff[2]<<8+pBuff[3]
+ 308   2              }
+ 309   1              return(r);
+ 310   1      }
+ 311          
+ 312          A2108_ErrorCode A2108_II2C_Write16(AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_uint16 uiData )
+ 313          {
+ 314   1              A2108_ErrorCode r;
+ 315   1              AVL_uchar pBuff[5];        //´óÐ¡Îª5µÄÎÞ·ûºÅÊý×é
+ 316   1      
+ 317   1              ChunkAddr(uiAddr, pBuff);  //Êý×éÇ°Èý¸öÔªËØ´æ·ÅµØÖ·
+ 318   1              Chunk16(uiData, pBuff+3);  //ºóÁ½¸öÔªËØ    ´æ·Å16Î»Êý¾Ý
+ 319   1      
+ 320   1              r = A2108_II2C_Write(uiSlaveAddr, pBuff, 5);
+ 321   1              return(r);
+ 322   1      }
+ 323          
+ 324          
+ 325          /*Write a 32 bits unsigned integer to AVL2108 chip.    
+ 326          Parameters: 
+ 327           uiSlaveAddr  The slave address of the AVL2108 chip.   
+ 328           uiAddr  The AVL2108 internal address where the function will read data from 
+ 329           uiData  The data will be write to AVL2108 chip.   
+ 330          Returns:  A2108_ErrorCode, Return A2108_EC_OK if everything is OK; Return  A2108_EC_I2CFail if there is a 
+             -I2C problem. 
+ 331          ´ÓuiAddrÖÐ¶ÁÈ¡uiDataÐ´Èë2108   */
+ 332          A2108_ErrorCode A2108_II2C_Write32( AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_uint32 uiData )
+ 333          {
+ 334   1              A2108_ErrorCode r;
+ 335   1              AVL_uchar pBuff[7];
+ 336   1      
+ 337   1              ChunkAddr(uiAddr, pBuff); /*pBuffÇ°Èý¸öÔªËØ´æ·ÅµØÖ·     pBuff[0] =(AVL_uchar)(uiaddr>>16);
+ 338   1                                                                       pBuff[1] =(AVL_uchar)(uiaddr>>8);
+ 339   1                                                                       pBuff[2] =(AVL_uchar)(uiaddr); */
+ 340   1              Chunk32(uiData, pBuff+3);       //ºóËÄ¸öÔªËØ´æ·Å32Î»uiData¶ÔÓ¦µÄËÄ¸ö×Ö½Ú
+ 341   1              r = A2108_II2C_Write(uiSlaveAddr, pBuff, 7);
+ 342   1              return(r);
+ 343   1      }
+ 344          
+ 345          
+ 346          
+ 347          /*A2108_ErrorCode A2108_II2C_Read16( AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_puint16 puiData )
+ 348          {
+ 349                  A2108_ErrorCode r=0;
+ 350                  AVL_uchar pBuff[2];
+ 351                  AVL_uchar pucBuffTemp[3];
+ 352          
+ 353          
+ 354                  ChunkAddr(uiAddr, pucBuffTemp); // pucBuffTempÊý×é¸÷ÔªËØ´æ·ÅuioffsetµÄ¸÷×Ö½Ú++++++++    
+ 355                  r = A2108_IBSP_I2CWrite(uiSlaveAddr, pucBuffTemp, 3);//·¢ËÍ¼Ä´æÆ÷µØÖ·+++++++++
+ 356                  r |= A2108_IBSP_I2CRead(uiSlaveAddr, pBuff, 2); //¶ÁµÄ2¸ö×Ö½Ú´æÓÚpBuff++++++++   
+ 357          /*      r = A2108_II2C_Read(uiSlaveAddr, uiAddr, pBuff, 2);     */      
+ 358          /*      if( A2108_EC_OK == r )
+ 359                  {
+ 360                          *puiData = DeChunk16(pBuff);
+ 361                  }
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 7   
+
+ 362                  return(r);
+ 363          }       */
+ 364           /*Read back a 32 bits unsigned integer from AVL2108 chip. 
+ 365           ´Ó2108Ð¾Æ¬ÖÐ¶ÁÈ¡32Î»ÎÞ·ûºÅÕûÐÍ
+ 366           Parameters: 
+ 367           uiSlaveAddr  The slave address of the AVL2108 chip.  2108Ð¾Æ¬µØÖ· 
+ 368           uiAddr  The AVL2108 internal address where the function will read data from.  2108ÄÚ²¿µØÖ·£¬º¯Êý½«´ÓÖÐ¶ÁÈ
+             -¡Êý¾Ý 
+ 369           puiData  Carries back the 32 bits unsigned integer. ·µ»Ø32Î»ÎÞ·ûºÅÕûÐÍ*/
+ 370          
+ 371          /*A2108_ErrorCode A2108_II2C_Read32( AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_puint32 puiData )
+ 372          {
+ 373                  A2108_ErrorCode r=0;
+ 374                  AVL_uchar pBuff[4];
+ 375                  AVL_uchar pucBuffTemp[3];
+ 376          
+ 377                  ChunkAddr(uiAddr, pucBuffTemp); // pucBuffTempÊý×é¸÷ÔªËØ´æ·ÅuioffsetµÄ¸÷×Ö½Ú++++++++    
+ 378                  r = A2108_IBSP_I2CWrite(uiSlaveAddr, pucBuffTemp, 3);//·¢ËÍ¼Ä´æÆ÷µØÖ·+++++++++
+ 379                  r |= A2108_IBSP_I2CRead(uiSlaveAddr, pBuff, 4); //¶ÁµÄ4¸ö×Ö½Ú´æÓÚpBuff++++++++   
+ 380                  /*r = A2108_II2C_Read(uiSlaveAddr, uiAddr, pBuff, 4);*/
+ 381          /*      if( A2108_EC_OK == r )
+ 382                  {
+ 383                          *puiData = DeChunk32(pBuff);  //pBuff[0]<<24+pBuff[1]<<16+pBuff[2]<<8+pBuff[3]
+ 384                  }
+ 385                  return(r);
+ 386          }
+ 387          
+ 388          A2108_ErrorCode A2108_II2C_Write16(AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_uint16 uiData )
+ 389          {
+ 390                  A2108_ErrorCode r=0;
+ 391                  AVL_uchar pBuff[5];        //´óÐ¡Îª5µÄÎÞ·ûºÅÊý×é
+ 392          
+ 393                  ChunkAddr(uiAddr, pBuff);
+ 394                  Chunk16(uiData, pBuff+3); 
+ 395          
+ 396                  r = A2108_IBSP_I2CWrite(uiSlaveAddr, pBuff, 5);  //+++++++++
+ 397          /*      r = A2108_II2C_Write(uiSlaveAddr, pBuff, 5);   */
+ 398          /*      return(r);
+ 399          }
+ 400          
+ 401          
+ 402          /*Write a 32 bits unsigned integer to AVL2108 chip.    
+ 403          Parameters: 
+ 404           uiSlaveAddr  The slave address of the AVL2108 chip.   
+ 405           uiAddr  The AVL2108 internal address where the function will read data from 
+ 406           uiData  The data will be write to AVL2108 chip.   
+ 407          Returns:  A2108_ErrorCode, Return A2108_EC_OK if everything is OK; Return  A2108_EC_I2CFail if there is a 
+             -I2C problem. 
+ 408          ´ÓuiAddrÖÐ¶ÁÈ¡uiDataÐ´Èë2108   */
+ 409          /*A2108_ErrorCode A2108_II2C_Write32( AVL_uint16 uiSlaveAddr, AVL_uint32 uiAddr, AVL_uint32 uiData )
+ 410          {
+ 411                  A2108_ErrorCode r=0;
+ 412                  AVL_uchar pBuff[7];
+ 413          
+ 414                  ChunkAddr(uiAddr, pBuff); /*pBuffÇ°Èý¸öÔªËØ´æ·ÅµØÖ·     pBuff[0] =(AVL_uchar)(uiaddr>>16);
+ 415                                                                           pBuff[1] =(AVL_uchar)(uiaddr>>8);
+ 416                                                                           pBuff[2] =(AVL_uchar)(uiaddr); */
+ 417          /*      Chunk32(uiData, pBuff+3);       //ºóËÄ¸öÔªËØ´æ·Å32Î»uiData¶ÔÓ¦µÄËÄ¸ö×Ö½Ú
+ 418          
+ 419                  r = A2108_IBSP_I2CWrite(uiSlaveAddr, pBuff, 7);  //+++++++++
+ 420                  /*r = A2108_II2C_Write(uiSlaveAddr, pBuff, 7);  */
+ 421          /*      return(r);
+C51 COMPILER V9.00   II2C                                                                  03/18/2016 16:14:09 PAGE 8   
+
+ 422          } */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2240    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    173    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

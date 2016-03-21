@@ -1,0 +1,221 @@
+C51 COMPILER V9.00   IBASE                                                                 03/18/2016 16:14:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE IBASE
+OBJECT MODULE PLACED IN IBase.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE IBase.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2           *           Copyright 2007-2009 Availink, Inc.
+   3           *
+   4           *  This software contains Availink proprietary information and
+   5           *  its use and disclosure are restricted solely to the terms in
+   6           *  the corresponding written license agreement. It shall not be 
+   7           *  disclosed to anyone other than valid licensees without
+   8           *  written permission of Availink, Inc.
+   9           *
+  10           */
+  11          
+  12          
+  13          //$Revision: 914 $ 
+  14          //$Date: 2009-07-30 09:59:11 -0400 (Thu, 30 Jul 2009) $
+  15          // 
+  16          #include "bspdatadef.h"
+  17          #include "IBase.h"
+  18          #include "II2C.h"
+  19          #include "IBSP.h"
+  20          #include "IDVBSxRx.h"
+  21          #include "ITuner.h"
+  22          #include "II2CRepeater.h"
+  23          //#include "IBlindScan.h"
+  24          //#include "demod_patch.h"
+  25          
+  26          
+  27             
+  28          
+  29          /// @endcond
+  30             A2108_ErrorCode A2108_IBase_SetPLL(struct A2108_PllConf * pPLLConf, struct A2108_Chip * pAVLChip )
+  31          {
+  32   1              A2108_ErrorCode r;
+  33   1      
+  34   1              r = A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (pll_r3), pPLLConf->m_r3);  
+  35   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (pll_r2), pPLLConf->m_r2);
+  36   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (pll_r1), pPLLConf->m_r1); 
+  37   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (pll_r4), pPLLConf->m_r4);
+  38   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (pll_r5), pPLLConf->m_r5);
+  39   1      
+  40   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (pll_softvalue_en),   1);
+  41   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (reset_register), 0);
+  42   1      
+  43   1              A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), (reset_register), 1);  //this is a reset, do not 
+             -expect an ACK from the chip.
+  44   1      
+  45   1              pAVLChip->m_DemodFrequency_10kHz = pPLLConf->m_DmodFrequency_10kHz;
+  46   1              pAVLChip->m_FecFrequency_10kHz =  pPLLConf->m_FecFrequency_10kHz;
+  47   1              pAVLChip->m_MpegFrequency_10kHz = pPLLConf->m_MpegFrequency_10kHz;
+  48   1      
+  49   1              return(r);
+  50   1      }
+  51          
+  52          A2108_ErrorCode A2108_IBase_DownloadFirmware(AVL_puchar pFirmwareData,  struct A2108_Chip * pAVLChip)
+  53          {
+  54   1              AVL_uint32 uiSize, uiDataSize;
+C51 COMPILER V9.00   IBASE                                                                 03/18/2016 16:14:09 PAGE 2   
+
+  55   1              AVL_uint32 i1=0;
+  56   1              A2108_ErrorCode r;
+  57   1      
+  58   1              r = A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), core_reset_b_reg, 0);
+  59   1      
+  60   1              uiDataSize = DeChunk32(pFirmwareData);   //¸ù¾ÝucDemodPatchDataÊý×éµÄÇ°4¸öÔªËØ£¨0¡¢1¡¢2¡¢3£©£¬Çó³öuiDataSi
+             -ze=5516
+  61   1              i1 = 4;
+  62   1              while( i1 < uiDataSize )
+  63   1              {
+  64   2              /*µÚÒ»´Î¸ù¾Ý£¨4¡¢5¡¢6¡¢7£©£¬Çó³öuiSizeÎª60 
+  65   2                  ¶þ           */
+  66   2                      uiSize = DeChunk32(pFirmwareData+i1);  // uiSizeÖÐ´æ·Å´Ë´ÎÒª·¢ËÍµÄÊý¾Ý¸öÊý
+  67   2                      i1 += 4;  //Ä¿µÄÊÇÒÆ¶¯µ½Òª·¢ËÍµÄÔªËØÏÂ±ê
+  68   2              r |= A2108_II2C_Write((AVL_uint16)(pAVLChip->m_SlaveAddr), pFirmwareData+i1+1, (AVL_uint16)(uiSize+3)
+             -);        //·¢ËÍÁ¿ÔÙ¼ÓÈý¸öµØÖ·×Ö½Ú
+  69   2                      i1 += 4 + uiSize;
+  70   2              }
+  71   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), 0x00000000, 0x00003ffc);
+  72   1              r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), core_ready_word_addr, 0x0000);
+  73   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), error_msg_addr, 0x00000000);
+  74   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), error_msg_addr+4, 0x00000000);
+  75   1      
+  76   1              r |= A2108_II2C_Write32((AVL_uint16)(pAVLChip->m_SlaveAddr), core_reset_b_reg, 1);
+  77   1              return r;
+  78   1      }
+  79          /*      ¼ì²ébaseµÄ³õÊ¼»¯ÊÇ·ñÍê³É*/
+  80          
+  81          A2108_ErrorCode A2108_IBase_GetStatus( struct A2108_Chip * pAVLChip )
+  82          {
+  83   1              A2108_ErrorCode r;
+  84   1              AVL_uchar pBuff[2]; 
+  85   1              AVL_uint32 uiTemp=0;
+  86   1      
+  87   1              r = A2108_II2C_Read32((AVL_uint16)(pAVLChip->m_SlaveAddr), core_reset_b_reg, &uiTemp);  // #define core_re
+             -set_b_reg                0x600000
+  88   1              r |= A2108_II2C_Read16((AVL_uint16)(pAVLChip->m_SlaveAddr), core_ready_word_addr, (AVL_puint16)pBuff);
+  89   1                                                                                           // #define core_ready_word_a
+             -ddr        0x00000434
+  90   1              if( (A2108_EC_OK == r) )
+  91   1              {
+  92   2                      if( (0 == uiTemp) || (pBuff[0]!=0xa5) || (pBuff[1]!=0x5a) )       //+++++++++++++bj25  +++Î»ÖÃµßµ¹       Èç¹
+             -ûuiTempÎª0»òÕßpBuff[0]²»ÊÇ5a»òpBuff[1]²»ÊÇa5Ôò³õÊ¼»¯Ê§°Ü
+  93   2                      {
+  94   3                              r = A2108_EC_GeneralFail;
+  95   3                      }
+  96   2              }
+  97   1              return(r);
+  98   1      }
+  99          
+ 100          
+ 101          
+ 102          A2108_ErrorCode A2108_IBase_Initialize(struct A2108_PllConf *pPLLConf, AVL_puchar pInitialData,  struct A2
+             -108_Chip *pAVLChip )
+ 103          {       
+ 104   1              A2108_ErrorCode r=0;
+ 105   1      
+ 106   1              r |= A2108_IBase_SetPLL(pPLLConf, pAVLChip );
+ 107   1              A2108_IBSP_Delay_ms(200);        // this delay is critical 
+ 108   1              r |= A2108_IBase_DownloadFirmware(pInitialData, pAVLChip);
+ 109   1      
+ 110   1              return(r);
+C51 COMPILER V9.00   IBASE                                                                 03/18/2016 16:14:09 PAGE 3   
+
+ 111   1      }
+ 112          
+ 113          
+ 114            
+ 115           /*      
+ 116          This function determines the present functional mode of the AVL2108. The AVL2108 can be in one of 
+ 117          two functional modes, demodulator mode or blind scan mode. 
+ 118          Parameters: 
+ 119          pFunctionalMode; A pointer to an object to which the function writes the AVL2108 functional mode.  
+ 120          pAVLChip;  A pointer to the A2108_Chip object for which the functional mode is being retrieved. 
+ 121          ¹¦ÄÜÄ£Ê½£ºdemodulator»òÕßblind scanÄ£Ê½
+ 122          °Ñ¹¦ÄÜÄ£Ê½·ÅÈë£¨* pFunctionalMode £©ÖÐ */
+ 123          A2108_ErrorCode A2108_IBase_GetFunctionalMode(enum A2108_FunctionalMode * pFunctionalMode,  const struct A
+             -2108_Chip * pAVLChip)
+ 124          {
+ 125   1              A2108_ErrorCode r;      
+ 126   1              AVL_uint16 uiTemp;
+ 127   1              r =  A2108_II2C_Read16((AVL_uint16)(pAVLChip->m_SlaveAddr), rp_functional_mode_addr, &uiTemp);
+ 128   1              *pFunctionalMode = (enum A2108_FunctionalMode)(uiTemp & 0x1);   
+ 129   1              return r;
+ 130   1      }
+ 131          
+ 132          
+ 133           /*The above code sends an ucOpCmd command to the AVL2108 chip. 
+ 134          Parameters: 
+ 135           ucOpCmd;  The OP_RX_xxx command code as defined in IBase.h file.   
+ 136           pAVLChip;  A pointer that points to an A2108_Chip object which is used to tell the function which AVL2108
+             - chip it is working on.  
+ 137          Remarks: 
+ 138          This function is an 'internal' function. Availink doesn't recommend the user to call it directly. 
+ 139          ·¢ËÍucOpCmdÃüÁî¸ø2108,     ÊÇÒ»¸ö¡°ÄÚ²¿¡±º¯Êý£¬½¨Òé²»ÒªÖ±½Óµ÷ÓÃ*/
+ 140          A2108_ErrorCode A2108_IBase_SendRxOP(AVL_uchar ucOpCmd, struct A2108_Chip * pAVLChip )
+ 141          {
+ 142   1              A2108_ErrorCode r;
+ 143   1              AVL_uchar pucBuff[2];
+ 144   1              AVL_uint16 uiTemp;
+ 145   1              r = A2108_IBSP_WaitSemaphore(&(pAVLChip->m_semRx));       // A semaphore used to protect the receiver command
+             - channel
+ 146   1              r |= A2108_IBase_GetRxOPStatus(pAVLChip);
+ 147   1              if( A2108_EC_OK == r )
+ 148   1              {
+ 149   2                      pucBuff[0] = 0;  //´æ·Å¸ßÎ»
+ 150   2                      pucBuff[1] = ucOpCmd;//´æ·ÅµÍÎ»
+ 151   2                      uiTemp = DeChunk16(pucBuff);
+ 152   2                      r |= A2108_II2C_Write16((AVL_uint16)(pAVLChip->m_SlaveAddr), rx_cmd_addr, uiTemp);   
+ 153   2              }       //Íù2108ÖÐÐ´ÃüÁî
+ 154   1              r |= A2108_IBSP_ReleaseSemaphore(&(pAVLChip->m_semRx));
+ 155   1              return(r);
+ 156   1      }
+ 157          
+ 158          
+ 159           /* The above code will verify that the last OP_Rx command has completed. 
+ 160             pAVLChip;  A pointer that points to an A2108_Chip object which used to tell the function which AVL2108 
+             -chip
+ 161            it is working on. 
+ 162          Returns: 
+ 163          A Return A2108_EC_OK if last command is finished; 
+ 164          Return A2108_EC_Running if AVL2108 is still working on last command;
+ 165          Return A2108_EC_I2CFail if there is an I2C problem.  
+ 166             ºËÊµ×îºóÒ»¸öOP_Rx ÃüÁîÊÇ·ñ½áÊø */
+ 167          A2108_ErrorCode A2108_IBase_GetRxOPStatus(const struct A2108_Chip * pAVLChip )
+ 168          {
+C51 COMPILER V9.00   IBASE                                                                 03/18/2016 16:14:09 PAGE 4   
+
+ 169   1              A2108_ErrorCode r;
+ 170   1              AVL_uchar pBuff[2];
+ 171   1              r = A2108_II2C_Read((AVL_uint16)(pAVLChip->m_SlaveAddr), rx_cmd_addr, pBuff, 2);
+ 172   1              if( A2108_EC_OK == r )   //¶ÁÈ¡µÄÊý×éµÄµÚ¶þ¸öÔªËØÎª0£¬ËµÃ÷ÃüÁîÖ´ÐÐÍê±Ï
+ 173   1              {
+ 174   2                      if( 0 != pBuff[1] )              
+ 175   2                      {
+ 176   3                              r = A2108_EC_Running;
+ 177   3                      }
+ 178   2              }
+ 179   1              return(r);
+ 180   1      }
+ 181          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2342    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     70    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

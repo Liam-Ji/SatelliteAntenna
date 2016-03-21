@@ -1,0 +1,1597 @@
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN timer.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE timer.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /***********************************************************************
+   2          * 
+   3          * 时    间：2008-10-10
+   4          *
+   5          * 文 件 名：timer.c
+   6          *
+   7          * 版    本：AKD10P07(发布版)
+   8          *
+   9          * 作    者：北京爱科迪信息通讯技术有限公司—技术部—杨淳雯
+  10          * 
+  11          * 功能说明：C8051F020Timer相关函数,测试得timer3比timer0快一点点
+  12          *
+  13          *           1,定时器0主要用来计时，2，定时器3用来驱动步进电机；
+  14          *
+  15          * 注    意：调用这些函数时必需成对调用，详细参考相关代码；
+  16          *
+  17          * 修    改: 加入MotorCtrl（）函数，用于方位俯仰走到某一定角度
+  18          *
+  19          *           修改人：杨淳雯
+  20          *
+  21          *           修改时间：2008-11-3
+  22          *
+  23          * 修    改: 加入函数GotoElMid（）（便携式没有这个函数），GotoAzMid();
+  24          *
+  25          *           修改人：杨淳雯
+  26          *
+  27          *           修改时间：2008-11-24
+  28          *
+  29          * 修   改：加入三个得到校正的速度函数GetElS1(),GetAzS2(),GetAzS1();
+  30          *  
+  31          *          杨淳雯  2008-11-25
+  32          *
+  33          * 修   改：改进MotorCtrl（）函数，时间2009-3-25，杨淳雯
+  34          *
+  35          ***********************************************************************/
+  36          #include "timer.h"
+  37          #include "station.h"
+  38          #include "protcol.h"
+  39          #include "rweeprom.h"
+  40          #include "math.h"
+  41          #include "adc.h"
+  42          #include "polar.h"
+  43          #include "uart.h"
+  44          
+  45          
+  46          /*全局变量*/
+  47          INT16 data OverflowT0;                                                          //计数溢出用
+  48          float data StationAz;                                                           //地球站方位角度 
+  49          float data StationEl;                                                           //地球站俯仰角度
+  50          float data PolarDst;                                                            //极化目地角度
+  51          INT16 data PolarRightFlag;                                                      //极化到位标志
+  52          
+  53          
+  54          float data StationAzLimit;
+  55          
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 2   
+
+  56          UINT8 data AzMidLimitF;                         //2010-7-7
+  57          UINT8 data AZLeftLimitF;                        //
+  58          UINT8 data AZRightLimitF;                       //限位故障标致
+  59          
+  60          
+  61          xdata UINT8  TEMPAGE;
+  62          
+  63          
+  64          /*静态变量*/
+  65          static UINT16 data CountT0;
+  66          static UINT16 data AZMotorflag = 0;                                     //AZ电机启动标志
+  67          static UINT16 data ELMotorflag = 0;                                     //EL电机启动标志
+  68          
+  69          
+  70          /*25KG机器用*/                                                          
+  71          static double data AZMotorPlusStep = 0.00225;           //方位电机一个脉冲步长，缺省
+  72          static double data ELMotorPlusStep = 0.00225;           //2009-3-25
+  73          
+  74          
+  75          static float data PolarDefinition  = 0.1;                       //极化精确度
+  76          static float data PolarSrc;                                                     //极化源角度
+  77          
+  78          
+  79          /*静态函数*/
+  80          static void OpenTimer3Interrupt(UINT16 count);
+  81          static void CloseTimer3Interrupt(void);
+  82          static UINT8 GotoAzMidL(void);
+  83          static UINT8 GotoAzMidR(void);
+  84          static UINT8 GotoAzMidM(void);
+  85          
+  86          extern UINT16 abcd1;
+  87          extern UINT16 abcd2;
+  88          extern UINT16 abcd3;
+  89          /***********************************************************************
+  90          *
+  91          * 函数原型：void Timer0Init(void)
+  92          *
+  93          * 入口参数：无
+  94          *
+  95          * 出口参数：无
+  96          *
+  97          * 功能描述：定时器0初始化;
+  98          *
+  99          ***********************************************************************/
+ 100          void Timer0Init(void)
+ 101          {
+ 102   1              EA          =  0;
+ 103   1              SFRPAGE = TIMER01_PAGE;
+ 104   1              CKCON  |=  BIT2;                        //定时器0 使用系统时钟,文档有错误！！！
+ 105   1              TMOD   &= ~BIT3;
+ 106   1              TMOD   &= ~BIT2;                        //选择定时器功能
+ 107   1              TMOD   |=  BIT1;
+ 108   1              TMOD   &= ~BIT0;                        //1 0 方式2：自动重装载的8 位计数器/定时器
+ 109   1              TL0     =  0x48;                        //初值为72100us定时
+ 110   1              TH0     =  0x48;                        //重载值
+ 111   1              TR0     =  0;                   //禁止定时器0
+ 112   1              EA      =  1;
+ 113   1      }
+ 114          
+ 115          
+ 116          /***********************************************************************
+ 117          *
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 3   
+
+ 118          * 函数原型：void OpenTimer0Inrerupt(void)
+ 119          *
+ 120          * 入口参数：无
+ 121          *
+ 122          * 出口参数：无
+ 123          *
+ 124          * 功能描述：开启定时器0中断
+ 125          *
+ 126          ***********************************************************************/
+ 127          void OpenTimer0Interrupt(void)
+ 128          {
+ 129   1              CountT0         = 0;
+ 130   1              OverflowT0      = 0;
+ 131   1      
+ 132   1              TEMPAGE = SFRPAGE;                //120修改
+ 133   1              SFRPAGE = TIMER01_PAGE;
+ 134   1      
+ 135   1              TF0             = 0;                    //溢出标志清0
+ 136   1              TR0             = 1;                    //开始计数
+ 137   1              ET0             = 1;                    //允许TF1 标志位（TCON.7）的中断请求
+ 138   1      
+ 139   1              SFRPAGE         = TEMPAGE;
+ 140   1      }
+ 141          
+ 142          
+ 143          /***********************************************************************
+ 144          *
+ 145          * 函数原型：void CloseTimer0Inrerupt(void)
+ 146          *
+ 147          * 入口参数：无
+ 148          *
+ 149          * 出口参数：无
+ 150          *
+ 151          * 功能描述：关闭定时器0中断
+ 152          *
+ 153          ***********************************************************************/
+ 154          void CloseTimer0Interrupt(void)
+ 155          {
+ 156   1              TEMPAGE = SFRPAGE;                //120修改
+ 157   1              SFRPAGE = TIMER01_PAGE;
+ 158   1      
+ 159   1              TR0     = 0;    
+ 160   1              ET0     = 0;                                    //禁止定时器0 中断
+ 161   1      
+ 162   1              SFRPAGE         = TEMPAGE;
+ 163   1      }
+ 164          
+ 165          
+ 166          /***********************************************************************
+ 167          *
+ 168          *函数原型：void Timer0Interrupt(void)
+ 169          *
+ 170          *入口参数：无
+ 171          *
+ 172          *出口参数：无
+ 173          *
+ 174          *功能描述：定时器0中断函数,用来定时用，约每秒OVERFLOWT0加一
+ 175          *
+ 176          ***********************************************************************/
+ 177          void Timer0Interrupt(void) interrupt T0INTNUMBER
+ 178          {       
+ 179   1          TEMPAGE = SFRPAGE;            //120修改
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 4   
+
+ 180   1              SFRPAGE = TIMER01_PAGE;   //页0   120修改
+ 181   1      
+ 182   1              TF0 = 0;
+ 183   1              CountT0++;
+ 184   1              if(CountT0 > (OFT0NUMBER - 1))
+ 185   1              {
+ 186   2                      OverflowT0++;
+ 187   2                      CountT0 = 0;
+ 188   2              }
+ 189   1      
+ 190   1              SFRPAGE = TEMPAGE;
+ 191   1      }
+ 192          
+ 193          
+ 194          /***********************************************************************
+ 195          *
+ 196          * 函数原型：void Timer3Init(void)
+ 197          *
+ 198          * 入口参数：无
+ 199          *
+ 200          * 出口参数：无
+ 201          *
+ 202          * 功能描述：定时器3初始化，用于给电机脉冲
+ 203          *
+ 204          * 注：用的外部时钟，来给定时器3
+ 205          *
+ 206          ***********************************************************************/
+ 207          void Timer3Init(void)
+ 208          {
+ 209   1          EA            =  0;              //IE所有页
+ 210   1          SFRPAGE   =  TMR3_PAGE;
+ 211   1          TMR3CN   &=  0x00;  //工作方式：16位自动重载，和定时器功能 
+ 212   1      //      TMR3CN   |=  0x04;      //定时器3允许
+ 213   1              EIE2     &= ~BIT0;//先关闭中断
+ 214   1              EA        =  1;
+ 215   1      }
+ 216          
+ 217          
+ 218          /***********************************************************************
+ 219          *
+ 220          * 函数原型：void OpenTimer3Interrupt(UINT16 count)
+ 221          *
+ 222          * 入口参数：count，给电机的脉冲频率，可参考C8051F020手册
+ 223          *
+ 224          * 出口参数：无
+ 225          *
+ 226          * 功能描述：开启定时器0中断
+ 227          *
+ 228          ***********************************************************************/
+ 229          void OpenTimer3Interrupt(UINT16 count)
+ 230          {
+ 231   1              SFRPAGE = TMR3_PAGE;
+ 232   1              RCAP3L  = 0x00ff & count;                //注意
+ 233   1              count   = count>>8;
+ 234   1              RCAP3H  = 0x00ff & count;
+ 235   1              TMR3CN |= 0x04; //定时器3允许
+ 236   1              EIE2   |= BIT0;  //开中断
+ 237   1      }
+ 238          
+ 239          
+ 240          /***********************************************************************
+ 241          *
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 5   
+
+ 242          * 函数原型：void CloseTimer3Inrerupt(void)
+ 243          *
+ 244          * 入口参数：无
+ 245          *
+ 246          * 出口参数：无
+ 247          *
+ 248          * 功能描述：关闭定时器3中断
+ 249          *
+ 250          ***********************************************************************/
+ 251          static void CloseTimer3Interrupt(void)
+ 252          {
+ 253   1              SFRPAGE =  TMR3_PAGE;
+ 254   1          TMR3CN &= ~BIT2;                                            //TR3=0,计数不允许
+ 255   1              EIE2   &= ~BIT0;                                                //不开中断
+ 256   1      }
+ 257          
+ 258          
+ 259          /***********************************************************************
+ 260          *
+ 261          * 函数原型：void Timer3Interrupt(void)
+ 262          *
+ 263          * 入口参数：无
+ 264          *
+ 265          * 出口参数：无
+ 266          *
+ 267          * 功能描述：定时器3中断函数,用来给电机方波脉冲
+ 268          *
+ 269          ***********************************************************************/
+ 270          void Timer3Interrupt(void) interrupt T3INTNUMBER
+ 271          {       
+ 272   1              TEMPAGE = SFRPAGE;                //120修改
+ 273   1              SFRPAGE = TMR3_PAGE;      //页1 120修改
+ 274   1      
+ 275   1              TMR3CN &= ~BIT7;
+ 276   1      
+ 277   1              if(AZLeftLimitF > 0x10 && AZLeftLimit == MotorLimitFlag && StationAzLimit > 120.0)
+ 278   1              {
+ 279   2                      AZLeftLimitF = 1;
+ 280   2                      StationAz = StationAzLimit;     
+ 281   2              }
+ 282   1      
+ 283   1              if(AZRightLimitF > 0x10 && AZRightLimit == MotorLimitFlag && StationAzLimit < 240.0)
+ 284   1              {
+ 285   2                      AZRightLimitF = 1;
+ 286   2                      StationAz = StationAzLimit;     
+ 287   2              }
+ 288   1      
+ 289   1              if(AZDir == AZRIGHT && AZRightLimit == MotorLimitFlag \
+ 290   1                      && AZRightLimitF > 0x3 && AZMotorflag == 1)
+ 291   1              {
+ 292   2                      StationAz = AZ180 + AZlimit + 1.0;              //方位保护
+ 293   2                      return;
+ 294   2              }
+ 295   1      
+ 296   1              if(AZDir == AZLEFT && AZLeftLimit == MotorLimitFlag \
+ 297   1                      && AZLeftLimitF > 0x3 && AZMotorflag == 1)
+ 298   1              {
+ 299   2                      StationAz = AZ180 - AZlimit - 1.0;              //方位保护
+ 300   2                      return;
+ 301   2              }
+ 302   1      
+ 303   1      
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 6   
+
+ 304   1      
+ 305   1                              
+ 306   1              if(ELMotorflag == 1)                                            //EL电机转动标志
+ 307   1              {
+ 308   2                      if(((ELDir == ELDOWN)&&(StationEl < ELDOWNlimit)) || ((ELDir == ELUP)&&(StationEl > ELUPlimit)))//Rill a
+             -dd to protect EL motor 101202
+ 309   2                      {        
+ 310   3                               ELMotorflag = 0;
+ 311   3                               return;  
+ 312   3                      }
+ 313   2                      if(ELPlus == 1)
+ 314   2                      {
+ 315   3                              ELPlus = 0;
+ 316   3                      }
+ 317   2                      else
+ 318   2                      {
+ 319   3                              ELPlus = 1;
+ 320   3                              if(ELDir == ELUP)
+ 321   3                              {
+ 322   4                                      StationEl += ELMotorPlusStep;
+ 323   4                              }
+ 324   3                              else
+ 325   3                              {
+ 326   4                                      StationEl -= ELMotorPlusStep;
+ 327   4                              }       
+ 328   3                      }
+ 329   2              }//end if(ELMotorflag == 1)
+ 330   1                      if(AZMotorflag == 1)                                       //AZ电机转动标志
+ 331   1              {
+ 332   2                      if(AZPlus == 1)
+ 333   2                      {
+ 334   3                              AZPlus = 0;
+ 335   3                      }
+ 336   2                      else
+ 337   2                      {
+ 338   3                              AZPlus = 1;
+ 339   3                              if(AZDir == AZRIGHT)
+ 340   3                              {
+ 341   4                                      StationAz += AZMotorPlusStep;
+ 342   4                                      StationAzLimit += AZMotorPlusStep;
+ 343   4                              }
+ 344   3                              else
+ 345   3                              {
+ 346   4                                      StationAz -= AZMotorPlusStep;
+ 347   4                                      StationAzLimit -= AZMotorPlusStep;
+ 348   4                              }       
+ 349   3                      }
+ 350   2              }//end if(AZMotorflag == 1)
+ 351   1              SFRPAGE = TEMPAGE;      
+ 352   1      }
+ 353          
+ 354          
+ 355          /***********************************************************************
+ 356          *
+ 357          * 函数原型：void MotorFun(INT16 ElMode, INT16 AzMode, UINT16 speed)
+ 358          *
+ 359          * 入口参数：speed 给定时器用,控制电机速度
+ 360          *           
+ 361          *          ElMode, AzMode参考ELUP,ELDOWN,AZRIGHT,AZLEFT在timer.h中
+ 362          *
+ 363          * 出口参数：无
+ 364          *
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 7   
+
+ 365          * 功能描述：电机转动控制
+ 366          *
+ 367          ***********************************************************************/
+ 368          void MotorFun(INT16 ElMode, INT16 AzMode, UINT16 speed)
+ 369          {
+ 370   1              if(AzMode == MOTORSTOP && ElMode == MOTORSTOP)  //关定时器，关电机
+ 371   1              {
+ 372   2                      CloseTimer3Interrupt();                                         //注这里可以加电机保护，如果电机都不转                                                  
+ 373   2                      return;
+ 374   2              }
+ 375   1      
+ 376   1              if(AzMode < MOTORSTOP)                                                  //是否开方位电机
+ 377   1              {
+ 378   2                      AZMotorflag = 1;
+ 379   2                      if(AzMode == AZRIGHT)                                           //方位电机的方向
+ 380   2                      {
+ 381   3                              AZDir = AZRIGHT;
+ 382   3                      }
+ 383   2                      else
+ 384   2                      {
+ 385   3                              AZDir = AZLEFT;
+ 386   3                      }
+ 387   2              }
+ 388   1              else
+ 389   1              {
+ 390   2                      AZMotorflag = 0;
+ 391   2              }//end if(AzMode < MOTORSTOP)
+ 392   1              
+ 393   1              if(ElMode < MOTORSTOP)                                              //是否开俯仰电机
+ 394   1              {
+ 395   2                      ELMotorflag = 1;
+ 396   2                      if(ElMode == ELUP)                                                      //俯仰电机方向
+ 397   2                      {
+ 398   3                              ELDir = ELUP;
+ 399   3                      }
+ 400   2                      else
+ 401   2                      {
+ 402   3                              ELDir = ELDOWN;
+ 403   3                      }
+ 404   2              }
+ 405   1              else
+ 406   1              {
+ 407   2                      ELMotorflag = 0;
+ 408   2              }//end if(ElMode < MOTORSTOP)
+ 409   1      
+ 410   1              OpenTimer3Interrupt(speed);                                             //电机开始转动
+ 411   1      }
+ 412          
+ 413          
+ 414          /***********************************************************************
+ 415          *
+ 416          * 函数原型：void MotorCtrl(INT16 DirFlag, float Angle, UINT16 speed)
+ 417          *
+ 418          * 入口参数：speed 给定时器用,控制电机速度
+ 419          *           
+ 420          *           DirFlag上下方向还是左右方向
+ 421          *
+ 422          *                   Angle目标角度
+ 423          *
+ 424          * 出口参数：无
+ 425          *
+ 426          * 功能描述：电机以speed速度走到方位或俯仰的Angle角度
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 8   
+
+ 427          *
+ 428          ***********************************************************************/
+ 429          void MotorCtrl(INT16 DirFlag, float Angle, UINT16 speed)
+ 430          {       
+ 431   1              if(DirFlag == UPDOWN)                                             //如果为上下方向
+ 432   1              {
+ 433   2                      if(Angle > ELUPlimit)                                     //如果目标大于俯仰上限
+ 434   2                      {
+ 435   3                              Angle = ELUPlimit;
+ 436   3                      }                                                                                 //如果目标小于俯仰下限
+ 437   2                      if(Angle < ELDOWNlimit)
+ 438   2                      {
+ 439   3                              Angle = ELDOWNlimit;
+ 440   3                      }
+ 441   2                      if(Angle > StationEl)                                     //如果目标角大于当前俯仰
+ 442   2                      {
+ 443   3                              MotorFun(ELUP, MOTORSTOP, speed);
+ 444   3                              while(Angle > StationEl)
+ 445   3                              {
+ 446   4                                      ;
+ 447   4                              }
+ 448   3                              MotorFun(MOTORSTOP, MOTORSTOP, speed);
+ 449   3                      }
+ 450   2                      else                                                                      //如果目标角小于当前俯仰
+ 451   2                      {
+ 452   3                              MotorFun(ELDOWN, MOTORSTOP, speed);
+ 453   3                              while(Angle < StationEl)
+ 454   3                              {
+ 455   4                                      ;
+ 456   4                              }
+ 457   3                              MotorFun(MOTORSTOP, MOTORSTOP, speed);
+ 458   3                      }
+ 459   2              }//end : if(DirFlag == UPDOWN)
+ 460   1      
+ 461   1                      
+ 462   1              if(DirFlag == RIGHTLEFT)                                        //如果为左右方向
+ 463   1              {
+ 464   2                      if(Angle > AZlimit + AZ180)                             //如果大于右限位                
+ 465   2                      {
+ 466   3                              Angle = AZlimit + AZ180;
+ 467   3                      }                                                                                 
+ 468   2                      if(Angle < AZ180 - AZlimit)                             //如果小于左限位
+ 469   2                      {
+ 470   3                              Angle = AZ180 - AZlimit;
+ 471   3                      }
+ 472   2                      if(Angle > StationAz)                                     
+ 473   2                      {
+ 474   3                              MotorFun(MOTORSTOP, AZRIGHT, speed);
+ 475   3                              while(Angle > StationAz)
+ 476   3                              {
+ 477   4                                      ;
+ 478   4                              }
+ 479   3                              MotorFun(MOTORSTOP, MOTORSTOP, speed);
+ 480   3                      }
+ 481   2                      else                                     
+ 482   2                      {
+ 483   3                              MotorFun(MOTORSTOP, AZLEFT, speed);
+ 484   3                              while(Angle < StationAz)
+ 485   3                              {
+ 486   4                                      ;
+ 487   4                              }
+ 488   3                              MotorFun(MOTORSTOP, MOTORSTOP, speed);
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 9   
+
+ 489   3                      }
+ 490   2              }//end : if(DirFlag == RIGHTLEFT)               
+ 491   1      }
+ 492          
+ 493          
+ 494          /***********************************************************************
+ 495          *
+ 496          * 函数原型：void GoAM(void)
+ 497          *
+ 498          * 入口参数：无
+ 499          *
+ 500          * 出口参数：无
+ 501          *
+ 502          * 功能描述：天线到方位中间限位
+ 503          *
+ 504          * 修    改：2010-07-16加入这个函数，用于收藏与测试时到中间限位
+ 505          *
+ 506          ***********************************************************************/
+ 507          void GoAM(void)
+ 508          {
+ 509   1              /*当前是中间限位且上次中间限位正常*/
+ 510   1              if(AzMidLimit == MotorLimitFlag && AzMidLimitF > 0x10)
+ 511   1              {       
+ 512   2                      StationAz = AZ180;
+ 513   2                      return;
+ 514   2              }
+ 515   1              /*如果中间限位正常则找中间限位*/
+ 516   1              if(AzMidLimitF > 0x10)
+ 517   1              {
+ 518   2                      /*如果方位大于180度，则向左转动*/
+ 519   2                      if(StationAz > 180.0)
+ 520   2                      {
+ 521   3                              TimeTest(2);    //走电机前加入延时
+ 522   3                              MotorFun(MOTORSTOP, AZLEFT, GetAzS2());                         //天线向左转动（从天线后面看）
+ 523   3                              while(StationAz > 160.0)
+ 524   3                              {
+ 525   4                                      Delay(20);
+ 526   4                                      if(status != MANUALMODE)
+ 527   4                                      {
+ 528   5                                              watch();
+ 529   5                                      }
+ 530   4                                      if(AzMidLimit == MotorLimitFlag)
+ 531   4                                      {
+ 532   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 533   5                                              Delay(5000);
+ 534   5                                              if(AzMidLimit == MotorLimitFlag)
+ 535   5                                              {
+ 536   6                                                      break;
+ 537   6                                              }
+ 538   5                                              else
+ 539   5                                              {
+ 540   6                                                      MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
+ 541   6                                              }
+ 542   5                                      }
+ 543   4                              }
+ 544   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 545   3                              
+ 546   3                              /*如果找到中间限位则返回*/
+ 547   3                              if(AzMidLimit == MotorLimitFlag)
+ 548   3                              {
+ 549   4                                      StationAz = AZ180;
+ 550   4                                      return;
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 10  
+
+ 551   4                              }
+ 552   3                              /*回到180度，中间限位故障*/
+ 553   3                              else
+ 554   3                              {
+ 555   4                                      TimeTest(2);    //走电机前加入延时
+ 556   4                                      MotorCtrl(RIGHTLEFT, 180.0, GetAzS2());
+ 557   4                                      AzMidLimitF = 1;
+ 558   4                                      WriteEEPROM(AzMidLimitF, AzMidLimitFAddr);      
+ 559   4                              }       
+ 560   3                      }
+ 561   2                      /*如果角度小于180度则向右转*/
+ 562   2                      else
+ 563   2                      {
+ 564   3                              TimeTest(2);    //走电机前加入延时
+ 565   3                              MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
+ 566   3                              while(StationAz < 200.0)
+ 567   3                              {
+ 568   4                                      Delay(20);
+ 569   4                                      if(status != MANUALMODE)
+ 570   4                                      {
+ 571   5                                              watch();
+ 572   5                                      }
+ 573   4                                      if(AzMidLimit == MotorLimitFlag)
+ 574   4                                      {
+ 575   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 576   5                                              Delay(5000);
+ 577   5                                              if(AzMidLimit == MotorLimitFlag)
+ 578   5                                              {
+ 579   6                                                      break;
+ 580   6                                              }
+ 581   5                                              else
+ 582   5                                              {
+ 583   6                                                      MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
+ 584   6                                              }
+ 585   5                                      }
+ 586   4                              }
+ 587   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 588   3                              
+ 589   3                              if(AzMidLimit == MotorLimitFlag)
+ 590   3                              {
+ 591   4                                      StationAz = AZ180;
+ 592   4                                      return;
+ 593   4                              }
+ 594   3                              else
+ 595   3                              {
+ 596   4                                      TimeTest(2);    //走电机前加入延时
+ 597   4                                      MotorCtrl(RIGHTLEFT, 180.0, GetAzS2());
+ 598   4                                      AzMidLimitF = 1;
+ 599   4                                      WriteEEPROM(AzMidLimitF, AzMidLimitFAddr);
+ 600   4                                              
+ 601   4                              }                       
+ 602   3                      }       
+ 603   2              }
+ 604   1              /*如果中间限位不正常则直接走到中间180度*/
+ 605   1              else
+ 606   1              {
+ 607   2                      TimeTest(2);    //走电机前加入延时
+ 608   2                      MotorCtrl(RIGHTLEFT, 180.0, GetAzS2());         
+ 609   2              }
+ 610   1              StationAz = AZ180;
+ 611   1              return;
+ 612   1      }
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 11  
+
+ 613          
+ 614          
+ 615          /***********************************************************************
+ 616          *
+ 617          * 函数原型：void GotoAzMid(void)
+ 618          *
+ 619          * 入口参数：无
+ 620          *
+ 621          * 出口参数：无
+ 622          *
+ 623          * 功能描述：天线到AZ中间限位
+ 624          *
+ 625          * 修    改：2008-11-24加入这个函数
+ 626          *
+ 627          ***********************************************************************/
+ 628          void GotoAzMid(void)
+ 629          {
+ 630   1              /*情况一：如果中间限位没有故障而且目前正在中间限位*/
+ 631   1              if(AzMidLimit == MotorLimitFlag && AzMidLimitF > 0x10)
+ 632   1              {       
+ 633   2                      StationAz = AZ180;
+ 634   2                      StationAzLimit = StationAz;
+ 635   2                      return;
+ 636   2              }
+ 637   1      
+ 638   1              /*情况二：三个限位都故障*/
+ 639   1              if(AZLeftLimitF == 1 && AZRightLimitF == 1 && AzMidLimitF == 1)
+ 640   1              {
+ 641   2                      StationAz = AZ180;
+ 642   2                      StationAzLimit = StationAz;
+ 643   2                      return;
+ 644   2              }
+ 645   1      
+ 646   1              /*情况三：如果左限位没有故障*/
+ 647   1              if(AZLeftLimitF > 0x10)
+ 648   1              {
+ 649   2                      if(GotoAzMidL())
+ 650   2                      {
+ 651   3                              return;         
+ 652   3                      }
+ 653   2              }
+ 654   1      
+ 655   1              /*情况四：如果右限位没有故障*/
+ 656   1              if(AZRightLimitF > 0x10)
+ 657   1              {
+ 658   2                      if(GotoAzMidR())
+ 659   2                      {
+ 660   3                              return;         
+ 661   3                      }       
+ 662   2              }
+ 663   1      
+ 664   1              /*情况五：如果中间限位没有故障*/
+ 665   1              if(AzMidLimitF > 0x10)
+ 666   1              {
+ 667   2                      GotoAzMidM();
+ 668   2              }
+ 669   1              return;
+ 670   1      }
+ 671          
+ 672          
+ 673          /***********************************************************************
+ 674          *
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 12  
+
+ 675          * 函数原型：UINT8 GotoAzMidL(void)
+ 676          *
+ 677          * 入口参数：无
+ 678          *
+ 679          * 出口参数：无
+ 680          *
+ 681          * 功能描述：天线到AZ中间限位,左限位正常情况
+ 682          *
+ 683          * 修    改：2010-7-9加入这个函数
+ 684          *
+ 685          ***********************************************************************/
+ 686          static UINT8 GotoAzMidL(void)
+ 687          {
+ 688   1              UINT8 tempL;
+ 689   1              UINT8 tempR;
+ 690   1              UINT8 tempM;
+ 691   1              UINT8 returnvalue;
+ 692   1      
+ 693   1              /*保存以前的限位情况*/
+ 694   1              tempL = AZLeftLimitF;
+ 695   1              tempR = AZRightLimitF;
+ 696   1              tempM = AzMidLimitF;
+ 697   1              
+ 698   1              /*屏蔽左右限位功能*/
+ 699   1              AZLeftLimitF = 1;
+ 700   1              AZRightLimitF = 1;
+ 701   1      
+ 702   1              StationAz = AZ180;
+ 703   1      
+ 704   1              /*向左走90度，如果碰到限位则停止*/
+ 705   1              TimeTest(2);    //走电机前加入延时
+ 706   1              MotorFun(MOTORSTOP, AZLEFT, GetAzS2());                         //天线向左转动（从天线后面看）
+ 707   1              while((AZLeftLimit != MotorLimitFlag)  &&       \
+ 708   1                              (StationAz > 90.0))
+ 709   1              {
+ 710   2                      Delay(20);
+ 711   2                      if(status != MANUALMODE)
+ 712   2                      {
+ 713   3                              watch();
+ 714   3                      }
+ 715   2                      if(AzMidLimit == MotorLimitFlag && tempM > 0x10)
+ 716   2                      {
+ 717   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 718   3                              Delay(5000);
+ 719   3                              if(AzMidLimit == MotorLimitFlag)
+ 720   3                              {
+ 721   4                                      break;
+ 722   4                              }
+ 723   3                              else
+ 724   3                              {
+ 725   4                                      MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
+ 726   4                              }
+ 727   3                      }
+ 728   2              }
+ 729   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 730   1      
+ 731   1              /*情况一：找到中间限位*/
+ 732   1              if(AzMidLimit == MotorLimitFlag && tempM > 0x10)        //如果是中间限位则确定方位值
+ 733   1              {
+ 734   2                      StationAz = AZ180;
+ 735   2                      StationAzLimit = StationAz;
+ 736   2                      AZLeftLimitF = tempL;
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 13  
+
+ 737   2                      AZRightLimitF = tempR;
+ 738   2      //              return 1;
+ 739   2                      returnvalue = 1;
+ 740   2              }
+ 741   1      
+ 742   1              /*情况二：找到左限位*/
+ 743   1              if(AZLeftLimit == MotorLimitFlag)
+ 744   1              {
+ 745   2                      /*如果中间限位正常，则再找中间限位*/
+ 746   2                      if(tempM > 0x10)
+ 747   2                      {
+ 748   3                              StationAz = 90.0;
+ 749   3                              TimeTest(2);
+ 750   3                              MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());        //天线向左转动（从天线后面看）
+ 751   3                              while((AzMidLimit != MotorLimitFlag)  &&  \
+ 752   3                              (StationAz < 190.0))
+ 753   3                              {
+ 754   4                                      Delay(20);
+ 755   4                                      if(status != MANUALMODE)
+ 756   4                                      {
+ 757   5                                              watch();
+ 758   5                                      }
+ 759   4                                      if(AzMidLimit == MotorLimitFlag && tempM > 0x10)
+ 760   4                                      {
+ 761   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 762   5                                              Delay(5000);
+ 763   5                                              if(AzMidLimit == MotorLimitFlag)
+ 764   5                                              {
+ 765   6                                                      break;
+ 766   6                                              }
+ 767   5                                              else
+ 768   5                                              {
+ 769   6                                                      MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
+ 770   6                                              }
+ 771   5                                      }
+ 772   4                              }
+ 773   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 774   3                              
+ 775   3                              /*如果找到中间限位则正常返回*/
+ 776   3                              StationAz = AZ180;
+ 777   3                              StationAzLimit = StationAz;
+ 778   3                              AZLeftLimitF = tempL;
+ 779   3                              AZRightLimitF = tempR;
+ 780   3      
+ 781   3                              /*如果没有找到中间限位，则将中间限位标志为故障*/
+ 782   3                              if(AzMidLimit != MotorLimitFlag)
+ 783   3                              {       
+ 784   4                                      AzMidLimitF = 1;                
+ 785   4                              }
+ 786   3      //                      return 1;
+ 787   3                              returnvalue = 1;        
+ 788   3                      }
+ 789   2                      /*如果中间限位故障，则直接走到中间限位*/
+ 790   2                      else
+ 791   2                      {
+ 792   3                              TimeTest(2);
+ 793   3                              MotorCtrl(RIGHTLEFT, StationAz + 90.0, GetAzS2());
+ 794   3                              StationAz = AZ180;
+ 795   3                              StationAzLimit  = StationAz;
+ 796   3                              AZLeftLimitF    = tempL;
+ 797   3                              AZRightLimitF   = tempR;
+ 798   3      //                      return 1;
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 14  
+
+ 799   3                              returnvalue = 1;        
+ 800   3                      }       
+ 801   2              }
+ 802   1      
+ 803   1              /*情况三：什么都没有找到*/
+ 804   1              else
+ 805   1              {
+ 806   2                      TimeTest(2);
+ 807   2                      MotorCtrl(RIGHTLEFT, 180.0, GetAzS2());
+ 808   2                      StationAz = AZ180;
+ 809   2                      StationAzLimit  = StationAz;
+ 810   2                      AZLeftLimitF    = tempL;
+ 811   2                      AZRightLimitF   = tempR;
+ 812   2      //              return 0;
+ 813   2                      returnvalue = 0;        
+ 814   2              }
+ 815   1              return returnvalue;                     
+ 816   1      }
+ 817          
+ 818          
+ 819          /***********************************************************************
+ 820          *
+ 821          * 函数原型：UINT8 GotoAzMidLR(void)
+ 822          *
+ 823          * 入口参数：无
+ 824          *
+ 825          * 出口参数：无
+ 826          *
+ 827          * 功能描述：天线到AZ中间限位,左限位正常情况
+ 828          *
+ 829          * 修    改：2010-7-9加入这个函数
+ 830          *
+ 831          ***********************************************************************/
+ 832          static UINT8 GotoAzMidR(void)
+ 833          {
+ 834   1              UINT8 tempL;
+ 835   1              UINT8 tempR;
+ 836   1              UINT8 tempM;
+ 837   1              UINT8 returnvalue;
+ 838   1      
+ 839   1              /*保存以前的限位情况*/
+ 840   1              tempL = AZLeftLimitF;
+ 841   1              tempR = AZRightLimitF;
+ 842   1              tempM = AzMidLimitF;
+ 843   1              
+ 844   1              /*屏蔽左右限位功能*/
+ 845   1              AZLeftLimitF = 1;
+ 846   1              AZRightLimitF = 1;
+ 847   1      
+ 848   1              StationAz = AZ180;
+ 849   1      
+ 850   1              /*向右走90度，如果碰到限位则停止*/
+ 851   1              TimeTest(2);    //走电机前加入延时
+ 852   1              MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());                         //天线向右转动（从天线后面看）
+ 853   1              while((AZRightLimit != MotorLimitFlag)  &&      \
+ 854   1                              (StationAz < 270.0))
+ 855   1              {
+ 856   2                      Delay(20);
+ 857   2                      if(status != MANUALMODE)
+ 858   2                      {
+ 859   3                              watch();
+ 860   3                      }
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 15  
+
+ 861   2                      if(AzMidLimit == MotorLimitFlag && tempM > 0x10)
+ 862   2                      {
+ 863   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 864   3                              Delay(5000);
+ 865   3                              if(AzMidLimit == MotorLimitFlag)
+ 866   3                              {
+ 867   4                                      break;
+ 868   4                              }
+ 869   3                              else
+ 870   3                              {
+ 871   4                                      MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
+ 872   4                              }
+ 873   3                      }
+ 874   2              }
+ 875   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 876   1      
+ 877   1              /*情况一：找到中间限位*/
+ 878   1              if(AzMidLimit == MotorLimitFlag && tempM > 0x10)        //如果是中间限位则确定方位值
+ 879   1              {
+ 880   2                      StationAz = AZ180;
+ 881   2                      StationAzLimit = StationAz;
+ 882   2                      AZLeftLimitF = tempL;
+ 883   2                      AZRightLimitF = tempR;
+ 884   2      //              return 1;
+ 885   2                      returnvalue = 1;
+ 886   2              }
+ 887   1      
+ 888   1              /*情况二：找到右限位*/
+ 889   1              if(AZRightLimit == MotorLimitFlag)
+ 890   1              {
+ 891   2                      /*如果中间限位正常，则再找中间限位*/
+ 892   2                      if(tempM > 0x10)
+ 893   2                      {
+ 894   3                              StationAz = 270.0;
+ 895   3                              TimeTest(2);
+ 896   3                              MotorFun(MOTORSTOP, AZLEFT, GetAzS2()); 
+ 897   3                              while((AzMidLimit != MotorLimitFlag)  &&  \
+ 898   3                              (StationAz > 170.0))
+ 899   3                              {
+ 900   4                                      Delay(20);
+ 901   4                                      if(status != MANUALMODE)
+ 902   4                                      {
+ 903   5                                              watch();
+ 904   5                                      }
+ 905   4                                      if(AzMidLimit == MotorLimitFlag && tempM > 0x10)
+ 906   4                                      {
+ 907   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 908   5                                              Delay(5000);
+ 909   5                                              if(AzMidLimit == MotorLimitFlag)
+ 910   5                                              {
+ 911   6                                                      break;
+ 912   6                                              }
+ 913   5                                              else
+ 914   5                                              {
+ 915   6                                                      MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
+ 916   6                                              }
+ 917   5                                      }
+ 918   4                              }
+ 919   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 920   3                              /*如果找到中间限位则正常返回*/
+ 921   3                              StationAz = AZ180;
+ 922   3                              StationAzLimit = StationAz;
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 16  
+
+ 923   3                              AZLeftLimitF = tempL;
+ 924   3                              AZRightLimitF = tempR;
+ 925   3      
+ 926   3                              /*如果没有找到中间限位，则将中间限位标志为故障*/
+ 927   3                              if(AzMidLimit != MotorLimitFlag)
+ 928   3                              {       
+ 929   4                                      AzMidLimitF = 1;        
+ 930   4                              }
+ 931   3      //                      return 1;
+ 932   3                              returnvalue = 1;        
+ 933   3                      }
+ 934   2                      /*如果中间限位故障，则直接走到中间限位*/
+ 935   2                      else
+ 936   2                      {
+ 937   3                              TimeTest(2);
+ 938   3                              MotorCtrl(RIGHTLEFT, 180.0, GetAzS2());
+ 939   3                              StationAz = AZ180;
+ 940   3                              StationAzLimit  = StationAz;
+ 941   3                              AZLeftLimitF    = tempL;
+ 942   3                              AZRightLimitF   = tempR;
+ 943   3      //                      return 1;
+ 944   3                              returnvalue = 1;        
+ 945   3                      }       
+ 946   2              }
+ 947   1      
+ 948   1              /*情况三：什么都没有找到*/
+ 949   1              else
+ 950   1              {
+ 951   2                      TimeTest(2);
+ 952   2                      MotorCtrl(RIGHTLEFT, 180.0, GetAzS2());
+ 953   2                      StationAz = AZ180;
+ 954   2                      StationAzLimit  = StationAz;
+ 955   2                      AZLeftLimitF    = tempL;
+ 956   2                      AZRightLimitF   = tempR;
+ 957   2      //              return 0;
+ 958   2                      returnvalue = 0;        
+ 959   2              }
+ 960   1              return returnvalue;
+ 961   1      }
+ 962          
+ 963          
+ 964          /***********************************************************************
+ 965          *
+ 966          * 函数原型：UINT8 GotoAzMidLM(void)
+ 967          *
+ 968          * 入口参数：无
+ 969          *
+ 970          * 出口参数：无
+ 971          *
+ 972          * 功能描述：天线到AZ中间限位,左限位正常情况
+ 973          *
+ 974          * 修    改：2010-7-9加入这个函数
+ 975          *
+ 976          ***********************************************************************/
+ 977          static UINT8 GotoAzMidM(void)
+ 978          {
+ 979   1              StationAz = AZ180;
+ 980   1      
+ 981   1              /*情况一：向右走90度，如果碰到限位则停止*/
+ 982   1              TimeTest(2);    //走电机前加入延时
+ 983   1              MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());                         //天线向左转动（从天线后面看）
+ 984   1              while((AZRightLimit != MotorLimitFlag)  &&      \
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 17  
+
+ 985   1                              (StationAz < 270.0))
+ 986   1              {
+ 987   2                      Delay(20);
+ 988   2                      if(status != MANUALMODE)
+ 989   2                      {
+ 990   3                              watch();
+ 991   3                      }
+ 992   2                      if(AzMidLimit == MotorLimitFlag)
+ 993   2                      {
+ 994   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 995   3                              Delay(5000);
+ 996   3                              if(AzMidLimit == MotorLimitFlag)
+ 997   3                              {
+ 998   4                                      break;  
+ 999   4                              }
+1000   3                              else
+1001   3                              {
+1002   4                                      MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
+1003   4                              }
+1004   3                              
+1005   3                      }
+1006   2              }
+1007   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+1008   1              if(AzMidLimit == MotorLimitFlag)
+1009   1              {
+1010   2                      StationAz = AZ180;
+1011   2                      return 1;       
+1012   2              }
+1013   1      
+1014   1              /*情况二：向左走180度，如果碰到中间限位则停止*/
+1015   1              TimeTest(2);
+1016   1              MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
+1017   1              while((AzMidLimit != MotorLimitFlag)  &&  \
+1018   1              (StationAz > 90.0))
+1019   1              {
+1020   2                      Delay(20);
+1021   2                      if(status != MANUALMODE)
+1022   2                      {
+1023   3                              watch();
+1024   3                      }
+1025   2                      if(AzMidLimit == MotorLimitFlag)
+1026   2                      {       
+1027   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+1028   3                              Delay(5000);
+1029   3                              if(AzMidLimit == MotorLimitFlag)
+1030   3                              {
+1031   4                                      break;
+1032   4                              }
+1033   3                              else
+1034   3                              {
+1035   4                                      MotorFun(MOTORSTOP, AZLEFT, GetAzS2()); 
+1036   4                              }       
+1037   3                      }
+1038   2              }
+1039   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+1040   1              if(AzMidLimit == MotorLimitFlag)
+1041   1              {
+1042   2                      StationAz = AZ180;
+1043   2                      return 1;       
+1044   2              }
+1045   1      
+1046   1              /*情况三：什么也没有碰到*/
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 18  
+
+1047   1              TimeTest(2);
+1048   1              MotorCtrl(RIGHTLEFT, 180.0, GetAzS2());
+1049   1              StationAz = AZ180;
+1050   1              AzMidLimitF = 1;                                                //中间限位故障
+1051   1              WriteEEPROM(AzMidLimitF, AzMidLimitFAddr);
+1052   1              return 0;
+1053   1      }
+1054          
+1055          
+1056          /***********************************************************************
+1057          *
+1058          * 函数原型：void GetAzS1(void)
+1059          *
+1060          * 入口参数：无
+1061          *
+1062          * 出口参数：无
+1063          *
+1064          * 功能描述：得到天线的方位速度1
+1065          *
+1066          * 修    改：2008-11-25加入这个函数
+1067          *
+1068          ***********************************************************************/
+1069          UINT16 GetAzS1(void)
+1070          {
+1071   1              unsigned int speedAZR;
+1072   1              unsigned int tempAZ = (unsigned int)ReadEEPROM(rightFOUR);
+1073   1      
+1074   1              /*得到校正方位速度1*/
+1075   1              if(tempAZ < 200)
+1076   1              {       
+1077   2                      speedAZR = SpeedSearchAzF + (tempAZ - 100) * 20;
+1078   2                      if(speedAZR > 0xFEFF)
+1079   2                      {
+1080   3                              speedAZR = SpeedSearchAzF;
+1081   3                      }
+1082   2                      if(speedAZR < 0xE000)
+1083   2                      {
+1084   3                              speedAZR = SpeedSearchAzF;
+1085   3                      }
+1086   2              }
+1087   1              else
+1088   1              {
+1089   2                      speedAZR = SpeedSearchAzF;
+1090   2              }//end if(tempAZ < 200)
+1091   1              return speedAZR;
+1092   1      }
+1093          
+1094          
+1095          /***********************************************************************
+1096          *
+1097          * 函数原型：void GetAzS2(void)
+1098          *
+1099          * 入口参数：无
+1100          *
+1101          * 出口参数：无
+1102          *
+1103          * 功能描述：得到天线的方位速度2
+1104          *
+1105          * 修    改：2008-11-25加入这个函数
+1106          *
+1107          ***********************************************************************/
+1108          UINT16 GetAzS2(void)
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 19  
+
+1109          {
+1110   1              unsigned int speedAZR;
+1111   1              unsigned int tempAZ = (unsigned int)ReadEEPROM(rightFIVE);
+1112   1      
+1113   1              /*得到校正方位速度2*/
+1114   1              if(tempAZ < 200)
+1115   1              {
+1116   2                      speedAZR = SpeedInitF + (tempAZ - 100) * 20;
+1117   2                      if(speedAZR > 0xFEFF)
+1118   2                      {
+1119   3                              speedAZR = SpeedInitF;
+1120   3                      }
+1121   2                      if(speedAZR < 0xE000)
+1122   2                      {
+1123   3                              speedAZR = SpeedInitF;
+1124   3                      }
+1125   2              }
+1126   1              else
+1127   1              {
+1128   2                      speedAZR = SpeedInitF;
+1129   2              }//end if(tempAZ < 200)
+1130   1              return speedAZR;
+1131   1      }
+1132          
+1133          /***********************************************************************
+1134          *
+1135          * 函数原型：void GetElS1(void)
+1136          *
+1137          * 入口参数：无
+1138          *
+1139          * 出口参数：无
+1140          *
+1141          * 功能描述：得到天线的俯仰速度1
+1142          *
+1143          * 修    改：2008-11-25加入这个函数
+1144          *
+1145          ***********************************************************************/
+1146          UINT16 GetElS1(void)
+1147          {
+1148   1              unsigned int speedELR;
+1149   1              unsigned int tempEL = (unsigned int)ReadEEPROM(rightTHREE);
+1150   1      
+1151   1              /*得到俯仰速度*/
+1152   1              if(tempEL < 200)
+1153   1              {
+1154   2                      speedELR = SpeedInitS + (tempEL - 100) * 20;
+1155   2                      if(speedELR > 0xFEFF)
+1156   2                      {
+1157   3                              speedELR = SpeedInitS;
+1158   3                      }
+1159   2                      if(speedELR < 0xE000)
+1160   2                      {
+1161   3                              speedELR = SpeedInitS;
+1162   3                      }
+1163   2              }
+1164   1              else
+1165   1              {
+1166   2                      speedELR = SpeedInitS;
+1167   2              }//end if(tempEL < 200)
+1168   1              return speedELR;
+1169   1      }
+1170          
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 20  
+
+1171          
+1172          /***********************************************************************
+1173          *
+1174          * 函数原型：void TestStor(char flag)
+1175          *
+1176          * 入口参数：flag 用来判断是哪种测试
+1177          *
+1178          * 出口参数：无
+1179          *
+1180          * 功能描述：机器出厂前用的，可以参考相关手册
+1181          *
+1182          ***********************************************************************/
+1183          void TestStor(char flag)
+1184          {
+1185   1              float tempS;
+1186   1              unsigned int tempC;
+1187   1      
+1188   1              if(status == INIT || status == STORESTATUS)
+1189   1              {
+1190   2                      return;
+1191   2              }
+1192   1      
+1193   1              tempC = (unsigned int)ReadEEPROM(rightFIVE);
+1194   1              if(flag == 'L')                                                                  //判断是否左收藏
+1195   1              {
+1196   2                      tempS = (float)ReadEEPROM(rightONE) / 10.0;
+1197   2                      if(StationAz < 200.0)
+1198   2                      {
+1199   3                              MotorCtrl(RIGHTLEFT, 200.0, GetAzS2());
+1200   3                      }
+1201   2              }
+1202   1              else
+1203   1              {
+1204   2                      tempS = (float)ReadEEPROM(rightTWO) / 10.0;
+1205   2                      if(StationAz > 160.0)
+1206   2                      {
+1207   3                              MotorCtrl(RIGHTLEFT, 160.0, GetAzS2());
+1208   3                      }
+1209   2              }
+1210   1                                                                                                              
+1211   1              TimeTest(2);
+1212   1              GoAM();                                                                 //到中间限位
+1213   1              GotoPolarAngle(90.0);                                                   //极化到零
+1214   1      
+1215   1              if(tempS > 24.0)
+1216   1              {
+1217   2                      tempS = 2.0;    
+1218   2              }
+1219   1              if(flag == 'L')                                                                 //如果从右边过来，再继续转3度因为中间限位较偏
+1220   1              {
+1221   2                      MotorCtrl(RIGHTLEFT, AZ180 - tempS, GetAzS2());
+1222   2              }
+1223   1              else
+1224   1              {
+1225   2                      MotorCtrl(RIGHTLEFT, AZ180 + tempS, GetAzS2());
+1226   2              }
+1227   1      
+1228   1              if(ReadEEPROM(StoreELSignAddress) == '-')
+1229   1              {
+1230   2                      tempS = 0.0 - ReadEEPROM(StoreElDownAddress);
+1231   2              }
+1232   1              else if(ReadEEPROM(StoreELSignAddress) == '+')
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 21  
+
+1233   1              {
+1234   2                      tempS = ReadEEPROM(StoreElDownAddress); 
+1235   2              }
+1236   1              else
+1237   1              {
+1238   2                      tempS = 0.0;
+1239   2              }
+1240   1              TimeTest(2);
+1241   1              if(tempS > 20.0)        //2009/8/6由于倾斜仪的问题（最大60度）
+1242   1              {
+1243   2                      tempS = 20.0;   
+1244   2              }
+1245   1              if(tempS < -30.0)
+1246   1              {
+1247   2                      tempS = -30.0;
+1248   2              }       
+1249   1              if(tempS < StationEl)
+1250   1              {
+1251   2                      ELDOWNlimit     = -120.0;
+1252   2                      MotorCtrl(UPDOWN, tempS, GetElS1());            //下到斜坡的角度
+1253   2              }
+1254   1      
+1255   1              if(flag == 'U')
+1256   1              {
+1257   2                      tempS = (float)ReadEEPROM(rightSIX);
+1258   2                      if(tempS > 99.0)
+1259   2                      {
+1260   3                              tempS = 80.0; 
+1261   3                      }
+1262   2                      if(tempS < 50.0)
+1263   2                      {
+1264   3                              tempS = 50.0;
+1265   3                      }
+1266   2                      MotorCtrl(UPDOWN, StationEl - tempS, GetElS1());                
+1267   2              }
+1268   1      
+1269   1              OpenTimer0Interrupt();                                             //等待十秒
+1270   1              while(OverflowT0 < 100)
+1271   1              {
+1272   2                      ;
+1273   2              }
+1274   1              CloseTimer0Interrupt();
+1275   1      
+1276   1              TimeTest(2);
+1277   1              MotorCtrl(UPDOWN, 35.0, GetElS1());                       //2008-12-30修改
+1278   1      
+1279   1              ELDOWNlimit     = ELDOWNlimitDef;
+1280   1      
+1281   1              return;
+1282   1      }
+1283          
+1284          
+1285          /***********************************************************************
+1286          *
+1287          * 函数原型：void Timer2Init(void)
+1288          *
+1289          * 入口参数：无
+1290          *
+1291          * 出口参数：无
+1292          *
+1293          * 功能描述：定时器2初始化，极化用
+1294          *
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 22  
+
+1295          ***********************************************************************/
+1296          void Timer2Init(void)
+1297          {
+1298   1          EA                  =  0;                //IE所有页
+1299   1          SFRPAGE     =  TMR2_PAGE;
+1300   1              TMR2CF          =  0x08;         //系统时钟
+1301   1          TMR2CN     &= ~0x03;  //工作方式：16位自动重载，和定时器功能
+1302   1              
+1303   1              ET2                     =  0;       //不开中断
+1304   1              RCAP2L          =  0xFF;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节  
+1305   1              TMR2L           =  RCAP2L;        //赋值给定时器4低字节 
+1306   1              RCAP2H          =  0x7F;         //把计数值的高8位赋给定时器4捕捉寄存器高字节 
+1307   1              TMR2H           =  RCAP2H;
+1308   1         
+1309   1              SFRPAGE         =  TMR2_PAGE;
+1310   1              TMR2CN     |=  0x04;    //定时器2允许
+1311   1              EA              =  1;
+1312   1      }
+1313          
+1314          
+1315          /***********************************************************************
+1316          *
+1317          * 函数原型：void OpenTimer2Interrupt(void)
+1318          *
+1319          * 入口参数：无
+1320          *
+1321          * 出口参数：无
+1322          *
+1323          * 功能描述：开定时器2中断
+1324          *
+1325          ***********************************************************************/
+1326          void OpenTimer2Interrupt(void)
+1327          {
+1328   1              SFRPAGE = TMR2_PAGE;
+1329   1              TR2 = 1;                        //允许计数
+1330   1              ET2     = 1;                    //开中断
+1331   1      }
+1332          
+1333          
+1334          /***********************************************************************
+1335          *
+1336          * 函数原型：void CloseTimer2Interrupt(void)
+1337          *
+1338          * 入口参数：无
+1339          *
+1340          * 出口参数：无
+1341          *
+1342          * 功能描述：关定时器2中断
+1343          *
+1344          ***********************************************************************/
+1345          void CloseTimer2Interrupt(void)
+1346          {
+1347   1              SFRPAGE   = TMR2_PAGE;
+1348   1              ET2     = 0;                    //不开中断
+1349   1              TR2 = 0;                        //不允许计数
+1350   1      }
+1351          
+1352          
+1353          /***********************************************************************
+1354          *
+1355          * 函数原型：void Timer2Interrupt(void)
+1356          *
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 23  
+
+1357          * 入口参数：无
+1358          *
+1359          * 出口参数：无
+1360          *
+1361          * 功能描述：定时器2中断函数
+1362          *
+1363          ***********************************************************************/
+1364          void Timer2Interrupt(void) interrupt T2INTNUMBER
+1365          {
+1366   1      
+1367   1              TEMPAGE = SFRPAGE;                //120修改
+1368   1              SFRPAGE = TMR2_PAGE;      //页0   120修改
+1369   1      
+1370   1              TF2 = 0;
+1371   1      
+1372   1              POLAR_STOP;                                                                                     //先停止极化
+1373   1              PolarSrc = GetPolarAngle();                                                     //极化向右转，角度增加，向左转角度减小
+1374   1      
+1375   1              if(fabs(PolarSrc - PolarDst) < PolarDefinition)
+1376   1              {
+1377   2                      POLAR_STOP;
+1378   2                      PolarRightFlag = 1;                                                             //极化角到位
+1379   2                      CloseTimer2Interrupt();
+1380   2                      return;
+1381   2              }
+1382   1              if(PolarSrc > PolarDst)                                                         //当前极化角大于目标角度
+1383   1              {
+1384   2      //              POLAR_RIGHT;
+1385   2                      POLAR_LEFT;
+1386   2              }
+1387   1              else
+1388   1              {
+1389   2      //              POLAR_LEFT;
+1390   2                      POLAR_RIGHT;
+1391   2              }
+1392   1      
+1393   1              SFRPAGE = TEMPAGE;  //120修改
+1394   1      }
+1395          
+1396          
+1397          /***********************************************************************
+1398          *
+1399          * 函数原型：void AzLimitTest(void)
+1400          *
+1401          * 入口参数：无
+1402          *
+1403          * 出口参数：无
+1404          *
+1405          * 功能描述：方位限位出错检查
+1406          *
+1407          ***********************************************************************/
+1408          void AzLimitTest(void)
+1409          {
+1410   1              UINT8 tempL;
+1411   1              UINT8 tempR;
+1412   1              UINT8 tempM;
+1413   1      
+1414   1              UINT8 tempLF;
+1415   1              UINT8 tempRF;
+1416   1              UINT8 tempMF;
+1417   1      
+1418   1              /*保存以前的限位情况*/
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 24  
+
+1419   1              tempL = 0xff;
+1420   1              tempR = 0xff;
+1421   1              tempM = 0xff;
+1422   1              
+1423   1              /*屏蔽左右限位功能*/
+1424   1              AZLeftLimitF = 1;
+1425   1              AZRightLimitF = 1;
+1426   1      
+1427   1              /*初始化方位角度*/
+1428   1              StationAz = AZ180;
+1429   1      
+1430   1              /*得到当前限位情况*/
+1431   1              if(AzMidLimit == MotorLimitFlag)
+1432   1              {
+1433   2                      Delay(5000);
+1434   2                      if(AzMidLimit == MotorLimitFlag)
+1435   2                      {
+1436   3                              tempMF = AzMidLimit;    
+1437   3                      }
+1438   2                      else
+1439   2                      {
+1440   3                              tempMF = 1;
+1441   3                      } 
+1442   2              }
+1443   1              else
+1444   1              {
+1445   2                      tempMF = 1;     
+1446   2              }
+1447   1      
+1448   1              if(AZRightLimit == MotorLimitFlag)
+1449   1              {
+1450   2                      Delay(5000);
+1451   2                      if(AZRightLimit == MotorLimitFlag)
+1452   2                      {
+1453   3                              tempRF = AZRightLimit;  
+1454   3                      }
+1455   2                      else
+1456   2                      {
+1457   3                              tempRF = 1;
+1458   3                      } 
+1459   2              }
+1460   1              else
+1461   1              {
+1462   2                      tempRF = 1;     
+1463   2              }
+1464   1      
+1465   1      
+1466   1              if(AZLeftLimit == MotorLimitFlag)
+1467   1              {
+1468   2                      Delay(5000);
+1469   2                      if(AZLeftLimit == MotorLimitFlag)
+1470   2                      {
+1471   3                              tempLF = AZLeftLimit;   
+1472   3                      }
+1473   2                      else
+1474   2                      {
+1475   3                              tempLF = 1;
+1476   3                      } 
+1477   2              }
+1478   1              else
+1479   1              {
+1480   2                      tempLF = 1;     
+C51 COMPILER V9.00   TIMER                                                                 03/18/2016 16:14:07 PAGE 25  
+
+1481   2              }
+1482   1      
+1483   1              /*天线向右转动15度*/
+1484   1              TimeTest(2);
+1485   1              MotorCtrl(RIGHTLEFT, StationAz + 15.0, GetAzS2());
+1486   1              Delay(10000);
+1487   1      
+1488   1              /*判断限位是否高电平故障*/
+1489   1              if(tempMF == MotorLimitFlag && AzMidLimit == MotorLimitFlag)
+1490   1              {
+1491   2                      Delay(5000);
+1492   2                      if(AzMidLimit == MotorLimitFlag)
+1493   2                      {
+1494   3                              tempM = 1;
+1495   3                      }       
+1496   2              }
+1497   1              if(tempLF == MotorLimitFlag && AZLeftLimit == MotorLimitFlag)
+1498   1              {
+1499   2                      Delay(5000);
+1500   2                      if(AZLeftLimit == MotorLimitFlag)
+1501   2                      {
+1502   3                              tempL = 1;      
+1503   3                      }
+1504   2              }
+1505   1              if(tempRF == MotorLimitFlag && AZRightLimit == MotorLimitFlag)
+1506   1              {
+1507   2                      Delay(5000);
+1508   2                      if(AZRightLimit == MotorLimitFlag)
+1509   2                      {
+1510   3                              tempR = 1;      
+1511   3                      }
+1512   2              }
+1513   1      
+1514   1              /*天线向左转动15度*/
+1515   1              TimeTest(2);
+1516   1              MotorCtrl(RIGHTLEFT, StationAz - 15.0, GetAzS2());
+1517   1              
+1518   1              /*恢复方位保护与得到正确的限位情况*/
+1519   1              AZLeftLimitF    = tempL;
+1520   1              AZRightLimitF   = tempR;
+1521   1              AzMidLimitF     = tempM;
+1522   1              TimeTest(2);
+1523   1                                      
+1524   1              return;
+1525   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   6067    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     50    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     45    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

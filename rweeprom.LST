@@ -1,0 +1,223 @@
+C51 COMPILER V9.00   RWEEPROM                                                              03/18/2016 16:14:08 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE RWEEPROM
+OBJECT MODULE PLACED IN rweeprom.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE rweeprom.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /***********************************************************************
+   2          * 
+   3          * 时    间：2008-11-24
+   4          *
+   5          * 文 件 名：rweeprom.c
+   6          *
+   7          * 版    本：AKD10P02/AKD09P02(测试版)
+   8          *
+   9          * 作    者：北京爱科迪信息通讯技术有限公司—技术部—杨淳雯
+  10          * 
+  11          * 功能说明：EEPROM读写功能
+  12          *
+  13          * 修    改： 读写EEPROM函数最开始的延时从五千加到五万
+  14          *
+  15          ***********************************************************************/
+  16          #include "c8051f120.h"
+  17          #include "rweeprom.h"
+  18          #include "station.h"
+  19          #include "timer.h"
+  20          
+  21          
+  22          /***********************************************************************
+  23          *
+  24          * 函数原型：static void Send(UINT8 ByteData)//输出一个字节
+  25          *
+  26          * 入口参数：一个字节数据
+  27          *
+  28          * 出口参数：无
+  29          *
+  30          * 功能描述：本模块内部封装，发一个字节数据到93C66;输出一个字节
+  31          *
+  32          ***********************************************************************/
+  33          static void Send(char ByteData)
+  34          {  
+  35   1              UINT8 i;
+  36   1              SFRPAGE = CONFIG_PAGE;    //页F  120修改
+  37   1              SK_93C66_0;                                             //时钟0
+  38   1              for(i = 0; i < 8; i++)
+  39   1              {
+  40   2                      if(ByteData & 0x80)
+  41   2                      {
+  42   3                              DI_93C66_1;
+  43   3                      }
+  44   2                      else
+  45   2                      {
+  46   3                              DI_93C66_0;
+  47   3                      }
+  48   2                      Delay(TIME);
+  49   2                      ByteData <<= 1;
+  50   2                      SK_93C66_1;                                     //时钟1
+  51   2                      Delay(TIME);
+  52   2                      SK_93C66_0;                                     //时钟0
+  53   2                      Delay(TIME);
+  54   2              }
+  55   1      }
+C51 COMPILER V9.00   RWEEPROM                                                              03/18/2016 16:14:08 PAGE 2   
+
+  56          
+  57          
+  58          /***********************************************************************
+  59          *
+  60          * 函数原型：UINT8 ReadEEPROM(char Address)
+  61          *
+  62          * 入口参数：一个字节数据表示地址
+  63          *
+  64          * 出口参数：无
+  65          *
+  66          * 功能描述：读出地址的数据
+  67          *
+  68          ***********************************************************************/
+  69          UINT8 ReadEEPROM(char Address)
+  70          {
+  71   1              char read = 0x0c, I_data = 0;   //这几个命令字请参考93C66芯片文档
+  72   1              int i;
+  73   1      
+  74   1              SFRPAGE = CONFIG_PAGE;    //页F  120修改
+  75   1              Delay(1000);
+  76   1              CS_93C66_0;
+  77   1              SK_93C66_0;
+  78   1              Delay(TIME);
+  79   1              CS_93C66_1;
+  80   1              Delay(TIME);
+  81   1              Send(read);
+  82   1              Delay(TIME);
+  83   1              Send(Address);
+  84   1              Delay(TIME);
+  85   1              SK_93C66_0;
+  86   1      
+  87   1              for(i = 0; i < 8; i++)
+  88   1              {
+  89   2                      I_data *= 2;
+  90   2                      Delay(TIME); 
+  91   2                      SK_93C66_1;
+  92   2                      Delay(TIME);
+  93   2                      if(DO_93C66 == BIT1)
+  94   2                      {
+  95   3                              I_data++;
+  96   3                      }
+  97   2                      SK_93C66_0;
+  98   2              }
+  99   1              CS_93C66_0;
+ 100   1              return (UINT8)(I_data);
+ 101   1      }
+ 102          
+ 103          
+ 104          /***********************************************************************
+ 105          *
+ 106          * 函数原型：void WriteEEPROM(UINT8 Data,UINT8 Address)
+ 107          *
+ 108          * 入口参数：一个字节数据和一个字节地址数据
+ 109          *
+ 110          * 出口参数：无
+ 111          *
+ 112          * 功能描述：写一个字节到Address
+ 113          *
+ 114          ***********************************************************************/ 
+ 115          void WriteEEPROM(UINT8 Data, char Address)
+ 116          {  
+ 117   1              UINT8 i;
+C51 COMPILER V9.00   RWEEPROM                                                              03/18/2016 16:14:08 PAGE 3   
+
+ 118   1              char EN_D = 0x09, EN_RD = 0x80, ERASE_D = 0x0e, \
+ 119   1                       WRITE_D = 0x0a, EWDS = 0x10;                   //这几个命令字请参考93C66芯片文档
+ 120   1      
+ 121   1      
+ 122   1              SFRPAGE = CONFIG_PAGE;    //页F  120修改
+ 123   1              Delay(1000);
+ 124   1              CS_93C66_0;                                                                     //P5OUT&=~BIT2;
+ 125   1              Delay(TIME);
+ 126   1              CS_93C66_1;                                                                     //P5OUT|=BIT2;
+ 127   1              Delay(TIME);
+ 128   1      
+ 129   1              Send(EN_D);
+ 130   1              Delay(TIME);
+ 131   1      
+ 132   1              Send(EN_RD);   
+ 133   1              Delay(TIME);
+ 134   1              
+ 135   1              CS_93C66_0;                                                                     //P5OUT&=~BIT2; 
+ 136   1              Delay(TIME);
+ 137   1              CS_93C66_1;     
+ 138   1                                                                              
+ 139   1              Send(ERASE_D);
+ 140   1              Delay(TIME);
+ 141   1      
+ 142   1              Send(Address);
+ 143   1              Delay(TIME);
+ 144   1      
+ 145   1              CS_93C66_0;                                                                     //P5OUT&=~BIT2; 
+ 146   1              Delay(TIME);
+ 147   1              CS_93C66_1;                                                                     //P5OUT |=BIT2;
+ 148   1              Delay(TIME);
+ 149   1              OpenTimer0Interrupt();
+ 150   1      
+ 151   1              while(!(DO_93C66 == BIT1) && OverflowT0 < 2)
+ 152   1              {
+ 153   2                      ;
+ 154   2              }
+ 155   1              CloseTimer0Interrupt();
+ 156   1              if(OverflowT0 > 1)
+ 157   1              {
+ 158   2                      return;                                                                 //EEPROM is error!!!
+ 159   2              }
+ 160   1              CS_93C66_0;                                                                     //P5OUT&=~BIT2;
+ 161   1              Delay(TIME);
+ 162   1              CS_93C66_1;                                                                     //P5OUT |=BIT2;
+ 163   1              Delay(TIME);
+ 164   1                
+ 165   1              Send(WRITE_D);
+ 166   1              Delay(TIME);
+ 167   1      
+ 168   1              Send(Address); 
+ 169   1              SK_93C66_0;                                                                     //P5OUT&=~BIT3;
+ 170   1              for(i = 0; i < 8; i++)
+ 171   1              { 
+ 172   2                      if(Data & 0x80)
+ 173   2                      {
+ 174   3                              DI_93C66_1;                                                     //P5OUT |=BIT4;
+ 175   3                      }
+ 176   2                      else
+ 177   2                      {
+ 178   3                              DI_93C66_0;                                                     //P5OUT&=~BIT4; 
+ 179   3                      }
+C51 COMPILER V9.00   RWEEPROM                                                              03/18/2016 16:14:08 PAGE 4   
+
+ 180   2                      Delay(TIME);
+ 181   2                      Data <<= 1;
+ 182   2                      SK_93C66_1;                                                             //P5OUT|=BIT3;
+ 183   2                      Delay(TIME);
+ 184   2                      SK_93C66_0;                                                             //P5OUT&=~BIT3;
+ 185   2              }
+ 186   1              Delay(TIME);
+ 187   1              CS_93C66_0;                                                                     //P5OUT&=~BIT2;
+ 188   1              Delay(TIME);
+ 189   1              CS_93C66_1;                                                                     //P5OUT|=BIT2;
+ 190   1              Delay(TIME);
+ 191   1              Send(EWDS);
+ 192   1              CS_93C66_0;                                                                     //P5OUT&=~BIT2;
+ 193   1              Delay(TIME);
+ 194   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    649    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     15    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

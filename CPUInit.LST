@@ -1,0 +1,166 @@
+C51 COMPILER V9.00   CPUINIT                                                               03/18/2016 16:14:07 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE CPUINIT
+OBJECT MODULE PLACED IN CPUInit.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE CPUInit.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /***********************************************************************
+   2          * 
+   3          * 时    间：2008-10-9
+   4          *
+   5          * 文 件 名：CPUIint.c
+   6          *
+   7          * 版    本：AKD10P07(发布版)
+   8          *
+   9          * 作    者：北京爱科迪信息通讯技术有限公司—技术部—杨淳雯
+  10          * 
+  11          * 功能说明：MCU初始化，1，配置系统时钟，2，关看门狗，3配置GPIO
+  12          *
+  13          *           详细请参考C8051F020手册和KEIL C51编译器手册
+  14          *
+  15          ***********************************************************************/
+  16          #include "c8051f120.h"
+  17          #include "cpu.h"
+  18          #include "station.h"
+  19          
+  20          
+  21          /*静态函数*/
+  22          static void WatchdogInit(void);
+  23          static void OSCInit(void);
+  24          static void PortInit(void);
+  25          
+  26          
+  27          /***********************************************************************
+  28          *
+  29          * 函数原型：void CPU020Init(void)
+  30          *
+  31          * 入口参数：无
+  32          *
+  33          * 出口参数：无
+  34          *
+  35          * 功能描述：CPU配置初始化
+  36          *
+  37          ***********************************************************************/
+  38          void CPU020Init(void)
+  39          {       
+  40   1              WatchdogInit(); //配置看门狗    
+  41   1              OSCInit();              //配置系统时钟
+  42   1              PortInit();             //配置端口
+  43   1      }
+  44          
+  45          
+  46          /***********************************************************************
+  47          *
+  48          * 函数原型：void WatchdogInit(void)
+  49          *
+  50          * 入口参数：无
+  51          *
+  52          * 出口参数：无
+  53          *
+  54          * 功能描述：禁止看门狗，不用看门狗
+  55          *
+C51 COMPILER V9.00   CPUINIT                                                               03/18/2016 16:14:07 PAGE 2   
+
+  56          ***********************************************************************/
+  57          static void WatchdogInit(void)
+  58          {
+  59   1              EA        = 0;
+  60   1              WDTCN = 0xde;
+  61   1              WDTCN = 0xad;
+  62   1              EA        = 1;
+  63   1      }
+  64          
+  65          
+  66          /***********************************************************************
+  67          *
+  68          * 函数原型：static void OSCInit(void)
+  69          *
+  70          * 入口参数：无
+  71          *
+  72          * 出口参数：无
+  73          *
+  74          * 功能描述：禁止内部时钟，让CPU工作在外部时钟，工作频率为22.1184MHz
+  75          *
+  76          ***********************************************************************/
+  77          static void OSCInit(void)
+  78          {
+  79   1              int i;
+  80   1              
+  81   1              i = 5000;
+  82   1          SFRPAGE   = CONFIG_PAGE;
+  83   1              SFRPGCN  |= 0x01;
+  84   1              OSCXCN    = 0x67;
+  85   1          while(i--)
+  86   1              {
+  87   2                      ;
+  88   2              } 
+  89   1          while ((OSCXCN & 0x80) == 0);
+  90   1         
+  91   1          CLKSEL  =  0x01;    //sysclk源于外部振荡源，且没有分频
+  92   1          OSCICN &= ~0x80;    //禁止内部振荡器  
+  93   1      }
+  94          
+  95          
+  96          /***********************************************************************
+  97          *
+  98          * 函数原型：void PortInit(void)
+  99          *
+ 100          * 入口参数：无
+ 101          *
+ 102          * 出口参数：无
+ 103          *
+ 104          * 功能描述：根据原理图有以下管脚，通过交叉开关进行配置
+ 105          *
+ 106          * 输出：        
+ 107          * p0.0 ->  TXD0(TX0)
+ 108          * p0.1 ->  RXD0(RX0);   串口0分别与GPS,倾斜仪，电子罗盘
+ 109          * p0.2 ->  TXD1(RX1)                  
+ 110          * p0.3 ->  RXD1(TX1);
+ 111          *
+ 112          * 剩下的引脚均为GPIO(通用的I/0口)
+ 113          *
+ 114          * (注意：配置时一定要遵守优先级，详情请看C8051F020.PDF文档)
+ 115          *
+ 116          ***********************************************************************/
+ 117          static void PortInit(void)
+C51 COMPILER V9.00   CPUINIT                                                               03/18/2016 16:14:07 PAGE 3   
+
+ 118          {
+ 119   1              SFRPAGE = CONFIG_PAGE;
+ 120   1              XBR0    = 0x04;                 //串口0配置到p0.0,p0.1
+ 121   1              XBR1    = 0x00;                 //INT0 INT1不配置到端口 
+ 122   1              XBR2    = 0x44;                 //使能数据交叉开关和弱上拉;串口1配置到p1口
+ 123   1              
+ 124   1              P0MDOUT = 0xff;                 //配置为推挽输出方式 
+ 125   1              P1MDOUT = 0xef;                 //配置为推挽输出方式(2009-3-4是否有无线切换)
+ 126   1              P2MDOUT = 0xff;                 //配置为推挽输出方式
+ 127   1      
+ 128   1              P3MDOUT = 0x00;                 //配置为漏极开路方式,检测开关
+ 129   1              P4MDOUT = 0x00;
+ 130   1          P5MDOUT = 0x00;                       
+ 131   1              P6MDOUT = 0x00;          
+ 132   1              P7MDOUT = 0x00;
+ 133   1      
+ 134   1              P2              = 0x00;                 //关电机
+ 135   1      
+ 136   1              LEDCLOSE;                               //2009-3-4加入GPIO初始化
+ 137   1              LEDGREENCLOSE;
+ 138   1              LEDREDCLOSE;
+ 139   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    128    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      2    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

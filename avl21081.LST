@@ -1,0 +1,60 @@
+C51 COMPILER V9.00   AVL21081                                                              03/18/2016 16:14:09 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE AVL21081
+OBJECT MODULE PLACED IN avl21081.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE avl21081.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2           *           Copyright 2007-2009 Availink, Inc.
+   3           *
+   4           *  This software contains Availink proprietary information and
+   5           *  its use and disclosure are restricted solely to the terms in
+   6           *  the corresponding written license agreement. It shall not be 
+   7           *  disclosed to anyone other than valid licensees without
+   8           *  written permission of Availink, Inc.
+   9           *
+  10           */
+  11          
+  12          
+  13          
+  14          //$Revision: 258 $ 
+  15          //$Date: 2008-02-06 14:05:26 -0500 (Wed, 06 Feb 2008) $
+  16          // 
+  17          #include "bspdatadef.h"
+  18          #include "avl.h"
+  19          #include "avl2108.h"
+  20          #include "IBSP.h"
+  21          #include "II2C.h"
+  22          
+  23          A2108_ErrorCode InitA2108ChipObject(struct A2108_Chip * pA2108ChipObject, enum A2108_ChipSlaveAddr enumSla
+             -veAddress)
+  24          {                                                                                                                                        
+  25   1              A2108_ErrorCode r;
+  26   1              pA2108ChipObject->m_SlaveAddr = enumSlaveAddress;  //把 enumSlaveAddress  0x0c付给芯片地址
+  27   1              pA2108ChipObject->m_StdBuffIndex = 0;
+  28   1              r = A2108_IBSP_InitSemaphore(&(pA2108ChipObject->m_semRx));
+  29   1              r |= A2108_IBSP_InitSemaphore(&(pA2108ChipObject->m_semI2CRepeater));
+  30   1              r |= A2108_IBSP_InitSemaphore(&(pA2108ChipObject->m_semI2CRepeater_r));
+  31   1              r |= A2108_IBSP_InitSemaphore(&(pA2108ChipObject->m_semDiseqc));
+  32   1              r |= A2108_II2C_Initialize(); // there is a internal protection to assure it will be initialized only onc
+             -e.
+  33   1                 //如果A2108-IBSP-InitSemaphore()有一个返回的结果非0，那么r就是非0
+  34   1              return (r);
+  35   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    238    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      5    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,330 @@
+C51 COMPILER V9.00   STATION                                                               03/18/2016 16:14:08 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE STATION
+OBJECT MODULE PLACED IN station.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE station.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /***********************************************************************
+   2          * 
+   3          * 时    间：2008-10-9
+   4          *
+   5          * 文 件 名：main.c
+   6          *
+   7          * 版    本：AKD10P07(发布版)
+   8          *
+   9          * 作    者：北京爱科迪信息通讯技术有限公司—技术部—杨淳雯
+  10          * 
+  11          * 功能说明：一些与天线相关的全局变量
+  12          *
+  13          ***********************************************************************/
+  14          #include "station.h"
+  15          #include "math.h"
+  16          #include "public.h"
+  17          
+  18          
+  19          float xdata StationAzCal;                                               //地球站方位计算值
+  20          float xdata StationElCal;                                               //地球站俯仰计算值
+  21          float xdata StationPolCal;                                              //地球站极化计算值
+  22          float xdata StationElTemp;                                              //2009/5/22加入
+  23          
+  24          
+  25          BOOL  xdata StationPloMode;                                             //地球站极化方式（0为水平，1为垂直）
+  26          float xdata StationLong;                                                //地球站经度
+  27          BOOL  xdata StationEastFlag;                                    //地球站东经标志
+  28          float xdata StationLat;                                                 //地球站纬度
+  29          BOOL  xdata StationNorthFlag;                                   //地球站北纬标志
+  30          float xdata SatLong;                                                    //卫星经度
+  31          float xdata SatLongEastFlag;                                    //卫星经度
+  32          
+  33          
+  34          double xdata SharpRecFreq;                                              //夏普接收机频率,亚3 的频率
+  35          BOOL   xdata SharpRecNormalFlag = 0;                    //夏普接收机正常标志
+  36          float  xdata SharpThreshold;                                    //夏普接收机门限
+  37          float  xdata DVBSymbolRate;                                             //夏普接收机符号率
+  38          UINT8  xdata DVBLockFlag;
+  39          
+  40          
+  41          double xdata XinBiaoRecFreq;                                    //信标接收机频率
+  42          BOOL   xdata XinBiaoRecNormalFlag = 0;                  //信标接收机正常标志
+  43          float  xdata XinBiaoThreshold;                                  //信标门限
+  44          
+  45          
+  46          UINT8  xdata freq_seq[40]={0};                                  //频率码字数组
+  47          
+  48          
+  49          float xdata AGCNoiseNor = 0.1;                                  //正常的噪声
+  50          float xdata AGCNoise;                                                   //噪声
+  51          float xdata AGC;                                                                //AGC采样
+  52          float xdata Threshold;                                                  //门限
+  53          
+  54          
+  55          UINT8 xdata status;                                                             //天线工作状态
+C51 COMPILER V9.00   STATION                                                               03/18/2016 16:14:08 PAGE 2   
+
+  56          float xdata AZSearchRange = 30.0;                               //方位搜索范围
+  57          float xdata ELSearchRange = 5.0;                                //俯仰搜索范围
+  58          float xdata AZlimit               = 90.0;                               //AZ最大与此180度的差
+  59          float xdata AZ180                 = 180.0;
+  60          float xdata ELUPlimit     = 75.0;
+  61          float xdata ELDOWNlimit   = ELDOWNlimitDef;
+  62          
+  63          
+  64          
+  65          BOOL LockFlag  = 0;                                                     //跟踪成功标志位
+  66          BOOL ResetFlag = 0;                                                             //复位标志
+  67          
+  68          
+  69          UINT8  xdata NoMonitorF;                                                //无监控标志
+  70          
+  71          
+  72          BOOL BianBanFlag = 0;                                                   //边瓣安装完毕标志
+  73          BOOL UninstallBianbanFlag = 0;                                  //边瓣卸载完毕标志
+  74          BOOL Abnormal;                                                                  //非正常断电标志
+  75          BOOL TestFlag = 0;                                                              //测试收藏标志
+  76          
+  77          
+  78          UINT8  xdata BaseStarLONGEF;                                    //参考卫星东西经标致
+  79          float  xdata BaseStarLONG;                                              //基准卫星经度
+  80          UINT8  xdata BaseStarPol;                                               //极化方式
+  81          double xdata BaseStarFreq;                                              //频率
+  82          float  xdata BaseStarKbS;                                               //符号率
+  83          UINT8  xdata BaseStarRType;                                             //接收机类型
+  84          UINT8  xdata EnBaseStar;                                                //是否使用基准卫星
+  85          
+  86          
+  87          xdata int StoreStatus1 = 0;
+  88          //--------------------------------------------------------------
+  89          xdata int WireFlag = 0;
+  90          xdata char Buff[10] = {'\0'};
+  91          xdata int len1 = 0;
+  92          xdata char WireBuff[500] = {'\0'};
+  93          xdata int len = 0;
+  94          xdata int len2 = 0;
+  95          //--------------------------------------------------------------
+  96          
+  97          
+  98          
+  99          //*********************2009-6-19实时卫星参数****************/
+ 100          BOOL    xdata StationPloModeS;                                  //地球站极化方式（0为水平，1为垂直）
+ 101          float   xdata StationLongS;                                             //地球站经度
+ 102          BOOL    xdata StationEastFlagS;                                 //地球站东经标志
+ 103          float   xdata StationLatS;                                              //地球站纬度
+ 104          BOOL    xdata StationNorthFlagS;                                //地球站北纬标志
+ 105          float   xdata SatLongS;                                                 //卫星经度
+ 106          BOOL    xdata SatLongEastFlagS;                                 //卫星东西经标志
+ 107          UINT16  xdata ReceiverKindFlagS;                                //接收机类别判断标志
+ 108          
+ 109          double  xdata SharpRecFreqS;                                    //夏普接收机频率,亚3 的频率
+ 110          float   xdata SharpThresholdS;                                  //夏普接收机门限
+ 111          
+ 112          float   xdata ThresholdS;                                               //门限
+ 113          
+ 114          double  xdata XinBiaoRecFreqS;                                  //信标接收机频率
+ 115          float   xdata XinBiaoThresholdS;                                //信标门限
+ 116          float   xdata SrcStarKbS;                                               //当前符号率
+ 117          //*********************2009-6-19实时卫星参数****************/
+C51 COMPILER V9.00   STATION                                                               03/18/2016 16:14:08 PAGE 3   
+
+ 118          
+ 119          
+ 120          float   xdata SSrcStarKbS;                                              //保存到EEPROM中的数据，目标卫星符号率
+ 121          UINT8   xdata EnStorSrcPara;                                    //使能保存位
+ 122          
+ 123          
+ 124          UINT8   xdata BSarr[120];
+ 125          
+ 126          UINT8   xdata BaseNumber;
+ 127          struct BaseStarStr bssT[4];                     //当前使用的参数卫星，
+ 128          struct BaseStarStr bsT;                 
+ 129          UINT8   xdata BaseStarFlagThree;
+ 130          UINT16 xdata AntReadySearchF;           //2009/10/12用于复位时可以再次复位
+ 131          
+ 132          
+ 133          UINT8 xdata XinBiaoFlagNum;
+ 134          UINT8 xdata XinBiaoVorX;
+ 135          /***********************************************************************
+ 136          *
+ 137          * 函数原型：void TimeTest(int count)
+ 138          *
+ 139          * 入口参数：count(16位)
+ 140          *
+ 141          * 出口参数：无
+ 142          *
+ 143          * 功能描述：大概延时
+ 144          *
+ 145          ***********************************************************************/
+ 146          void TimeTest(int count)
+ 147          {
+ 148   1              int i;
+ 149   1              for(i = 0; i < count * 3; i++)
+ 150   1              {
+ 151   2                      Delay(60000);
+ 152   2              }
+ 153   1      }
+ 154          
+ 155          
+ 156          /***********************************************************************
+ 157          *
+ 158          * 函数原型：void Delay(UINT16 t)
+ 159          *
+ 160          * 入口参数：t(16位)
+ 161          *
+ 162          * 出口参数：无
+ 163          *
+ 164          * 功能描述：大概延时。
+ 165          *
+ 166          ***********************************************************************/
+ 167          void Delay(UINT16 t)
+ 168          {
+ 169   1              while(--t)
+ 170   1              {
+ 171   2                      ;
+ 172   2              }
+ 173   1      }                                                                
+ 174          
+ 175          
+ 176          /***********************************************************************
+ 177          *
+ 178          * 函数原型：void itoa(int i,char *p,int weishu)
+ 179          *
+C51 COMPILER V9.00   STATION                                                               03/18/2016 16:14:08 PAGE 4   
+
+ 180          * 入口参数：i为要转换的十进制有符号整形数据，weishu为限定位数
+ 181          *
+ 182          * 出口参数：字符数组
+ 183          *
+ 184          * 功能描述：将int型转为符号,分别填入具有固定格式的协议内
+ 185          *
+ 186          * 实例说明：
+ 187          *
+ 188          * 1，方位183.4,放大10倍后为1834，数组位数应该为4，分别为'1''8''3''4'
+ 189          *
+ 190          *    方位 83.4,放大10倍后为 834，数组位数应该为4，分别为'0''8''3''4'
+ 191          *
+ 192          *    方位  3.4,放大10倍后为  34，数组位数应该为4，分别为'0''0''3''4'
+ 193          *
+ 194          * 2，俯仰83.4,放大10倍后为 834，数组位数应该为3，分别为'8''3''4'
+ 195          *
+ 196          *    俯仰 3.4,放大10倍后为  34，数组位数应该为3，分别为'0''3''4'
+ 197          *
+ 198          ***********************************************************************/
+ 199          void itoa(int i, char *p, int weishu)
+ 200          {
+ 201   1          if(i < 0)
+ 202   1          {
+ 203   2                      i = 0 - i;
+ 204   2              }
+ 205   1          while(weishu > 0)
+ 206   1          {
+ 207   2              *(p + weishu - 1) = i % 10 + '0';
+ 208   2              i /= 10;
+ 209   2              weishu--;
+ 210   2          }   
+ 211   1      }
+ 212          
+ 213          
+ 214          /***********************************************************************
+ 215          *
+ 216          * 函数原型：void FindAnt(float slong, float slat, float starlong, int plomode)
+ 217          *
+ 218          * 入口参数：slong    地球站经度
+ 219          *                       
+ 220          *               slat     地球站纬度
+ 221          *
+ 222          *                       starlong 卫星经度
+ 223          *
+ 224          *                       plomode  极化方式，0为水平，非0为垂直
+ 225          *
+ 226          * 出口参数：无
+ 227          *
+ 228          * 功能描述：计算后的值保存在：StationAzCal, StationElCal,StationPolCal
+ 229          *
+ 230          ***********************************************************************/
+ 231          void FindAnt(float slong, float slat, float starlong, BOOL plomode)
+ 232          {
+ 233   1              float delta;
+ 234   1      
+ 235   1              if(StationEastFlag == WEST)             //如果地球站是在西半球
+ 236   1              {
+ 237   2                      slong = 360.0 - slong;  
+ 238   2              }
+ 239   1      
+ 240   1              if(SatLongEastFlagS == WEST)    //如果卫星是在西半球
+ 241   1              {
+C51 COMPILER V9.00   STATION                                                               03/18/2016 16:14:08 PAGE 5   
+
+ 242   2                      starlong = 360.0 - starlong;    
+ 243   2              }
+ 244   1      
+ 245   1              if(fabs(slong - starlong) > 270.0) //在不同经度标致时
+ 246   1              {
+ 247   2                      if(slong < 91.0)
+ 248   2                      {
+ 249   3                              slong += 360.0;
+ 250   3                      }
+ 251   2                      else
+ 252   2                      {
+ 253   3                              starlong += 360.0;
+ 254   3                      }
+ 255   2              }
+ 256   1                      
+ 257   1              delta = starlong - slong;
+ 258   1              
+ 259   1              delta *= PI / 180.0;
+ 260   1              slat  *= PI / 180.0;
+ 261   1              
+ 262   1              StationAzCal = atan(tan(delta) / sin(slat));
+ 263   1              StationAzCal *= 180.0 / PI;
+ 264   1              StationAzCal = 180.0 - StationAzCal;
+ 265   1                                      
+ 266   1              StationElCal = atan((cos(delta) * cos(slat) - 0.15127) \
+ 267   1                                               / sqrt(1 - pow(cos(delta) * cos(slat), 2)));
+ 268   1              StationElCal *= 180.0 / PI;
+ 269   1              
+ 270   1              StationPolCal = atan(sin(delta) / tan(slat));
+ 271   1              StationPolCal *= 180.0 / PI;
+ 272   1              
+ 273   1              StationPolCal = 45;
+ 274   1      
+ 275   1              if(plomode == V)
+ 276   1              {
+ 277   2                      StationPolCal = 45;
+ 278   2      //              if(StationPolCal < 0.0)
+ 279   2      //              {
+ 280   2      //                      StationPolCal += 90.0;
+ 281   2      //              }
+ 282   2      //              else
+ 283   2      //              {
+ 284   2      //                      StationPolCal -= 90.0;
+ 285   2      //              }
+ 286   2              }
+ 287   1              if(plomode == H)
+ 288   1              {
+ 289   2                      StationPolCal = 315;
+ 290   2              }
+ 291   1      
+ 292   1              if(StationNorthFlag == SOUTH)      //如果是南半球
+ 293   1              {
+ 294   2      //              StationPolCal = -StationPolCal;
+ 295   2                      StationAzCal = 360.0 - StationAzCal;
+ 296   2              }
+ 297   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1144    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    960    ----
+C51 COMPILER V9.00   STATION                                                               03/18/2016 16:14:08 PAGE 6   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
