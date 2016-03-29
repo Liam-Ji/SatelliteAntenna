@@ -274,10 +274,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>9</ColumnNumber>
+      <ColumnNumber>12</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>55</TopLine>
-      <CurrentLine>77</CurrentLine>
+      <TopLine>70</TopLine>
+      <CurrentLine>90</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\main.c</PathWithFileName>
       <FilenameWithoutPath>main.c</FilenameWithoutPath>
@@ -363,10 +363,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>5</ColumnNumber>
+      <ColumnNumber>34</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>663</TopLine>
-      <CurrentLine>675</CurrentLine>
+      <TopLine>1432</TopLine>
+      <CurrentLine>1434</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\antenna.c</PathWithFileName>
       <FilenameWithoutPath>antenna.c</FilenameWithoutPath>
@@ -396,10 +396,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>26</ColumnNumber>
+      <ColumnNumber>24</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1185</TopLine>
-      <CurrentLine>1185</CurrentLine>
+      <TopLine>276</TopLine>
+      <CurrentLine>276</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\protcol.c</PathWithFileName>
       <FilenameWithoutPath>protcol.c</FilenameWithoutPath>
@@ -424,10 +424,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>49</ColumnNumber>
+      <ColumnNumber>12</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>187</TopLine>
-      <CurrentLine>196</CurrentLine>
+      <TopLine>49</TopLine>
+      <CurrentLine>49</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\station.c</PathWithFileName>
       <FilenameWithoutPath>station.c</FilenameWithoutPath>
@@ -2318,27 +2318,33 @@
       <Documents>
         <Doc>
           <Name>.\main.c</Name>
-          <ColumnNumber>11</ColumnNumber>
-          <TopLine>61</TopLine>
-          <CurrentLine>77</CurrentLine>
+          <ColumnNumber>12</ColumnNumber>
+          <TopLine>70</TopLine>
+          <CurrentLine>90</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\antenna.c</Name>
-          <ColumnNumber>13</ColumnNumber>
-          <TopLine>789</TopLine>
-          <CurrentLine>810</CurrentLine>
+          <ColumnNumber>44</ColumnNumber>
+          <TopLine>1395</TopLine>
+          <CurrentLine>1406</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\protcol.c</Name>
-          <ColumnNumber>24</ColumnNumber>
-          <TopLine>276</TopLine>
-          <CurrentLine>276</CurrentLine>
+          <ColumnNumber>0</ColumnNumber>
+          <TopLine>1537</TopLine>
+          <CurrentLine>1546</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\station.c</Name>
           <ColumnNumber>12</ColumnNumber>
           <TopLine>49</TopLine>
           <CurrentLine>49</CurrentLine>
+        </Doc>
+        <Doc>
+          <Name>.\timer.c</Name>
+          <ColumnNumber>0</ColumnNumber>
+          <TopLine>1248</TopLine>
+          <CurrentLine>1257</CurrentLine>
         </Doc>
       </Documents>
     </MDIGroup>

@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   II2CREPEATER                                                          03/18/2016 16:14:09 PAGE 1   
+C51 COMPILER V9.00   II2CREPEATER                                                          03/29/2016 14:57:54 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE II2CREPEATER
@@ -62,7 +62,7 @@ line level    source
   51          Parameters: 
   52          I2CBusClock_kHz  The clock speed of the I2C bus between the tuner and the AVL2108 chip.   
   53          pAVLChip  A pointer that points to an A2108_Chip object which is used to tell the function which AVL2108 c
-C51 COMPILER V9.00   II2CREPEATER                                                          03/18/2016 16:14:09 PAGE 2   
+C51 COMPILER V9.00   II2CREPEATER                                                          03/29/2016 14:57:54 PAGE 2   
 
              -hip it is working on.  
   54           I2C Repeater初始化 I2CbusClock是 tuner和2108之间的时钟速度
@@ -126,7 +126,7 @@ line level    source
  109   1      
  110   1              ChunkAddr(i2cm_cmd_addr+I2CM_CMD_LENGTH-4, pBuff);       //     从地址
  111   1              pBuff[3] = 0x0;
-C51 COMPILER V9.00   II2CREPEATER                                                          03/18/2016 16:14:09 PAGE 3   
+C51 COMPILER V9.00   II2CREPEATER                                                          03/29/2016 14:57:54 PAGE 3   
 
  112   1              pBuff[4] = (AVL_uchar)uiSize;
  113   1              pBuff[5] = ucSlaveAddr;
@@ -190,7 +190,7 @@ line level    source
  165   1      
  166   1              for ( i2=0; i2<uiSize; i2++ )
  167   1              {
-C51 COMPILER V9.00   II2CREPEATER                                                          03/18/2016 16:14:09 PAGE 4   
+C51 COMPILER V9.00   II2CREPEATER                                                          03/29/2016 14:57:54 PAGE 4   
 
  168   2                      pBuff[i1++] = pucBuff[i2];
  169   2              }

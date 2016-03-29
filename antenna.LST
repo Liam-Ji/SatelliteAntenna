@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 1   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE ANTENNA
@@ -62,7 +62,7 @@ line level    source
   53          * Èë¿Ú²ÎÊý£ºÎÞ
   54          *
   55          * ³ö¿Ú²ÎÊý£ºÎÞ
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 2   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 2   
 
   56          *
   57          * ¹¦ÄÜÃèÊö£º¼ì²é¸÷Êý¾ÝÊÇ·ñÕýÈ·
@@ -126,7 +126,7 @@ line level    source
  115          
  116          /***********************************************************************
  117          *
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 3   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 3   
 
  118          * º¯ÊýÔ­ÐÍ£ºstatic void TestSelf(void)
  119          *
@@ -190,7 +190,7 @@ line level    source
  177   2                      BaseStarFreq    = ReadEEPROM(BaseStarFreqAddr) * 100.0 +        \
  178   2                                                        ReadEEPROM(BaseStarFreqAddr + 1) +            \
  179   2                                                        ReadEEPROM(BaseStarFreqAddr + 2) * 0.01 + \
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 4   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 4   
 
  180   2                                                        ReadEEPROM(BaseStarFreqAddr + 3) * 0.001; 
  181   2              }
@@ -254,7 +254,7 @@ line level    source
  239   1      
  240   1              SatLongEastFlag = ReadEEPROM(SatLongEastFlagAddr);
  241   1      
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 5   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 5   
 
  242   1      
  243   1              if(!((XinBiaoRecFreq > 899.0) && (XinBiaoRecFreq < 1760.1)))            //KLR3000½ÓÊÕ»úµÄËøÆµ·¶Î§(950.0~1750.0 MH
@@ -318,7 +318,7 @@ line level    source
  300   1              if(StationPloMode > V)                                                                          //¼«»¯·½Ê½2009-3-12ÐÞ¸Ä
  301   1              {
  302   2                      StationPloMode = H;     
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 6   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 6   
 
  303   2              }
  304   1      
@@ -382,7 +382,7 @@ line level    source
  362          * ¹¦ÄÜÃèÊö£º¼«»¯½Ç³õÊ¼»¯£¬µçÎ»Æ÷Óë¼«»¯Æ÷µÄ×ªÈ¦±ÈÎª3£º1£¬Òò´Ë½«Ô²¼«»¯Æ÷µÄ½Ç¶È·ÖÎª3¶Î£¬´Ëº¯Êý½«¼«»¯Æ÷×ªµ½ÏÞÎ
              -»£¬²¢½«¶ÎÊý³õÊ¼»¯Îª0
  363          *
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 7   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 7   
 
  364          ***********************************************************************/
  365          void PolarAngleInit(void)
@@ -446,7 +446,7 @@ line level    source
  423   2                      if(ChangeKit == 0)
  424   2                      {
  425   3                              Delay(20);
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 8   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 8   
 
  426   3                              OpenTimer0Interrupt();
  427   3                              while(OverflowT0 < 1200 && ChangeKit == 0)
@@ -510,7 +510,7 @@ line level    source
  483   1              WriteEEPROM(1, AbnormalFlagAddress);                                    //±£´æ²»Õý³£¹Ø»ú±êÖ¾
  484   1      
  485   1      
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 9   
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 9   
 
  486   1              SSrcStarKbS = 27500.0;
  487   1              SharpRecFreq = 1135.0;
@@ -574,7 +574,7 @@ line level    source
  545   2      
  546   2                      if(StationEl < 40.0)
  547   2                      {
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 10  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 10  
 
  548   3                              Delay(10);
  549   3                              MotorFun(ELUP, MOTORSTOP, GetElS1());
@@ -638,7 +638,7 @@ line level    source
  607   1              if(BaseStarFlagThree == 2)
  608   1              {
  609   2                      EnBaseStar = 2;    //´Ó²Î¿¼ÎÀÐÇ¶þ¿ªÊ¼£¬¼à¿ØÈí¼þ¸øµÄ²Î¿¼ÎÀÐÇ
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 11  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 11  
 
  610   2                      BaseStarFlagThree = 0;
  611   2              }
@@ -702,7 +702,7 @@ line level    source
  669   2                      StationNorthFlag        = GPSNorthFlag;
  670   2                      EnStorSrcPara           = 1; //2009/10/14
  671   2              }
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 12  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 12  
 
  672   1      
  673   1              GetParaEn();            //2009/6/12µÃµ½Òª¶ÔÎÀÐÇ²ÎÊý²¢ÖÃÏà¹Ø±êÖ¾Î»
@@ -766,7 +766,7 @@ line level    source
  731   2                      while(StationEl > StationElTemp)
  732   2                      {
  733   3                              watch();
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 13  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 13  
 
  734   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
  735   3                              {
@@ -830,7 +830,7 @@ line level    source
  793   4                                      AGCNoise += GetAGC();
  794   4                                      j = StationAz;
  795   4                                      a++;
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 14  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 14  
 
  796   4                              }
  797   3                      }
@@ -894,7 +894,7 @@ line level    source
  855   2                      RightEdgeAz     = AZ180 + AZlimit;
  856   2              }
  857   1              
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 15  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 15  
 
  858   1              /*È·¶¨ÉÏ±ß½ç*/
  859   1              UpEdgeEl = StationElCal + ELSearchRange;
@@ -958,7 +958,7 @@ line level    source
  917   4                                      if(StationAz > RightEdgeAz - 2.0)
  918   4                                      {
  919   5                                              MotorFun(MOTORSTOP, AZLEFT, SpeedSearchAzS);
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 16  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 16  
 
  920   5                                      }
  921   4                                      else if(StationAz < LeftEdgeAz + 2.0)
@@ -1022,7 +1022,7 @@ line level    source
  979   5                                              MotorFun(MOTORSTOP, AZRIGHT, 0xD000);
  980   5                                      }
  981   4                              }
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 17  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 17  
 
  982   3                              else
  983   3                              {
@@ -1086,7 +1086,7 @@ line level    source
 1041   5                                      }
 1042   4                              }                                               
 1043   3                      }
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 18  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 18  
 
 1044   2                      else
 1045   2                      {
@@ -1150,7 +1150,7 @@ line level    source
 1103   1              else
 1104   1              {
 1105   2                      ReceiverKindFlagS = SHARPREC;
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 19  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 19  
 
 1106   2                      SharpRecNormalFlag = SetSharpFreq1(SharpRecFreq, SSrcStarKbS);  
 1107   2              }
@@ -1214,7 +1214,7 @@ line level    source
 1165   1      }
 1166          
 1167          
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 20  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 20  
 
 1168          /***********************************************************************
 1169          *
@@ -1278,7 +1278,7 @@ line level    source
 1227   3                              if(AGC < AGCPrev)
 1228   3                              {
 1229   4                                      DIR_Flag = 3;
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 21  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 21  
 
 1230   4                              }
 1231   3                              AGCPrev = AGC;
@@ -1342,7 +1342,7 @@ line level    source
 1289          *
 1290          * ¹¦ÄÜÃèÊö£ºÌìÏßÊÖ¶¯
 1291          *
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 22  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 22  
 
 1292          ***********************************************************************/
 1293          void AntennaManual(void)
@@ -1406,7 +1406,7 @@ line level    source
 1351   2                      GoAM();
 1352   2              }
 1353   1              StoreStatus1 = 0;
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 23  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 23  
 
 1354   1              UninstallBianbanFlag = 0;
 1355   1              OpenTimer0Interrupt();
@@ -1470,7 +1470,7 @@ line level    source
 1413   1              {
 1414   2                      temp = 0.0;
 1415   2              }
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 24  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 24  
 
 1416   1      
 1417   1              ELDOWNlimit     = -120.0;
@@ -1493,7 +1493,7 @@ line level    source
 1434   1              temp = (float)ReadEEPROM(rightSIX);
 1435   1              if(temp > 99.0)
 1436   1              {
-1437   2                      temp = 80.0; 
+1437   2                      temp = 90.0; 
 1438   2              }
 1439   1              
 1440   1              if(temp < 50.0)
@@ -1534,7 +1534,7 @@ line level    source
 1475          ***********************************************************************/
 1476          static void TackingUpDownRightLeft(float DeltaAz,float DeltaEl, float St)
 1477          {
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 25  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 25  
 
 1478   1              UINT16 i, j, k;
 1479   1              UINT16 AzNumbers, ElNumbers;                            //¶¯0.1¶ÈµÄ¸öÊý
@@ -1598,7 +1598,7 @@ line level    source
 1537   2                        SumAGC += Filters[k];
 1538   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
 1539   2                 {
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 26  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 26  
 
 1540   3                        MaxStationAz_2 = StationAz;
 1541   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
@@ -1662,7 +1662,7 @@ line level    source
 1599   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
 1600   2                 {
 1601   3                        MaxStationEl_2 = StationEl;
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 27  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 27  
 
 1602   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
 1603   3                 }
@@ -1726,7 +1726,7 @@ line level    source
 1661   2                      {
 1662   3                              DelTemp1 = 0;
 1663   3                              while(AGC < AGCNoise + 0.8 * ThresholdS)
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 28  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 28  
 
 1664   3                              {
 1665   4                                      AGC = GetAGC();
@@ -1790,7 +1790,7 @@ line level    source
 1723   1              AZRightLimitF   = 0xff;
 1724   1      
 1725   1              WriteEEPROM(AzMidLimitF, AzMidLimitFAddr);
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 29  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 29  
 
 1726   1              WriteEEPROM(AZLeftLimitF, AZLeftLimitFAddr);
 1727   1              WriteEEPROM(AZRightLimitF, AZRightLimitFAddr);
@@ -1854,7 +1854,7 @@ line level    source
 1785   1              LEDGREEN;
 1786   1              LEDGREENOPEN;
 1787   1              TimeTest(TIME3 * 4);
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 30  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 30  
 
 1788   1      
 1789   1      /*2009/11/4*/
@@ -1918,7 +1918,7 @@ line level    source
 1847   1              TimeTest(TIME3);        
 1848   1      }
 1849          
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 31  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 31  
 
 1850          static void TestXianWei(void)
 1851          {
@@ -1982,7 +1982,7 @@ line level    source
 1909   4                              Delay(40000);
 1910   4                      }               
 1911   3              }
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 32  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 32  
 
 1912   2              }
 1913   1              TimeTest(TIME3);
@@ -2046,7 +2046,7 @@ line level    source
 1971   1              {
 1972   2                      ;
 1973   2              }
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 33  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 33  
 
 1974   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);     
 1975   1              SetXinBiaoFreqKC(XinBiaoRecFreq);
@@ -2110,7 +2110,7 @@ line level    source
 2033          {
 2034   1              int a, b, c, d, i;
 2035   1              float j;
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 34  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 34  
 
 2036   1      
 2037   1              /****************************************************
@@ -2174,7 +2174,7 @@ line level    source
 2095   1              WriteEEPROM(ReceiverKindFlag, ReceiverKindAddress);              
 2096   1              
 2097   1              /****************************************************           
-C51 COMPILER V9.00   ANTENNA                                                               03/18/2016 16:14:08 PAGE 35  
+C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 35  
 
 2098   1              *ÒÔÏÂ´æ´¢ÏÄÆÕ½ÓÊÕ»úÆµÂÊ,´æ´¢·½·¨ÈçÏÂ
 2099   1              *ÉèÆµÂÊÎª1051.000£¬Ôòa=10£¬b=51,c=00,d=0

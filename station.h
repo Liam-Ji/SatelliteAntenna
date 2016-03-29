@@ -38,7 +38,7 @@
 #define MANUALMODE 		4		//手动工作模式
 #define STORESTATUS 	5		//收藏状态
 
-#define ELDOWNlimitDef	32.0     //下降到最底，22
+#define ELDOWNlimitDef	33.0     //下降到最底
 
 
 //#define LEDLOCK 	(P6&=~BIT6)						//锁定灯亮(测试机用)

@@ -171,7 +171,7 @@ void CloseTimer0Interrupt(void)
 *
 *出口参数：无
 *
-*功能描述：定时器0中断函数,用来定时用，约每秒OVERFLOWT0加一
+*功能描述：定时器0中断函数,用来定时用，约每 23ms OVERFLOWT0加一
 *
 ***********************************************************************/
 void Timer0Interrupt(void) interrupt T0INTNUMBER

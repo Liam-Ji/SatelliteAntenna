@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   ADC                                                                   03/18/2016 16:14:07 PAGE 1   
+C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE ADC
@@ -62,7 +62,7 @@ line level    source
   53   1              ADC0LTL =  0xFF;
   54   1              ADC0CF  =  0x50;                        //配置PGA，转换时钟周期配置为10，即：22118400 /（10 + 1） 
   55   1              AMX0CF  =  0x0;                         //全部为独立的单端输入
-C51 COMPILER V9.00   ADC                                                                   03/18/2016 16:14:07 PAGE 2   
+C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 2   
 
   56   1              REF0CN  =  0x02;                //使用电压基准2.5V
   57   1              EIE2   &= ~0x02;                        //禁止ADC0 转换结束中断。
@@ -126,7 +126,7 @@ line level    source
  115                          AD0INT  = 0;                                                                    //ad转换开始
  116                          AD0BUSY = 1;
  117                          while(!AD0INT)
-C51 COMPILER V9.00   ADC                                                                   03/18/2016 16:14:07 PAGE 3   
+C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 3   
 
  118                                  ;
  119                          tempAGC += ADC0H * 256 + ADC0L;
@@ -190,7 +190,7 @@ line level    source
  177          * 注：根据不同的电机进行换算,AngleCom为补尝值.  
  178          *
  179          ***********************************************************************/
-C51 COMPILER V9.00   ADC                                                                   03/18/2016 16:14:07 PAGE 4   
+C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 4   
 
  180          float GetPolarAngle(void)
  181          {
@@ -254,7 +254,7 @@ line level    source
  239   1      
  240   1              for(i = 0; i < 5; i++)
  241   1              {
-C51 COMPILER V9.00   ADC                                                                   03/18/2016 16:14:07 PAGE 5   
+C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 5   
 
  242   2                      AD0INT  = 0;                                                                    //ad转换开始
  243   2                      AD0BUSY = 1;

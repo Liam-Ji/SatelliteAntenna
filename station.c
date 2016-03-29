@@ -161,7 +161,7 @@ void TimeTest(int count)
 *
 * 出口参数：无
 *
-* 功能描述：大概延时。
+* 功能描述：大概延时。24MHz, about 0.5us per machine circle or 12MHz, about 1us per machine circle
 *
 ***********************************************************************/
 void Delay(UINT16 t)

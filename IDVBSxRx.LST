@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 1   
+C51 COMPILER V9.00   IDVBSXRX                                                              03/29/2016 14:57:54 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE IDVBSXRX
@@ -62,7 +62,7 @@ line level    source
   46   1      }
   47          
   48          /*A2108_ErrorCode A2108_IDVBSxRx_SetChannelLockMode( struct A2108_Channel * psChannel, enum A2108_LockMode
-C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 2   
+C51 COMPILER V9.00   IDVBSXRX                                                              03/29/2016 14:57:54 PAGE 2   
 
              - enumChannelLockMode )
   49          {
@@ -126,7 +126,7 @@ line level    source
  103   3                              Standard = (AVL_uint16)(((sChannel->m_Flags) & CI_FLAG_DVBS2_BIT_MASK)>>CI_FLAG_DVBS2_BIT);//符号标准
  104   3                              autoIQ_Detect = (((sChannel->m_Flags) & CI_FLAG_IQ_AUTO_BIT_MASK)>>CI_FLAG_IQ_AUTO_BIT); //手动还是自动
              -配置IQ交换
-C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 3   
+C51 COMPILER V9.00   IDVBSXRX                                                              03/29/2016 14:57:54 PAGE 3   
 
  105   3      
  106   3                              if((Standard == CI_FLAG_DVBS2_UNDEF) || (autoIQ_Detect == 1))  //不知道信号标准 或者 自动IQ交换
@@ -190,7 +190,7 @@ line level    source
  159          
  160                  r = A2108_IBase_GetFunctionalMode(&enumFunctionalMode, pAVLChip);  //把功能模式值发那个如enmFunctionMode
  161          
-C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 4   
+C51 COMPILER V9.00   IDVBSXRX                                                              03/29/2016 14:57:54 PAGE 4   
 
  162                  if(enumFunctionalMode == A2108_FunctMode_Demod) //如果是demodulator模式
  163                  {
@@ -254,7 +254,7 @@ line level    source
  213          {
  214                  AVL_uint32 uiData;
  215                  AVL_uint32 uiPolarity;
-C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 5   
+C51 COMPILER V9.00   IDVBSXRX                                                              03/29/2016 14:57:54 PAGE 5   
 
  216                  AVL_uint16 uiSignalLevel;
  217                  A2108_ErrorCode r;
@@ -318,7 +318,7 @@ line level    source
  273                          *puiSNR_db = 0;
  274                  }
  275                  return(r);
-C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 6   
+C51 COMPILER V9.00   IDVBSXRX                                                              03/29/2016 14:57:54 PAGE 6   
 
  276          } */
  277          
@@ -382,7 +382,7 @@ line level    source
              -chip it is working on.  
  333           结构体p_SignalInfo返回信号信息 */
  334          /*A2108_ErrorCode A2108_IDVBSxRx_GetSignalInfo( struct A2108_SignalInfo * pSignalInfo, const struct A2108_
-C51 COMPILER V9.00   IDVBSXRX                                                              03/18/2016 16:14:09 PAGE 7   
+C51 COMPILER V9.00   IDVBSXRX                                                              03/29/2016 14:57:54 PAGE 7   
 
              -Chip * pAVLChip )
  335          {

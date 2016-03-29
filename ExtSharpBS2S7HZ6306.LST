@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 1   
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/29/2016 14:57:53 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE EXTSHARPBS2S7HZ6306
@@ -62,7 +62,7 @@ line level    source
   50   1              pTunerRegs->m_ucRegData[2] |= ((AVL_uchar)(Current)<<5);  //data[2]µÄ5¡¢6Î»´æ·Åcurrent
   51   1              return(A2108_EC_OK);
   52   1      }
-C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 2   
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/29/2016 14:57:53 PAGE 2   
 
   53          
   54          
@@ -126,7 +126,7 @@ line level    source
  111   2                      pTunerRegs->m_ucRegData[3] &= ~(0x7<<5);
  112   2                      pTunerRegs->m_ucRegData[3] |= (0x4<<5);
  113   2                      P = 32;
-C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 3   
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/29/2016 14:57:53 PAGE 3   
 
  114   2                      DIV = 0;
  115   2              }
@@ -190,7 +190,7 @@ line level    source
  172   1              r = A2108_II2CRepeater_SendData((AVL_uchar)(pTuner->m_uiSlaveAddress), pTunerRegs->m_ucRegData, 4, pTuner
              -->m_pAVLChip );
  173   1              if( r != A2108_EC_OK )
-C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 4   
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/29/2016 14:57:53 PAGE 4   
 
  174   1              {
  175   2                      return(r);
@@ -254,7 +254,7 @@ line level    source
  224   3                      }
  225   2              }
  226   1              return(r);
-C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/18/2016 16:14:09 PAGE 5   
+C51 COMPILER V9.00   EXTSHARPBS2S7HZ6306                                                   03/29/2016 14:57:53 PAGE 5   
 
  227   1      }
  228          

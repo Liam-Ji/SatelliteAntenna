@@ -424,7 +424,7 @@ void AntennaInit(void)
 		{
 			Delay(20);
 			OpenTimer0Interrupt();
-			while(OverflowT0 < 1200 && ChangeKit == 0)
+			while(OverflowT0 < 1200 && ChangeKit == 0)		//aproximately 276s/4.6minite
 			{
 				if((OverflowT0 & 7) == 0)
 				{
@@ -1434,7 +1434,7 @@ void AntennaStore(void)
 	temp = (float)ReadEEPROM(rightSIX);
 	if(temp > 99.0)
 	{
-		temp = 80.0; 
+		temp = 90.0; 
 	}
 	
 	if(temp < 50.0)
@@ -1446,9 +1446,9 @@ void AntennaStore(void)
 
 	while(ChangeKit != 0)
 	{	
-		Delay(6000);
+		Delay(6000); 				//about 3ms
 	}
-	Delay(60000);
+	Delay(60000);					//about 3ms
 	while(ChangeKit == 0)
 	{
 		;

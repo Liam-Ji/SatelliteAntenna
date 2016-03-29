@@ -274,7 +274,7 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>64</ColumnNumber>
+      <ColumnNumber>8</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>70</TopLine>
       <CurrentLine>70</CurrentLine>
@@ -321,10 +321,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>8</ColumnNumber>
+      <ColumnNumber>43</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>169</TopLine>
+      <CurrentLine>177</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\timer.c</PathWithFileName>
       <FilenameWithoutPath>timer.c</FilenameWithoutPath>
@@ -363,10 +363,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>17</ColumnNumber>
+      <ColumnNumber>11</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>789</TopLine>
-      <CurrentLine>804</CurrentLine>
+      <TopLine>413</TopLine>
+      <CurrentLine>426</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\antenna.c</PathWithFileName>
       <FilenameWithoutPath>antenna.c</FilenameWithoutPath>
@@ -396,10 +396,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>24</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>276</TopLine>
-      <CurrentLine>276</CurrentLine>
+      <TopLine>1537</TopLine>
+      <CurrentLine>1546</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\protcol.c</PathWithFileName>
       <FilenameWithoutPath>protcol.c</FilenameWithoutPath>
@@ -424,10 +424,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>12</ColumnNumber>
+      <ColumnNumber>98</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>49</TopLine>
-      <CurrentLine>49</CurrentLine>
+      <TopLine>160</TopLine>
+      <CurrentLine>164</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\station.c</PathWithFileName>
       <FilenameWithoutPath>station.c</FilenameWithoutPath>
@@ -2314,31 +2314,49 @@
     <ActiveMDIGroup>0</ActiveMDIGroup>
     <MDIGroup>
       <Size>100</Size>
-      <ActiveTab>0</ActiveTab>
+      <ActiveTab>1</ActiveTab>
       <Documents>
         <Doc>
           <Name>.\main.c</Name>
-          <ColumnNumber>64</ColumnNumber>
+          <ColumnNumber>8</ColumnNumber>
           <TopLine>70</TopLine>
           <CurrentLine>70</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\antenna.c</Name>
-          <ColumnNumber>17</ColumnNumber>
-          <TopLine>789</TopLine>
-          <CurrentLine>804</CurrentLine>
+          <ColumnNumber>11</ColumnNumber>
+          <TopLine>413</TopLine>
+          <CurrentLine>426</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\protcol.c</Name>
-          <ColumnNumber>24</ColumnNumber>
-          <TopLine>276</TopLine>
-          <CurrentLine>276</CurrentLine>
+          <ColumnNumber>0</ColumnNumber>
+          <TopLine>1537</TopLine>
+          <CurrentLine>1546</CurrentLine>
         </Doc>
         <Doc>
           <Name>.\station.c</Name>
-          <ColumnNumber>12</ColumnNumber>
-          <TopLine>49</TopLine>
-          <CurrentLine>49</CurrentLine>
+          <ColumnNumber>98</ColumnNumber>
+          <TopLine>160</TopLine>
+          <CurrentLine>164</CurrentLine>
+        </Doc>
+        <Doc>
+          <Name>.\timer.c</Name>
+          <ColumnNumber>43</ColumnNumber>
+          <TopLine>169</TopLine>
+          <CurrentLine>177</CurrentLine>
+        </Doc>
+        <Doc>
+          <Name>STATION.H</Name>
+          <ColumnNumber>36</ColumnNumber>
+          <TopLine>41</TopLine>
+          <CurrentLine>59</CurrentLine>
+        </Doc>
+        <Doc>
+          <Name>TIMER.H</Name>
+          <ColumnNumber>8</ColumnNumber>
+          <TopLine>45</TopLine>
+          <CurrentLine>45</CurrentLine>
         </Doc>
       </Documents>
     </MDIGroup>
