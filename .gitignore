@@ -1,2 +1,5 @@
 *.LST
 *.OBJ
+*.iex
+*.lnp
+*.m51
