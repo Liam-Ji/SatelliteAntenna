@@ -1,9 +1,9 @@
-C51 COMPILER V9.00   RWEEPROM                                                              03/29/2016 14:57:52 PAGE 1   
+C51 COMPILER V9.01   RWEEPROM                                                              12/06/2016 17:32:34 PAGE 1   
 
 
-C51 COMPILER V9.00, COMPILATION OF MODULE RWEEPROM
+C51 COMPILER V9.01, COMPILATION OF MODULE RWEEPROM
 OBJECT MODULE PLACED IN rweeprom.OBJ
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE rweeprom.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Applications\Keil\C51\BIN\C51.EXE rweeprom.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   53   2                      Delay(TIME);
   54   2              }
   55   1      }
-C51 COMPILER V9.00   RWEEPROM                                                              03/29/2016 14:57:52 PAGE 2   
+C51 COMPILER V9.01   RWEEPROM                                                              12/06/2016 17:32:34 PAGE 2   
 
   56          
   57          
@@ -126,7 +126,7 @@ line level    source
  115          void WriteEEPROM(UINT8 Data, char Address)
  116          {  
  117   1              UINT8 i;
-C51 COMPILER V9.00   RWEEPROM                                                              03/29/2016 14:57:52 PAGE 3   
+C51 COMPILER V9.01   RWEEPROM                                                              12/06/2016 17:32:34 PAGE 3   
 
  118   1              char EN_D = 0x09, EN_RD = 0x80, ERASE_D = 0x0e, \
  119   1                       WRITE_D = 0x0a, EWDS = 0x10;                   //这几个命令字请参考93C66芯片文档
@@ -190,7 +190,7 @@ line level    source
  177   2                      {
  178   3                              DI_93C66_0;                                                     //P5OUT&=~BIT4; 
  179   3                      }
-C51 COMPILER V9.00   RWEEPROM                                                              03/29/2016 14:57:52 PAGE 4   
+C51 COMPILER V9.01   RWEEPROM                                                              12/06/2016 17:32:34 PAGE 4   
 
  180   2                      Delay(TIME);
  181   2                      Data <<= 1;
@@ -210,7 +210,7 @@ line level    source
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    649    ----
+   CODE SIZE        =    765    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =     15    ----
    PDATA SIZE       =   ----    ----

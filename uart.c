@@ -52,6 +52,14 @@ static int  data Uart0TNum;
 static char data Uart0StartF;
 static char data Uart0TxFlag;
 
+static int  data flagG;
+static int  data flagP;
+static int  data flagR;
+static int  data flagM;
+static int  data flagC;
+
+static int  data selectmode;			 //1=GPS,2=倾斜仪,3=信标机
+
 
 /*静态函数*/
 static void SelectGradient(void);
@@ -183,20 +191,48 @@ void Uart0Interrupt(void) interrupt UART0INTNUMBER
 	if(RI0)								//接收中断响应
 	{
 		RI0 = 0;
-		if(Uart0RNum < MAXLENGTH)		//溢出保护2009.9.11
-		{
-			if(SBUF0 == Uart0StartF)	//如果串口0接收寄存器中的字符是$
+		if(selectmode == 1){
+			if(Uart0RNum < MAXLENGTH)		//溢出保护2009.9.11
 			{
-				Uart0Enflag = 1;		//理解为“使能”标志，用于判断是否开始存储数据
+				if(SBUF0 == Uart0StartF)	//如果串口0接收寄存器中的字符是$
+				{
+					Uart0Enflag = 1;		//理解为“使能”标志，用于判断是否开始存储数据
+				}
+				if(Uart0Enflag == 1 && SBUF0 == 'G')
+					flagG = 1;
+				if(flagG == 1 && SBUF0 == 'P')
+					flagP = 1;
+				if(flagP == 1 && SBUF0 == 'R')
+					flagR = 1;
+				if(flagR == 1 && SBUF0 == 'M')
+					flagM = 1;
+				if(flagM == 1 && SBUF0 == 'C')
+					flagC = 1;
+				if(flagC == 1)
+				{
+					Uart0R[Uart0RNum++] = SBUF0;
+				}
 			}
-			if(Uart0Enflag == 1)
+			else
 			{
-				Uart0R[Uart0RNum++] = SBUF0;
+				Uart0RNum = 0;				 //数组溢出时，将数组下标置为0，重新开始存储
 			}
-		}
-		else
-		{
-			Uart0RNum = 0;				 //数组溢出时，将数组下标置为0，重新开始存储
+		}else{
+			if(Uart0RNum < MAXLENGTH)		//溢出保护2009.9.11
+			{
+				if(SBUF0 == Uart0StartF)	//如果串口0接收寄存器中的字符是$
+				{
+					Uart0Enflag = 1;		//理解为“使能”标志，用于判断是否开始存储数据
+				}
+				if(Uart0Enflag == 1)
+				{
+					Uart0R[Uart0RNum++] = SBUF0;
+				}
+			}
+			else
+			{
+				Uart0RNum = 0;				 //数组溢出时，将数组下标置为0，重新开始存储
+			}
 		}
 	}
 	SFRPAGE = TEMPAGE;  //120修改
@@ -217,7 +253,7 @@ void Uart0Interrupt(void) interrupt UART0INTNUMBER
 static void SelectGPS(void)
 { 
 	UINT16 Counter;  //定义unsigned short int Counter 
-
+	selectmode = 1;
 	CloseUart0();
 		
 	SFRPAGE = 0x0F;	  //120修改	 页F
@@ -257,7 +293,7 @@ static void SelectGPS(void)
 static void SelectGradient(void)
 {
 	UINT16 Counter;  //定义unsigned short int Counter  
-	
+	selectmode = 2;
 	CloseUart0(); 	
 
 	SFRPAGE = 0x0F;	  //120修改	 页F
@@ -297,7 +333,7 @@ static void SelectGradient(void)
 static void SelectXinBiao(void)
 {
 	UINT16 Counter;  //定义unsigned short int Counter  
-	
+	selectmode = 3;
 	CloseUart0(); 	
 
 	SFRPAGE = 0x0F;	  //120修改	 页F
@@ -712,8 +748,8 @@ void ReadGradient(void)
 //			}
 //		}
 
-		GradientY += 44.5;				//151227  由于机器倾斜仪安装位置的该变，31.6改为44.5
-		GradientY += GradientRightR;
+		GradientY += 43.5;				//151227  由于机器倾斜仪安装位置的该变，31.6改为44.5
+//		GradientY += GradientRightR;
 		GradientNormal = 1;
 	} 
 	return;
@@ -734,6 +770,11 @@ void ReadGradient(void)
 void ReadGPS(void)
 {
 	Uart0Enflag = 0;
+	flagG = 0;
+	flagP = 0;
+	flagR = 0;
+	flagM = 0;
+	flagC = 0;
 	Uart0RNum 	= 0;							  //串口0接受到的字符数，此处初始化为0
 	GPSNormal 	= 0;
 	Uart0StartF	= '$';							  //GPS信息头标志
@@ -751,6 +792,45 @@ void ReadGPS(void)
 	CloseTimer0Interrupt();
 	Uart0Enflag	= 0;
 
+	if(Uart0R[39] == 'E')
+	{
+		GPSEastFlag = EAST;
+	}
+	if(Uart0R[39] == 'W')
+	{
+		GPSEastFlag = WEST;
+	}
+	if(Uart0R[25] == 'N')
+	{
+		GPSNorthFlag = NORTH;
+	}
+	if(Uart0R[25] == 'S')
+	{
+		GPSNorthFlag = SOUTH;
+	}
+	GPSLat = (Uart0R[14] - '0') *   \
+		10.0 + (Uart0R[15] - '0') + \
+		(Uart0R[16] - '0') * 0.17 +  \
+		(Uart0R[17] - '0') * 0.017;
+	
+	GPSLong = (Uart0R[27] - '0') *   \
+		100.0 + (Uart0R[28] - '0') * \
+		10.0 + (Uart0R[29] - '0') +  \
+		(Uart0R[30] - '0') * 0.17 +   \
+		(Uart0R[31] - '0') * 0.017;
+	
+	if(Uart0R[12] == 'V' && OverflowT0 < 15)
+	{
+		GPSNormal = 2;
+		return;
+	}
+	if(Uart0R[12] == 'A' && OverflowT0 < 15)
+	{
+		GPSNormal = 1;
+	}
+
+
+/*
 	if(Uart0R[42] == 'E')
 	{
 		GPSEastFlag = EAST;
@@ -786,7 +866,8 @@ void ReadGPS(void)
 	if(Uart0R[17] == 'A' && OverflowT0 < 15)
 	{
 		GPSNormal = 1;
-	}
+	}  */
+
 }
 
 

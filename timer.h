@@ -30,12 +30,11 @@ sbit	MAkit		 = P3^1;	//手动自动切换开关2009/10/3
 
 #define SpeedInitS 		0xFE20	//天线开机时方位用的速度（不正常开机会有）
 #define SpeedSearchEl	0xF000	//天线搜索时俯仰用的速度
-//#define SpeedSearchAzF	0xFDC8	//天线搜索时方位用的速度，（从慢到快的中的快速）
+//#define SpeedSearchEl	0xE000	//天线搜索时俯仰用的速度
 #define SElspeed 		0xB00
 #define SpeedSearchAzF	0xFE50	//天线搜索时方位用的速度，（从慢到快的中的快速）
 #define SpeedSearchAzS	0xFA00	//天线搜索时方位用的速度，（从慢到快的中的快速)
 #define SpeedTRACKING	0xFA00	//天线跟踪速度
-
 
 #define POLAR_LEFT	P2 &= ~BIT5; P2 |=  BIT4	//极化逆时针旋转
 #define POLAR_STOP	P2 &= ~BIT5; P2 &= ~BIT4	//极化停止转动

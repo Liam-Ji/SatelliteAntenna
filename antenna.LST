@@ -1,9 +1,9 @@
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 1   
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 1   
 
 
-C51 COMPILER V9.00, COMPILATION OF MODULE ANTENNA
+C51 COMPILER V9.01, COMPILATION OF MODULE ANTENNA
 OBJECT MODULE PLACED IN antenna.OBJ
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE antenna.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Applications\Keil\C51\BIN\C51.EXE antenna.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   53          * Èë¿Ú²ÎÊý£ºÎÞ
   54          *
   55          * ³ö¿Ú²ÎÊý£ºÎÞ
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 2   
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 2   
 
   56          *
   57          * ¹¦ÄÜÃèÊö£º¼ì²é¸÷Êý¾ÝÊÇ·ñÕýÈ·
@@ -126,7 +126,7 @@ line level    source
  115          
  116          /***********************************************************************
  117          *
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 3   
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 3   
 
  118          * º¯ÊýÔ­ÐÍ£ºstatic void TestSelf(void)
  119          *
@@ -190,7 +190,7 @@ line level    source
  177   2                      BaseStarFreq    = ReadEEPROM(BaseStarFreqAddr) * 100.0 +        \
  178   2                                                        ReadEEPROM(BaseStarFreqAddr + 1) +            \
  179   2                                                        ReadEEPROM(BaseStarFreqAddr + 2) * 0.01 + \
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 4   
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 4   
 
  180   2                                                        ReadEEPROM(BaseStarFreqAddr + 3) * 0.001; 
  181   2              }
@@ -254,7 +254,7 @@ line level    source
  239   1      
  240   1              SatLongEastFlag = ReadEEPROM(SatLongEastFlagAddr);
  241   1      
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 5   
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 5   
 
  242   1      
  243   1              if(!((XinBiaoRecFreq > 899.0) && (XinBiaoRecFreq < 1760.1)))            //KLR3000½ÓÊÕ»úµÄËøÆµ·¶Î§(950.0~1750.0 MH
@@ -318,7 +318,7 @@ line level    source
  300   1              if(StationPloMode > V)                                                                          //¼«»¯·½Ê½2009-3-12ÐÞ¸Ä
  301   1              {
  302   2                      StationPloMode = H;     
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 6   
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 6   
 
  303   2              }
  304   1      
@@ -380,1837 +380,1866 @@ line level    source
  360          * ³ö¿Ú²ÎÊý£ºÎÞ
  361          *
  362          * ¹¦ÄÜÃèÊö£º¼«»¯½Ç³õÊ¼»¯£¬µçÎ»Æ÷Óë¼«»¯Æ÷µÄ×ªÈ¦±ÈÎª3£º1£¬Òò´Ë½«Ô²¼«»¯Æ÷µÄ½Ç¶È·ÖÎª3¶Î£¬´Ëº¯Êý½«¼«»¯Æ÷×ªµ½ÏÞÎ
-             -»£¬²¢½«¶ÎÊý³õÊ¼»¯Îª0
+             -»£¬²¢½«¶ÎÊý³õÊ¼»¯Îª0,²¢ÇÒµÃµ½³õÊ¼»¯½Ç¶È
  363          *
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 7   
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 7   
 
  364          ***********************************************************************/
  365          void PolarAngleInit(void)
  366          {
- 367   1              POLAR_LEFT;
- 368   1              while(ELMidLimit)
- 369   1              {
- 370   2                      ;
- 371   2              }
- 372   1              POLAR_STOP;
- 373   1              PloarAngleStage = 0;
- 374   1              return;
- 375   1      }
- 376          
- 377          /***********************************************************************
- 378          *
- 379          * º¯ÊýÔ­ÐÍ£ºvoid AntennaInit(void)
- 380          *
- 381          * Èë¿Ú²ÎÊý£ºÎÞ
- 382          *
- 383          * ³ö¿Ú²ÎÊý£ºÎÞ
- 384          *
- 385          * ¹¦ÄÜÃèÊö£ºÌìÏß³õÊ¼»¯
- 386          *
- 387          * ÐÞ    ¸Ä£º35¶ÈÒÔÏÂ¶¼µÃÓÐ×°±ß°ê£¨2009-3-11£¬Ñî´¾ö©£©
- 388          *
- 389          * ÐÞ    ¸Ä£º¼ÓÈëÌìÏß¿ÉÒÔµ½¸©Ñö91µÄÏà¹Ø´úÂë£¨2009-4-13£¬Ñî´¾ö©£©
+ 367   1      //      POLAR_RIGHT;
+ 368   1      //      LEDRED;
+ 369   1      //      Delay(100000);
+ 370   1      //      LEDCLOSE;
+ 371   1      //      while(ELMidLimit)
+ 372   1      //      {
+ 373   1      //              initplorangle = GetComPolA();
+ 374   1      //      }
+ 375   1              POLAR_LEFT;
+ 376   1              LEDRED;
+ 377   1              Delay(100000);
+ 378   1              LEDCLOSE;
+ 379   1              while(ELMidLimit)
+ 380   1              {
+ 381   2                      ;
+ 382   2              }
+ 383   1              POLAR_STOP;
+ 384   1              PloarAngleStage = 0;
+ 385   1              initplorangle = GetComPolA();
+ 386   1              return;
+ 387   1      }
+ 388          
+ 389          /***********************************************************************
  390          *
- 391          ***********************************************************************/
- 392          void AntennaInit(void)
- 393          {
- 394   1              if(ChangeKit == 0)
- 395   1              {
- 396   2                      Delay(20);
- 397   2                      if(ChangeKit == 0)      
- 398   2                      {
- 399   3                              AntTestFun();
- 400   3                      }       
- 401   2              }
- 402   1      
- 403   1              /*2009/11/4¼ÓÈë¶Ô¼ÓÃÜÐ¾Æ¬µÄ´¦Àí*/
- 404   1              EA        = 0;                                                          //2010/4/19¼ÓÈë£¬Ð¾Æ¬ÓÅ»¯       //Rill move here 101202
- 405   1      /*      if(!(Verify8802()))
- 406   1              {
- 407   1                      while(1)
- 408   1                      {
- 409   1                              LEDRED;
- 410   1                              TimeTest(1);
- 411   1                              LEDCLOSE;
- 412   1                              TimeTest(1);
- 413   1                      }
- 414   1              }                 */
- 415   1              EA        = 1;
- 416   1      
- 417   1              LEDRED;
- 418   1      ///*---------------------------------------------------------------------
- 419   1      //*/¿ª»ú°´¼ü2009-1-20   
- 420   1              while(1)                                                                                                //¿ª»ú°´¼ü2009-1-20
- 421   1              {
- 422   2                      OverflowT0      = 0;
- 423   2                      if(ChangeKit == 0)
- 424   2                      {
- 425   3                              Delay(20);
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 8   
+ 391          * º¯ÊýÔ­ÐÍ£ºvoid AntennaInit(void)
+ 392          *
+ 393          * Èë¿Ú²ÎÊý£ºÎÞ
+ 394          *
+ 395          * ³ö¿Ú²ÎÊý£ºÎÞ
+ 396          *
+ 397          * ¹¦ÄÜÃèÊö£ºÌìÏß³õÊ¼»¯
+ 398          *
+ 399          * ÐÞ    ¸Ä£º35¶ÈÒÔÏÂ¶¼µÃÓÐ×°±ß°ê£¨2009-3-11£¬Ñî´¾ö©£©
+ 400          *
+ 401          * ÐÞ    ¸Ä£º¼ÓÈëÌìÏß¿ÉÒÔµ½¸©Ñö91µÄÏà¹Ø´úÂë£¨2009-4-13£¬Ñî´¾ö©£©
+ 402          *
+ 403          ***********************************************************************/
+ 404          void AntennaInit(void)
+ 405          {
+ 406   1              if(ChangeKit == 0)
+ 407   1              {
+ 408   2                      Delay(20);
+ 409   2                      if(ChangeKit == 0)      
+ 410   2                      {
+ 411   3                              AntTestFun();
+ 412   3                      }       
+ 413   2              }
+ 414   1      
+ 415   1              /*2009/11/4¼ÓÈë¶Ô¼ÓÃÜÐ¾Æ¬µÄ´¦Àí*/
+ 416   1              EA        = 0;                                                          //2010/4/19¼ÓÈë£¬Ð¾Æ¬ÓÅ»¯       //Rill move here 101202
+ 417   1      /*      if(!(Verify8802()))
+ 418   1              {
+ 419   1                      while(1)
+ 420   1                      {
+ 421   1                              LEDRED;
+ 422   1                              TimeTest(1);
+ 423   1                              LEDCLOSE;
+ 424   1                              TimeTest(1);
+ 425   1                      }
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 8   
 
- 426   3                              OpenTimer0Interrupt();
- 427   3                              while(OverflowT0 < 1200 && ChangeKit == 0)
- 428   3                              {
- 429   4                                      if((OverflowT0 & 7) == 0)
- 430   4                                      {
- 431   5                                              LEDCLOSE;
- 432   5                                      }
- 433   4                                      if((OverflowT0 & 7) == 4)
- 434   4                                      {
- 435   5                                              LEDRED;                                                                 //ÉÁºìµÆ                                
- 436   5                                      }
- 437   4                              }
- 438   3                      }
- 439   2                      CloseTimer0Interrupt();
- 440   2                      LEDRED;                                                                         
- 441   2                      if(OverflowT0 > 1)                                                                      //2009-3-9¸ÄÎª0.1Ãë¿ª»úÊ±¼ä     
- 442   2                      {
- 443   3                              break;
- 444   3                      }
- 445   2              }//end while(1) ¿ª»ú°´¼ü2009-1-20
- 446   1      /*---------------------------------------------------------------------*/
- 447   1              LEDRED;
- 448   1      
- 449   1              SatLongEastFlag = EAST;
- 450   1              watchwire();                                                                                    //¼ì²éÓÐÎÞÏßÇÐ»»
- 451   1              StationEl = 10.0;
- 452   1              NoMonitorF = 1;                                                                                 //Ä¬ÈÏÎÞ¼à¿Ø
- 453   1              AntReadySearchF = 1;                                                                    //³õÊ¼»¯×¼±¸ËÑË÷±êÖÂÎ»(2009/10/12)
- 454   1      
- 455   1              PolarAngleInit();
- 456   1              StationPol = GetComPolA();
- 457   1              GotoPolarAngle(45);                                                                             //
- 458   1      
- 459   1              Abnormal = ReadEEPROM(AbnormalFlagAddress);                             //¶ÁÈ¡ÊÇ·ñÕý³£¿ª»ú±êÖ¾£¬Abnormal=0ÎªÕý³£¿ª»ú£¬Abnormal=1Îª
+ 426   1              }                 */
+ 427   1              EA        = 1;
+ 428   1      
+ 429   1              LEDRED;
+ 430   1      ///*---------------------------------------------------------------------
+ 431   1      //*/¿ª»ú°´¼ü2009-1-20   
+ 432   1              while(1)                                                                                                //¿ª»ú°´¼ü2009-1-20
+ 433   1              {
+ 434   2                      OverflowT0      = 0;
+ 435   2                      if(ChangeKit == 0)
+ 436   2                      {
+ 437   3                              Delay(20);
+ 438   3                              OpenTimer0Interrupt();
+ 439   3                              while(OverflowT0 < 1200 && ChangeKit == 0)              //1200 aproximately 276s/4.6minite
+ 440   3                              {
+ 441   4                                      if((OverflowT0 & 7) == 0)
+ 442   4                                      {
+ 443   5                                              LEDCLOSE;
+ 444   5                                      }
+ 445   4                                      if((OverflowT0 & 7) == 4)
+ 446   4                                      {
+ 447   5                                              LEDRED;                                                                 //ÉÁºìµÆ                                
+ 448   5                                      }
+ 449   4                              }
+ 450   3                      }
+ 451   2                      CloseTimer0Interrupt();
+ 452   2                      LEDRED;                                                                         
+ 453   2                      if(OverflowT0 > 1)                                                                      //2009-3-9¸ÄÎª0.1Ãë¿ª»úÊ±¼ä     
+ 454   2                      {
+ 455   3                              break;
+ 456   3                      }
+ 457   2              }//end while(1) ¿ª»ú°´¼ü2009-1-20
+ 458   1      /*---------------------------------------------------------------------*/
+ 459   1              LEDRED;
+ 460   1      
+ 461   1              SatLongEastFlag = EAST;
+ 462   1              watchwire();                                                                                    //¼ì²éÓÐÎÞÏßÇÐ»»
+ 463   1              StationEl = 10.0;
+ 464   1              NoMonitorF = 1;                                                                                 //Ä¬ÈÏÎÞ¼à¿Ø
+ 465   1              AntReadySearchF = 1;                                                                    //³õÊ¼»¯×¼±¸ËÑË÷±êÖÂÎ»(2009/10/12)
+ 466   1      
+ 467   1                                                                              
+ 468   1      
+ 469   1              Abnormal = ReadEEPROM(AbnormalFlagAddress);                             //¶ÁÈ¡ÊÇ·ñÕý³£¿ª»ú±êÖ¾£¬Abnormal=0ÎªÕý³£¿ª»ú£¬Abnormal=1Îª
              -²»Õý³£¿ª»ú
- 460   1              
- 461   1              if(ReadEEPROM(PolCompensateAddress) == '+')                             //¼«»¯µÄÐ£Õý
- 462   1              {
- 463   2                      AngleCom = ReadEEPROM(PolCompensateAddress + 1);
- 464   2              }
- 465   1              if(ReadEEPROM(PolCompensateAddress) == '-')
- 466   1              {
- 467   2                      AngleCom = 0.0 - ReadEEPROM(PolCompensateAddress + 1);
- 468   2              }
- 469   1              if(ReadEEPROM(ELCompensateAddress) == '+')                              //¸©ÑöµÄÐ£Õý
- 470   1              {
- 471   2                      GradientRightR = ReadEEPROM(ELCompensateAddress + 1) / 10.0;
- 472   2              }
- 473   1              if(ReadEEPROM(ELCompensateAddress) == '-')
- 474   1              {
- 475   2                      GradientRightR = 0.0 - ReadEEPROM(ELCompensateAddress + 1) / 10.0;
- 476   2              }
- 477   1      
- 478   1              AzMidLimitF     = 0xff;                 //2010-7-7
- 479   1              AZLeftLimitF    = 0xff;                 //
- 480   1              AZRightLimitF   = 0xff;                 //ÕâÈý¸öÁ¿¶¼ÊÇµç»úÏÞÎ»±êÖ¾£¬Ä¿Ç°¿´À´Ö»ÓÐÖµÎª1µÄÊ±ºò±íÊ¾ÏàÓ¦µÄÏÞÎ»¹ÊÕÏ£¬ÆäËûÖµ¶¼Ê
+ 470   1              
+ 471   1              if(ReadEEPROM(PolCompensateAddress) == '+')                             //¼«»¯µÄÐ£Õý
+ 472   1              {
+ 473   2                      AngleCom = ReadEEPROM(PolCompensateAddress + 1);
+ 474   2              }
+ 475   1              if(ReadEEPROM(PolCompensateAddress) == '-')
+ 476   1              {
+ 477   2                      AngleCom = 0.0 - ReadEEPROM(PolCompensateAddress + 1);
+ 478   2              }
+ 479   1              if(ReadEEPROM(ELCompensateAddress) == '+')                              //¸©ÑöµÄÐ£Õý
+ 480   1              {
+ 481   2                      GradientRightR = ReadEEPROM(ELCompensateAddress + 1) / 10.0;
+ 482   2              }
+ 483   1              if(ReadEEPROM(ELCompensateAddress) == '-')
+ 484   1              {
+ 485   2                      GradientRightR = 0.0 - ReadEEPROM(ELCompensateAddress + 1) / 10.0;
+ 486   2              }
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 9   
+
+ 487   1      
+ 488   1              AzMidLimitF     = 0xff;                 //2010-7-7
+ 489   1              AZLeftLimitF    = 0xff;                 //
+ 490   1              AZRightLimitF   = 0xff;                 //ÕâÈý¸öÁ¿¶¼ÊÇµç»úÏÞÎ»±êÖ¾£¬Ä¿Ç°¿´À´Ö»ÓÐÖµÎª1µÄÊ±ºò±íÊ¾ÏàÓ¦µÄÏÞÎ»¹ÊÕÏ£¬ÆäËûÖµ¶¼Ê
              -ÇÕý³£×´Ì¬
- 481   1      
- 482   1              Delay(1000);                                                                                    // ÓÅ»¯Ê±¼ä£¬2010/4/19
- 483   1              WriteEEPROM(1, AbnormalFlagAddress);                                    //±£´æ²»Õý³£¹Ø»ú±êÖ¾
- 484   1      
- 485   1      
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 9   
-
- 486   1              SSrcStarKbS = 27500.0;
- 487   1              SharpRecFreq = 1135.0;
- 488   1              SetSharpFreq(SharpRecFreq, SSrcStarKbS);
- 489   1      
- 490   1              GetPara();
- 491   1              GetBaseStarPara();
- 492   1              Delay(1000);                                                                                    //»ñÈ¡¶ÔÐÇ²ÎÊý
- 493   1                                                                                                                                      
- 494   1              TestSelf();                                                                                             //×Ô¼ì                                                                                                                          
- 495   1              StationAz = AZ180;                                                                              //ÆÁ±ÎÂÞÅÌ
- 496   1              Delay(1000);
- 497   1              ReadGradient();
- 498   1      //      StationEl = GradientY;
- 499   1      //      MotorCtrl(UPDOWN, 35.0, GetElS1());
- 500   1              /*2010-7-16¼ÓÈë¶Ô¸©Ñö½Ç¶ÈµÄÅÐ¶Ï£¬Ö÷ÒªÊÇ·ÀÖ¹ÈËÎªÊÖ¶¯½«ÌìÏßÒ¡Æð*/
- 501   1              if(GradientNormal == 1 && Abnormal == 0 && GradientY < 25.0)    //Èç¹ûÇãÐ±ÒÇÕý³£,²¢ÇÒÕý³£¿ª»ú
- 502   1              {
- 503   2                      StationEl = GradientY;
- 504   2                      if(StationEl < 0)
- 505   2                      {
- 506   3                              WriteEEPROM('-', StoreELSignAddress);                   //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
- 507   3                              WriteEEPROM(0.0 - StationEl, StoreElDownAddress);//´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È
- 508   3                      }
- 509   2                      else
- 510   2                      {
- 511   3                              WriteEEPROM('+', StoreELSignAddress);                   //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
- 512   3                              WriteEEPROM(StationEl, StoreElDownAddress);             //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È
- 513   3                      }
- 514   2                      ELUPlimit = StationEl - 14.0 + 80.0;                            //ÔÙ´ÎµÃµ½¸©Ñö¼«ÏÞ
- 515   2                      ELDOWNlimit = StationEl - 14.0 + ELDOWNlimitDef;                                                                
- 516   2              }
- 517   1      
- 518   1              //2010-7-29¼ÓÈë
- 519   1              Delay(3000);
- 520   1              if((ReadEEPROM(StoreELSignAddress) != '-') && (ReadEEPROM(StoreELSignAddress) != '+'))
- 521   1              {
- 522   2                      WriteEEPROM('+', StoreELSignAddress);                   //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
- 523   2                      WriteEEPROM(0, StoreElDownAddress);                             //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
- 524   2              }
- 525   1      
- 526   1      
+ 491   1      
+ 492   1              Delay(1000);                                                                                    // ÓÅ»¯Ê±¼ä£¬2010/4/19
+ 493   1              WriteEEPROM(1, AbnormalFlagAddress);                                    //±£´æ²»Õý³£¹Ø»ú±êÖ¾
+ 494   1      
+ 495   1      
+ 496   1              SSrcStarKbS = 27500.0;
+ 497   1              SharpRecFreq = 1135.0;
+ 498   1              SetSharpFreq(SharpRecFreq, SSrcStarKbS);
+ 499   1      
+ 500   1              GetPara();
+ 501   1              GetBaseStarPara();
+ 502   1              Delay(1000);                                                                                    //»ñÈ¡¶ÔÐÇ²ÎÊý
+ 503   1                                                                                                                                      
+ 504   1              TestSelf();                                                                                             //×Ô¼ì                                                                                                                          
+ 505   1              StationAz = AZ180;                                                                              //ÆÁ±ÎÂÞÅÌ
+ 506   1              Delay(1000);
+ 507   1              ReadGradient();
+ 508   1      //      StationEl = GradientY;
+ 509   1      //      MotorCtrl(UPDOWN, 35.0, GetElS1());
+ 510   1              /*2010-7-16¼ÓÈë¶Ô¸©Ñö½Ç¶ÈµÄÅÐ¶Ï£¬Ö÷ÒªÊÇ·ÀÖ¹ÈËÎªÊÖ¶¯½«ÌìÏßÒ¡Æð*/
+ 511   1              if(GradientNormal == 1 && Abnormal == 0 && GradientY < 25.0)    //Èç¹ûÇãÐ±ÒÇÕý³£,²¢ÇÒÕý³£¿ª»ú
+ 512   1              {
+ 513   2                      StationEl = GradientY;
+ 514   2                      if(StationEl < 0)
+ 515   2                      {
+ 516   3                              WriteEEPROM('-', StoreELSignAddress);                   //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
+ 517   3                              WriteEEPROM(0.0 - StationEl, StoreElDownAddress);//´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È
+ 518   3                      }
+ 519   2                      else
+ 520   2                      {
+ 521   3                              WriteEEPROM('+', StoreELSignAddress);                   //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
+ 522   3                              WriteEEPROM(StationEl, StoreElDownAddress);             //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È
+ 523   3                      }
+ 524   2                      ELUPlimit = StationEl - 14.0 + 80.0;                            //ÔÙ´ÎµÃµ½¸©Ñö¼«ÏÞ
+ 525   2                      ELDOWNlimit = StationEl - 14.0 + ELDOWNlimitDef;                                                                
+ 526   2              }
  527   1      
- 528   1              if(GradientNormal == 1)                                                         //Èç¹ûÇãÐ±ÒÇÕý³£
- 529   1              {
- 530   2      
- 531   2                      StationEl = GradientY;
- 532   2      /* 2016/3/18 ²åÈë£¬²âÊÔÌìÏß¸©ÑöÏÂÏÞÊÇ·ñ»áËæ×ÅÌìÏß°Ú·Å½Ç¶È±ä»¯¶ø±ä»¯ */
- 533   2                      if(StationEl < ELDOWNlimit)
- 534   2                      {
- 535   3                              Delay(10);
- 536   3                              MotorFun(ELUP, MOTORSTOP, GetElS1());
- 537   3                              while(ELDOWNlimit > StationEl)
- 538   3                              {
- 539   4                                      ReadGradient();
- 540   4                                      StationEl = GradientY;
- 541   4                              }
- 542   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 543   3                      }
- 544   2                      TimeTest(2);
- 545   2      
- 546   2                      if(StationEl < 40.0)
- 547   2                      {
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 10  
+ 528   1              //2010-7-29¼ÓÈë
+ 529   1              Delay(3000);
+ 530   1              if((ReadEEPROM(StoreELSignAddress) != '-') && (ReadEEPROM(StoreELSignAddress) != '+'))
+ 531   1              {
+ 532   2                      WriteEEPROM('+', StoreELSignAddress);                   //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
+ 533   2                      WriteEEPROM(0, StoreElDownAddress);                             //´æ´¢³õÊ¼µÄÐ±ÆÂ½Ç¶È            
+ 534   2              }
+ 535   1      
+ 536   1      
+ 537   1      
+ 538   1              if(GradientNormal == 1)                                                         //Èç¹ûÇãÐ±ÒÇÕý³£
+ 539   1              {
+ 540   2      
+ 541   2                      StationEl = GradientY;
+ 542   2      /* 2016/3/18 ²åÈë£¬²âÊÔÌìÏß¸©ÑöÏÂÏÞÊÇ·ñ»áËæ×ÅÌìÏß°Ú·Å½Ç¶È±ä»¯¶ø±ä»¯ */
+ 543   2                      if(StationEl < ELDOWNlimit)
+ 544   2                      {
+ 545   3                              Delay(10);
+ 546   3                              MotorFun(ELUP, MOTORSTOP, GetElS1());
+ 547   3                              while(ELDOWNlimit > StationEl)
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 10  
 
- 548   3                              Delay(10);
- 549   3                              MotorFun(ELUP, MOTORSTOP, GetElS1());
- 550   3                              while(40.0 > StationEl)
- 551   3                              {
- 552   4                                      ReadGradient();
- 553   4                                      StationEl = GradientY;
- 554   4                                      watch();
- 555   4                              }
- 556   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 557   3                              TimeTest(2);
- 558   3                              AzLimitTest();                                                                  //2010-7-8¼ÓÈë¶ÔÏÞÎ»µÄ²âÊÔ£»
- 559   3                              GotoAzMid();
- 560   3                              BianBanFlag = 0;
- 561   3                              SetBianBan();                                                                   //µÈ´ý×°±ß°ê            
- 562   3                      }
- 563   2                      else
- 564   2                      {
- 565   3                              AzLimitTest();
- 566   3                              GotoAzMid();
- 567   3                      }                       
- 568   2              }//end (GradientNormal == 1)
- 569   1              else
- 570   1              {
- 571   2                      Delay(10);
- 572   2                      StationEl = -73.0;
- 573   2                      MotorCtrl(UPDOWN, 40.0, GetElS1());
- 574   2              }//end (GradientNormal != 1)
- 575   1      
- 576   1              BaseStarFlagThree = 0;                                                                  //Ê¹ÓÃ²Î¿¼ÎÀÐÇ±êÖ¾Î»
- 577   1              EnStorSrcPara = 1;
- 578   1              status = SEARCHREADY;
- 579   1              return;
- 580   1      }
- 581          
- 582          
- 583          /***********************************************************************
- 584          *
- 585          * º¯ÊýÔ­ÐÍ£ºvoid GetParaEn(void)
- 586          *
- 587          * Èë¿Ú²ÎÊý£ºÎÞ
- 588          *
- 589          * ³ö¿Ú²ÎÊý£ºÎÞ
- 590          *
- 591          * ¹¦ÄÜÃèÊö£ºÌìÏß×¼±¸ËÑË÷Ç°,È·¶¨¶ÔÄ¿±êÎÀÐÇ»¹ÊÇ²Î¿¼ÎÀÐÇ
- 592          *
- 593          ***********************************************************************/
- 594          static void GetParaEn(void)
- 595          {
- 596   1              /*±£´æÄ¿±êÎÀÐÇ²ÎÊý*/
- 597   1              ParaProtect();
- 598   1              if(EnStorSrcPara == 1)                                                  //±£´æÄ¿±êÎÀÐÇ²ÎÊý
- 599   1              {
- 600   2                      StorSrcPara();
- 601   2                      EnStorSrcPara = 0;
- 602   2              }
- 603   1      
- 604   1              /*
- 605   1               * Èç¹û¼à¿ØÑ¡ÓÃÁË²Î¿¼ÎÀÐÇ£¬ÔòÓÅÏÈÊ¹ÓÃ¼à¿Ø¸øµÄ²Î¿¼ÎÀÐÇ
- 606   1               */
- 607   1              if(BaseStarFlagThree == 2)
- 608   1              {
- 609   2                      EnBaseStar = 2;    //´Ó²Î¿¼ÎÀÐÇ¶þ¿ªÊ¼£¬¼à¿ØÈí¼þ¸øµÄ²Î¿¼ÎÀÐÇ
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 11  
+ 548   3                              {
+ 549   4                                      ReadGradient();
+ 550   4                                      StationEl = GradientY;
+ 551   4                              }
+ 552   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 553   3                      }
+ 554   2                      TimeTest(2);
+ 555   2      
+ 556   2                      if(StationEl < 40.0)
+ 557   2                      {
+ 558   3                              Delay(10);
+ 559   3                              MotorFun(ELUP, MOTORSTOP, GetElS1());
+ 560   3                              while(40.0 > StationEl)
+ 561   3                              {
+ 562   4                                      ReadGradient();
+ 563   4                                      StationEl = GradientY;
+ 564   4                                      watch();
+ 565   4                              }
+ 566   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 567   3                              TimeTest(2);
+ 568   3                              AzLimitTest();                                                                  //2010-7-8¼ÓÈë¶ÔÏÞÎ»µÄ²âÊÔ£»
+ 569   3                              GotoAzMid();
+ 570   3                              
+ 571   3                              /* ÒÔÏÂÈýÌõÊÇ¼«»¯µÄ³õÊ¼»¯£¬´ÓÔ­À´µÄ¿ª»ú°´¼üºó³õÊ¼»¯×ªÒÆµ½Ä¿Ç°Î»ÖÃ£¬ºÍµÈ´ý×°±ß°ê·ÅÔÚÒ»Æð£¬½ÚÊ¡Ê±¼ä */
+ 572   3      
+ 573   3      
+ 574   3      
+ 575   3                              BianBanFlag = 0;                                                                
+ 576   3                              SetBianBan();                                                                   //µÈ´ý×°±ß°ê            
+ 577   3                      }
+ 578   2                      else
+ 579   2                      {
+ 580   3                              AzLimitTest();
+ 581   3                              GotoAzMid();
+ 582   3                      }                       
+ 583   2              }//end (GradientNormal == 1)
+ 584   1              else
+ 585   1              {
+ 586   2                      /* ÏÂÃæ3ÌõÓÃÀ´ÌáÊ¾Ê¹ÓÃÕßÎ´´ÓÊÕ²Ø×´Ì¬¼ÓµçÊ¹ÓÃ£¬2016-11-20×¢ÊÍµô */
+ 587   2      //              Delay(10);
+ 588   2      //              StationEl = -73.0;
+ 589   2      //              MotorCtrl(UPDOWN, 40.0, GetElS1());
+ 590   2              }//end (GradientNormal != 1)
+ 591   1              PolarAngleInit();
+ 592   1              StationPol = GetComPolA();
+ 593   1              GotoPolarAngle(45);
+ 594   1              BaseStarFlagThree = 0;                                                                  //Ê¹ÓÃ²Î¿¼ÎÀÐÇ±êÖ¾Î»
+ 595   1              EnStorSrcPara = 1;
+ 596   1              status = SEARCHREADY;
+ 597   1              return;
+ 598   1      }
+ 599          
+ 600          
+ 601          /***********************************************************************
+ 602          *
+ 603          * º¯ÊýÔ­ÐÍ£ºvoid GetParaEn(void)
+ 604          *
+ 605          * Èë¿Ú²ÎÊý£ºÎÞ
+ 606          *
+ 607          * ³ö¿Ú²ÎÊý£ºÎÞ
+ 608          *
+ 609          * ¹¦ÄÜÃèÊö£ºÌìÏß×¼±¸ËÑË÷Ç°,È·¶¨¶ÔÄ¿±êÎÀÐÇ»¹ÊÇ²Î¿¼ÎÀÐÇ
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 11  
 
- 610   2                      BaseStarFlagThree = 0;
- 611   2              }
- 612   1              else
- 613   1              {
- 614   2                      EnBaseStar = 1; 
- 615   2              }
- 616   1      
- 617   1              /*
- 618   1               * ÊÇ·ñÊ¹ÓÃ¼à¿ØÈí¼þµÄ²Î¿¼ÎÀÐÇ
- 619   1               */
- 620   1              if(EnBaseStar == 2)
- 621   1              {
- 622   2                      TestBaseStarPara();
- 623   2                      SatLongS                        = BaseStarLONG;
- 624   2                      StationPloModeS         = BaseStarPol;
- 625   2                      ReceiverKindFlagS       = BaseStarRType;
- 626   2                      SrcStarKbS                      = BaseStarKbS;
- 627   2                      XinBiaoRecFreqS         = BaseStarFreq;
- 628   2                      SharpRecFreqS           = BaseStarFreq;
- 629   2                      ThresholdS                      = Threshold;
- 630   2                      SatLongEastFlagS        = BaseStarLONGEF;
- 631   2              }
- 632   1              else
- 633   1              {
- 634   2                      SatLongS                        = SatLong;
- 635   2                      StationPloModeS         = StationPloMode;
- 636   2                      ReceiverKindFlagS       = ReceiverKindFlag;
- 637   2                      SrcStarKbS                      = SSrcStarKbS;
- 638   2                      XinBiaoRecFreqS         = XinBiaoRecFreq;
- 639   2                      SharpRecFreqS           = SharpRecFreq;
- 640   2                      ThresholdS                      = Threshold;
- 641   2                      SatLongEastFlagS        = SatLongEastFlag;              
- 642   2              }                       
- 643   1      }
- 644          
- 645          
- 646          /***********************************************************************
- 647          *
- 648          * º¯ÊýÔ­ÐÍ£ºvoid AntennaReadySearch(void)
- 649          *
- 650          * Èë¿Ú²ÎÊý£ºÎÞ
- 651          *
- 652          * ³ö¿Ú²ÎÊý£ºÎÞ
- 653          *
- 654          * ¹¦ÄÜÃèÊö£ºÌìÏß×¼±¸ËÑË÷£¬µ½ÀíÂÛ½Ç¸½½ü
- 655          *
- 656          ***********************************************************************/
- 657          void AntennaReadySearch(void)
- 658          {
- 659   1              int a;
- 660   1              float j;
- 661   1              float MotorLook;
- 662   1      
- 663   1              TestSelf();
- 664   1              if(GPSNormal == 1 && NoMonitorF == 1)
- 665   1              {
- 666   2                      StationLong             = GPSLong;
- 667   2                      StationLat              = GPSLat;
- 668   2                      StationEastFlag         = GPSEastFlag;
- 669   2                      StationNorthFlag        = GPSNorthFlag;
- 670   2                      EnStorSrcPara           = 1; //2009/10/14
- 671   2              }
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 12  
+ 610          *
+ 611          ***********************************************************************/
+ 612          static void GetParaEn(void)
+ 613          {
+ 614   1              /*±£´æÄ¿±êÎÀÐÇ²ÎÊý*/
+ 615   1              ParaProtect();
+ 616   1              if(EnStorSrcPara == 1)                                                  //±£´æÄ¿±êÎÀÐÇ²ÎÊý
+ 617   1              {
+ 618   2                      StorSrcPara();
+ 619   2                      EnStorSrcPara = 0;
+ 620   2              }
+ 621   1      
+ 622   1              /*
+ 623   1               * Èç¹û¼à¿ØÑ¡ÓÃÁË²Î¿¼ÎÀÐÇ£¬ÔòÓÅÏÈÊ¹ÓÃ¼à¿Ø¸øµÄ²Î¿¼ÎÀÐÇ
+ 624   1               */
+ 625   1              if(BaseStarFlagThree == 2)
+ 626   1              {
+ 627   2                      EnBaseStar = 2;    //´Ó²Î¿¼ÎÀÐÇ¶þ¿ªÊ¼£¬¼à¿ØÈí¼þ¸øµÄ²Î¿¼ÎÀÐÇ
+ 628   2                      BaseStarFlagThree = 0;
+ 629   2              }
+ 630   1              else
+ 631   1              {
+ 632   2                      EnBaseStar = 1; 
+ 633   2              }
+ 634   1      
+ 635   1              /*
+ 636   1               * ÊÇ·ñÊ¹ÓÃ¼à¿ØÈí¼þµÄ²Î¿¼ÎÀÐÇ
+ 637   1               */
+ 638   1              if(EnBaseStar == 2)
+ 639   1              {
+ 640   2                      TestBaseStarPara();
+ 641   2                      SatLongS                        = BaseStarLONG;
+ 642   2                      StationPloModeS         = BaseStarPol;
+ 643   2                      ReceiverKindFlagS       = BaseStarRType;
+ 644   2                      SrcStarKbS                      = BaseStarKbS;
+ 645   2                      XinBiaoRecFreqS         = BaseStarFreq;
+ 646   2                      SharpRecFreqS           = BaseStarFreq;
+ 647   2                      ThresholdS                      = Threshold;
+ 648   2                      SatLongEastFlagS        = BaseStarLONGEF;
+ 649   2              }
+ 650   1              else
+ 651   1              {
+ 652   2                      SatLongS                        = SatLong;
+ 653   2                      StationPloModeS         = StationPloMode;
+ 654   2                      ReceiverKindFlagS       = ReceiverKindFlag;
+ 655   2                      SrcStarKbS                      = SSrcStarKbS;
+ 656   2                      XinBiaoRecFreqS         = XinBiaoRecFreq;
+ 657   2                      SharpRecFreqS           = SharpRecFreq;
+ 658   2                      ThresholdS                      = Threshold;
+ 659   2                      SatLongEastFlagS        = SatLongEastFlag;              
+ 660   2              }                       
+ 661   1      }
+ 662          
+ 663          
+ 664          /***********************************************************************
+ 665          *
+ 666          * º¯ÊýÔ­ÐÍ£ºvoid AntennaReadySearch(void)
+ 667          *
+ 668          * Èë¿Ú²ÎÊý£ºÎÞ
+ 669          *
+ 670          * ³ö¿Ú²ÎÊý£ºÎÞ
+ 671          *
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 12  
 
- 672   1      
- 673   1              GetParaEn();            //2009/6/12µÃµ½Òª¶ÔÎÀÐÇ²ÎÊý²¢ÖÃÏà¹Ø±êÖ¾Î»
- 674   1      
- 675   1              FindAnt(StationLong, StationLat, SatLongS, StationPloModeS);    //¶ÔÐÇ¼ÆËã£¬µÃµ½ÀíÂÛÖµ  
- 676   1      //      FindAnt(StationLong, StationLat, 113, H);       //¶ÔÐÇ¼ÆËã£¬µÃµ½ÀíÂÛÖµ                                                                                                                     
- 677   1      //      PolarAngleInit();
- 678   1              GotoPolarAngle(StationPolCal);                                                                  //µ½Ä¿±ê¼«»¯
- 679   1      
- 680   1              
- 681   1              if(ReceiverKindFlagS == XINBIAOREC)
- 682   1              {
- 683   2      //              SetXinBiaoFreqKC(XinBiaoRecFreqS);                                                      //ÉèÖÃÐÅ±êÆµÂÊ
- 684   2                      SetXinBiaoFreqKC(1300.0);                                                       //ÉèÖÃÐÅ±êÆµÂÊ  
- 685   2              }       
- 686   1              else
- 687   1              {
- 688   2                      SharpRecNormalFlag = SetSharpFreq1(SharpRecFreqS, SrcStarKbS);  
- 689   2              } 
+ 672          * ¹¦ÄÜÃèÊö£ºÌìÏß×¼±¸ËÑË÷£¬µ½ÀíÂÛ½Ç¸½½ü
+ 673          *
+ 674          ***********************************************************************/
+ 675          void AntennaReadySearch(void)
+ 676          {
+ 677   1              int a;
+ 678   1              float j;
+ 679   1              float MotorLook;
+ 680   1      
+ 681   1              TestSelf();
+ 682   1              if(GPSNormal == 1 && NoMonitorF == 1)
+ 683   1              {
+ 684   2                      StationLong             = GPSLong;
+ 685   2                      StationLat              = GPSLat;
+ 686   2                      StationEastFlag         = GPSEastFlag;
+ 687   2                      StationNorthFlag        = GPSNorthFlag;
+ 688   2                      EnStorSrcPara           = 1; //2009/10/14
+ 689   2              }
  690   1      
- 691   1              /****************************************************           
- 692   1              *×ßµ½ÀíÂÛ¸©Ñö
- 693   1              ****************************************************/
- 694   1              TimeTest(1);
- 695   1              ReadGradient();
- 696   1              if(GradientNormal == 1)                                                 //Èç¹ûÇãÐ±ÒÇÕý³£
- 697   1              {
- 698   2                      if(GradientY - StationEl < 8.0 && GradientY - StationEl > -8.0)
- 699   2                      {
- 700   3                              StationEl = GradientY;
- 701   3                      }
- 702   2              }
- 703   1              StationElTemp = StationElCal;
- 704   1              if(StationElCal > ELUPlimit)                                    //±£»¤ÀíÂÛ¸©ÑöÖµ
+ 691   1              GetParaEn();            //2009/6/12µÃµ½Òª¶ÔÎÀÐÇ²ÎÊý²¢ÖÃÏà¹Ø±êÖ¾Î»
+ 692   1      
+ 693   1              FindAnt(StationLong, StationLat, SatLongS, StationPloModeS);    //¶ÔÐÇ¼ÆËã£¬µÃµ½ÀíÂÛÖµ  
+ 694   1      //      FindAnt(StationLong, StationLat, 113, H);       //¶ÔÐÇ¼ÆËã£¬µÃµ½ÀíÂÛÖµ                                                                                                                     
+ 695   1      //      PolarAngleInit();
+ 696   1              GotoPolarAngle(StationPolCal);                                                                  //µ½Ä¿±ê¼«»¯
+ 697   1      
+ 698   1              
+ 699   1              if(ReceiverKindFlagS == XINBIAOREC)
+ 700   1              {
+ 701   2                      SetXinBiaoFreqKC(XinBiaoRecFreqS);                                                      //ÉèÖÃÐÅ±êÆµÂÊ
+ 702   2      //              SetXinBiaoFreqKC(1300.0);                                                       //ÉèÖÃÐÅ±êÆµÂÊ  
+ 703   2              }       
+ 704   1              else
  705   1              {
- 706   2                      StationElTemp = ELUPlimit;
- 707   2              }
- 708   1              if(StationElCal < ELDOWNlimit)
- 709   1              {
- 710   2                      StationElTemp = ELDOWNlimit;
- 711   2              }
- 712   1      
- 713   1              if(StationEl < StationElTemp)                                   //µ½ÀíÂÛ¸©ÑöÎ»ÖÃ
- 714   1              {
- 715   2                      MotorFun(ELUP, MOTORSTOP, GetElS1());
- 716   2                      while(StationEl < StationElTemp)
+ 706   2                      SharpRecNormalFlag = SetSharpFreq1(SharpRecFreqS, SrcStarKbS);  
+ 707   2              } 
+ 708   1      
+ 709   1              /****************************************************           
+ 710   1              *×ßµ½ÀíÂÛ¸©Ñö
+ 711   1              ****************************************************/
+ 712   1              TimeTest(1);
+ 713   1              ReadGradient();
+ 714   1              if(GradientNormal == 1)                                                 //Èç¹ûÇãÐ±ÒÇÕý³£
+ 715   1              {
+ 716   2                      if(GradientY - StationEl < 8.0 && GradientY - StationEl > -8.0)
  717   2                      {
- 718   3                              watch();
- 719   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
- 720   3                              {
- 721   4                                      AntReadySearchF = 1;
- 722   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 723   4                                      return; 
- 724   4                              }
- 725   3                      }
- 726   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 727   2              }
- 728   1              else
- 729   1              {
- 730   2                      MotorFun(ELDOWN, MOTORSTOP, GetElS1());
- 731   2                      while(StationEl > StationElTemp)
- 732   2                      {
- 733   3                              watch();
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 13  
+ 718   3                              StationEl = GradientY;
+ 719   3                      }
+ 720   2              }
+ 721   1              StationElTemp = StationElCal;
+ 722   1              if(StationElCal > ELUPlimit)                                    //±£»¤ÀíÂÛ¸©ÑöÖµ
+ 723   1              {
+ 724   2                      StationElTemp = ELUPlimit;
+ 725   2              }
+ 726   1              if(StationElCal < ELDOWNlimit)
+ 727   1              {
+ 728   2                      StationElTemp = ELDOWNlimit;
+ 729   2              }
+ 730   1      
+ 731   1              if(StationEl < StationElTemp)                                   //µ½ÀíÂÛ¸©ÑöÎ»ÖÃ
+ 732   1              {
+ 733   2                      MotorFun(ELUP, MOTORSTOP, GetElS1());
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 13  
 
- 734   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
- 735   3                              {
- 736   4                                      AntReadySearchF = 1;
- 737   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 738   4                                      return; 
- 739   4                              }
- 740   3                      }
- 741   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 742   2              }//if(StationEl < StationElTemp)
- 743   1      
- 744   1              /****************************************************           
- 745   1              *µÃµ½ÔëÉù
- 746   1              *×ßµ½ÀíÂÛ·½Î»¼ÓÉÏÓÒ²à30¶ÈÊ±
- 747   1              ****************************************************/
- 748   1              TimeTest(2);
- 749   1              a = 1;
- 750   1              AGCNoise = GetAGC();
- 751   1              j = StationAz;
- 752   1              MotorLook = StationAzCal + AZSearchRange;               //ÕÒµ½ÓÒ±ß½ç
- 753   1              if(MotorLook > AZ180 + AZlimit)
- 754   1              {                                                                                           //·½Î»±£»¤
- 755   2                      MotorLook = AZ180 + AZlimit;
- 756   2              }
- 757   1               
- 758   1              if(StationAz < MotorLook)                                               //·½Î»×ßµ½Ä¿±ê
- 759   1              {
- 760   2                      MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
- 761   2                      while(StationAz < MotorLook)
- 762   2                      {
- 763   3                              watch();
- 764   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
- 765   3                              {
- 766   4                                      AntReadySearchF = 1;
- 767   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 768   4                                      return; 
- 769   4                              }
- 770   3                              if(StationAz - j > 3.0)
- 771   3                              { 
- 772   4                                      AGCNoise += GetAGC();
- 773   4                                      j = StationAz;
- 774   4                                      a++;
- 775   4                              }
- 776   3                      }
- 777   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 778   2              }
- 779   1              else
- 780   1              {
- 781   2                      MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
- 782   2                      while(StationAz > MotorLook)
- 783   2                      {
- 784   3                              watch();
- 785   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
- 786   3                              {
- 787   4                                      AntReadySearchF = 1;
- 788   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 789   4                                      return; 
- 790   4                              }
- 791   3                              if(j - StationAz > 3.0)
- 792   3                              {
- 793   4                                      AGCNoise += GetAGC();
- 794   4                                      j = StationAz;
- 795   4                                      a++;
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 14  
+ 734   2                      while(StationEl < StationElTemp)
+ 735   2                      {
+ 736   3                              watch();
+ 737   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
+ 738   3                              {
+ 739   4                                      AntReadySearchF = 1;
+ 740   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 741   4                                      return; 
+ 742   4                              }
+ 743   3                      }
+ 744   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 745   2              }
+ 746   1              else
+ 747   1              {
+ 748   2                      MotorFun(ELDOWN, MOTORSTOP, GetElS1());
+ 749   2                      while(StationEl > StationElTemp)
+ 750   2                      {
+ 751   3                              watch();
+ 752   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
+ 753   3                              {
+ 754   4                                      AntReadySearchF = 1;
+ 755   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 756   4                                      return; 
+ 757   4                              }
+ 758   3                      }
+ 759   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 760   2              }//if(StationEl < StationElTemp)
+ 761   1      
+ 762   1              /****************************************************           
+ 763   1              *µÃµ½ÔëÉù
+ 764   1              *×ßµ½ÀíÂÛ·½Î»¼ÓÉÏÓÒ²à30¶ÈÊ±
+ 765   1              ****************************************************/
+ 766   1              TimeTest(2);
+ 767   1              a = 1;
+ 768   1              AGCNoise = GetAGC();
+ 769   1              j = StationAz;
+ 770   1              MotorLook = StationAzCal + AZSearchRange;               //ÕÒµ½ÓÒ±ß½ç
+ 771   1              if(MotorLook > AZ180 + AZlimit)
+ 772   1              {                                                                                           //·½Î»±£»¤
+ 773   2                      MotorLook = AZ180 + AZlimit;
+ 774   2              }
+ 775   1               
+ 776   1              if(StationAz < MotorLook)                                               //·½Î»×ßµ½Ä¿±ê
+ 777   1              {
+ 778   2                      MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
+ 779   2                      while(StationAz < MotorLook)
+ 780   2                      {
+ 781   3                              watch();
+ 782   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
+ 783   3                              {
+ 784   4                                      AntReadySearchF = 1;
+ 785   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 786   4                                      return; 
+ 787   4                              }
+ 788   3                              if(StationAz - j > 3.0)
+ 789   3                              { 
+ 790   4                                      AGCNoise += GetAGC();
+ 791   4                                      j = StationAz;
+ 792   4                                      a++;
+ 793   4                              }
+ 794   3                      }
+ 795   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 14  
 
- 796   4                              }
- 797   3                      }
- 798   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
- 799   2              }
- 800   1              AGCNoise /= a;
- 801   1              AGC = GetAGC();
- 802   1              if(AGCNoise < AGCNoiseNor)
- 803   1              {
- 804   2                      AGCNoise = AGC;
- 805   2              }
- 806   1      
- 807   1              TimeTest(2);
- 808   1              status = SEARCHING;
- 809   1      
- 810   1              if(ResetFlag == 1)                                                              //Èç¹û¸´Î»±êÖ¾Îª¸ß
- 811   1              {
- 812   2                      ReturnSet();                                                            //·µ»ØÌìÏßÉèÖÃ  
- 813   2                      ReturnResetSuccess();                                           //·µ»Ø¸´Î»³É¹¦
- 814   2                      ResetFlag = 0;                                                          //Çå³ý¸´Î»±êÖ¾
- 815   2              }               
- 816   1              return;
- 817   1      }
- 818          
- 819          
- 820          /***********************************************************************
- 821          *
- 822          * º¯ÊýÔ­ÐÍ£ºvoid AntennaTimeSearch(void)
- 823          *
- 824          * Èë¿Ú²ÎÊý£ºÎÞ
- 825          *
- 826          * ³ö¿Ú²ÎÊý£ºÎÞ
- 827          *
- 828          * ¹¦ÄÜÃèÊö£ºÌìÏßËÑË÷
- 829          *
- 830          ***********************************************************************/
- 831          void AntennaTimeSearch(void)
- 832          {
- 833   1              float tempUP, tempDOWN;
- 834   1              float LeftEdgeAz, RightEdgeAz, UpEdgeEl, DownEdgeEl;    //ÉÏÏÂ×óÓÒ±ß½ç
- 835   1              UINT8 DirFlag;                                                                                  //ÅÐ¶Ï·½Ïò  £¬0×ó1ÉÏ2ÓÒ3ÏÂ
- 836   1              UINT8 r;
- 837   1              UINT16 uiLockStatus;
- 838   1              UINT16 FlagSpeed = 0;
- 839   1              UINT8 CountHoop = 0;                                                                    //È·¶¨ÉÏÏÂÎå¶È
- 840   1              float tempCH = 0.0;                                                                             //2009/5/21
- 841   1              float T1, T2, T3;
- 842   1      
- 843   1      
- 844   1              /*È·¶¨×ó±ß½ç*/
- 845   1              LeftEdgeAz = StationAzCal - AZSearchRange;
- 846   1              if(LeftEdgeAz < AZ180 - AZlimit)
- 847   1              {
- 848   2                      LeftEdgeAz = AZ180 - AZlimit;
- 849   2              }
- 850   1              
- 851   1              /*È·¶¨ÓÒ±ß½ç*/
- 852   1              RightEdgeAz = StationAzCal + AZSearchRange;
- 853   1              if(RightEdgeAz > AZ180 + AZlimit)
- 854   1              {
- 855   2                      RightEdgeAz     = AZ180 + AZlimit;
- 856   2              }
- 857   1              
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 15  
+ 796   2              }
+ 797   1              else
+ 798   1              {
+ 799   2                      MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
+ 800   2                      while(StationAz > MotorLook)
+ 801   2                      {
+ 802   3                              watch();
+ 803   3                              if((status > TRACKING) || (AntReadySearchF == 0))  //2009/10/12ÔÙ´Î¸´Î»ÓÃ
+ 804   3                              {
+ 805   4                                      AntReadySearchF = 1;
+ 806   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 807   4                                      return; 
+ 808   4                              }
+ 809   3                              if(j - StationAz > 3.0)
+ 810   3                              {
+ 811   4                                      AGCNoise += GetAGC();
+ 812   4                                      j = StationAz;
+ 813   4                                      a++;
+ 814   4                              }
+ 815   3                      }
+ 816   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+ 817   2              }
+ 818   1              AGCNoise /= a;
+ 819   1              AGC = GetAGC();
+ 820   1              if(AGCNoise < AGCNoiseNor)
+ 821   1              {
+ 822   2                      AGCNoise = AGC;
+ 823   2              }
+ 824   1      
+ 825   1              TimeTest(2);
+ 826   1              status = SEARCHING;
+ 827   1      
+ 828   1              if(ResetFlag == 1)                                                              //Èç¹û¸´Î»±êÖ¾Îª¸ß
+ 829   1              {
+ 830   2                      ReturnSet();                                                            //·µ»ØÌìÏßÉèÖÃ  
+ 831   2                      ReturnResetSuccess();                                           //·µ»Ø¸´Î»³É¹¦
+ 832   2                      ResetFlag = 0;                                                          //Çå³ý¸´Î»±êÖ¾
+ 833   2              }               
+ 834   1              return;
+ 835   1      }
+ 836          
+ 837          
+ 838          /***********************************************************************
+ 839          *
+ 840          * º¯ÊýÔ­ÐÍ£ºvoid AntennaTimeSearch(void)
+ 841          *
+ 842          * Èë¿Ú²ÎÊý£ºÎÞ
+ 843          *
+ 844          * ³ö¿Ú²ÎÊý£ºÎÞ
+ 845          *
+ 846          * ¹¦ÄÜÃèÊö£ºÌìÏßËÑË÷
+ 847          *
+ 848          ***********************************************************************/
+ 849          void AntennaTimeSearch(void)
+ 850          {
+ 851   1              float tempUP, tempDOWN;
+ 852   1              float LeftEdgeAz, RightEdgeAz, UpEdgeEl, DownEdgeEl;    //ÉÏÏÂ×óÓÒ±ß½ç
+ 853   1              UINT8 DirFlag;                                                                                  //ÅÐ¶Ï·½Ïò  £¬0×ó1ÉÏ2ÓÒ3ÏÂ
+ 854   1              UINT8 r;
+ 855   1              UINT16 uiLockStatus;
+ 856   1              UINT16 FlagSpeed = 0;
+ 857   1              UINT8 CountHoop = 0;                                                                    //È·¶¨ÉÏÏÂÎå¶È
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 15  
 
- 858   1              /*È·¶¨ÉÏ±ß½ç*/
- 859   1              UpEdgeEl = StationElCal + ELSearchRange;
- 860   1              if((UpEdgeEl > ELUPlimit) || (UpEdgeEl < ELDOWNlimit))
- 861   1              {
- 862   2                      UpEdgeEl = ELUPlimit;
- 863   2              }
- 864   1              
- 865   1              /*È·¶¨ÏÂ±ß½ç*/ 
- 866   1              DownEdgeEl = StationElCal - ELSearchRange;
- 867   1              if(DownEdgeEl < ELDOWNlimit || (DownEdgeEl > ELUPlimit))
- 868   1              {
- 869   2                      DownEdgeEl = ELDOWNlimit;
- 870   2              }
- 871   1                              
- 872   1              DirFlag  = 0;
- 873   1              tempDOWN = StationElTemp;
- 874   1              tempUP   = StationElTemp;
- 875   1              T1 = StationEl;    //2009/9/1
- 876   1              T2 = StationEl;
- 877   1              T3 = StationAz;         //ÓÃÓÚÅÐ¶Ï·½Î»ÊÇ·ñ´óÓÚÄ³Ò»¶ÈÊýºóÔÙ½øÐÐ¸©Ñö²¹³¢
- 878   1      
- 879   1              while(CountHoop < 6)
- 880   1              {
- 881   2                      if(fabs(StationAz - T3) > 4.5)                          //2009/10/12²îÎå¶È²Å½øÐÐ²¹³¢
- 882   2                      {                                                       
- 883   3                              if(GradientNormal == 1)                                                 //Èç¹ûÇãÐ±ÒÇÕý³£        //2009/5/21¼ÓÈë
- 884   3                              {
- 885   4                                      ReadGradient();
- 886   4                                      if(GradientY - StationEl < 12.0 && GradientY - StationEl > -12.0)
- 887   4                                      {
- 888   5                                              T1 = GradientY;
- 889   5                                              ReadGradient();
- 890   5                                              T2 = GradientY;
- 891   5                                              T3 = StationAz;
- 892   5                                              StationEl = (T1 + T2) / 2.0;
- 893   5                                      }
- 894   4                              }
- 895   3                      }
- 896   2                      
- 897   2                      if(DirFlag == 0)
- 898   2                      {
- 899   3                              if(fabs(tempDOWN - StationEl) > 1.2)
- 900   3                              {
- 901   4                                      MotorCtrl(UPDOWN, tempDOWN, SpeedSearchEl);     
- 902   4                              }
- 903   3                      }
- 904   2      
- 905   2                      if(DirFlag == 2)
- 906   2                      {
- 907   3                              if(fabs(StationEl - tempUP) > 1.2)
- 908   3                              {
- 909   4                                      MotorCtrl(UPDOWN, tempUP, SpeedSearchEl);
- 910   4                              }
- 911   3                      }
- 912   2      
- 913   2                      if(DirFlag == 0)                                                                                                //ÌìÏßÏò×óËÑË÷
- 914   2                      {
- 915   3                              if(StationAz > LeftEdgeAz)
- 916   3                              {
- 917   4                                      if(StationAz > RightEdgeAz - 2.0)
- 918   4                                      {
- 919   5                                              MotorFun(MOTORSTOP, AZLEFT, SpeedSearchAzS);
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 16  
+ 858   1              float tempCH = 0.0;                                                                             //2009/5/21
+ 859   1              float T1, T2, T3;
+ 860   1      
+ 861   1      
+ 862   1              /*È·¶¨×ó±ß½ç*/
+ 863   1              LeftEdgeAz = StationAzCal - AZSearchRange;
+ 864   1              if(LeftEdgeAz < AZ180 - AZlimit)
+ 865   1              {
+ 866   2                      LeftEdgeAz = AZ180 - AZlimit;
+ 867   2              }
+ 868   1              
+ 869   1              /*È·¶¨ÓÒ±ß½ç*/
+ 870   1              RightEdgeAz = StationAzCal + AZSearchRange;
+ 871   1              if(RightEdgeAz > AZ180 + AZlimit)
+ 872   1              {
+ 873   2                      RightEdgeAz     = AZ180 + AZlimit;
+ 874   2              }
+ 875   1              
+ 876   1              /*È·¶¨ÉÏ±ß½ç*/
+ 877   1              UpEdgeEl = StationElCal + ELSearchRange;
+ 878   1              if((UpEdgeEl > ELUPlimit) || (UpEdgeEl < ELDOWNlimit))
+ 879   1              {
+ 880   2                      UpEdgeEl = ELUPlimit;
+ 881   2              }
+ 882   1              
+ 883   1              /*È·¶¨ÏÂ±ß½ç*/ 
+ 884   1              DownEdgeEl = StationElCal - ELSearchRange;
+ 885   1              if(DownEdgeEl < ELDOWNlimit || (DownEdgeEl > ELUPlimit))
+ 886   1              {
+ 887   2                      DownEdgeEl = ELDOWNlimit;
+ 888   2              }
+ 889   1                              
+ 890   1              DirFlag  = 0;
+ 891   1              tempDOWN = StationElTemp;
+ 892   1              tempUP   = StationElTemp;
+ 893   1              T1 = StationEl;    //2009/9/1
+ 894   1              T2 = StationEl;
+ 895   1              T3 = StationAz;         //ÓÃÓÚÅÐ¶Ï·½Î»ÊÇ·ñ´óÓÚÄ³Ò»¶ÈÊýºóÔÙ½øÐÐ¸©Ñö²¹³¢
+ 896   1      
+ 897   1              while(CountHoop < 6)
+ 898   1              {
+ 899   2                      if(fabs(StationAz - T3) > 4.5)                          //2009/10/12²îÎå¶È²Å½øÐÐ²¹³¢
+ 900   2                      {                                                       
+ 901   3                              if(GradientNormal == 1)                                                 //Èç¹ûÇãÐ±ÒÇÕý³£        //2009/5/21¼ÓÈë
+ 902   3                              {
+ 903   4                                      ReadGradient();
+ 904   4                                      if(GradientY - StationEl < 12.0 && GradientY - StationEl > -12.0)
+ 905   4                                      {
+ 906   5                                              T1 = GradientY;
+ 907   5                                              ReadGradient();
+ 908   5                                              T2 = GradientY;
+ 909   5                                              T3 = StationAz;
+ 910   5                                              StationEl = (T1 + T2) / 2.0;
+ 911   5                                      }
+ 912   4                              }
+ 913   3                      }
+ 914   2                      
+ 915   2                      if(DirFlag == 0)
+ 916   2                      {
+ 917   3                              if(fabs(tempDOWN - StationEl) > 1.2)
+ 918   3                              {
+ 919   4                                      MotorCtrl(UPDOWN, tempDOWN, SpeedSearchEl);     
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 16  
 
- 920   5                                      }
- 921   4                                      else if(StationAz < LeftEdgeAz + 2.0)
- 922   4                                      {
- 923   5                                              MotorFun(MOTORSTOP, AZLEFT, SpeedSearchAzS);
- 924   5                                      }
- 925   4                                      else
- 926   4                                      {
- 927   5                                              MotorFun(MOTORSTOP, AZLEFT, GetAzS1());
- 928   5                                      }
- 929   4                                      if(FlagSpeed == 1)      
- 930   4                                      {
- 931   5                                              MotorFun(MOTORSTOP, AZLEFT, 0xD000);
- 932   5                                      }
- 933   4                              }
- 934   3                              else
- 935   3                              {
- 936   4                                      CountHoop++;                                                                                    //ÓÃÀ´¼ÆÈ¦Êý
- 937   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
- 938   4                                      DirFlag = 1;
- 939   4                                      tempCH += 1.0;
- 940   4                                      tempUP = StationElTemp + tempCH;                                        //2009/5/21
- 941   4                                      if(tempUP > UpEdgeEl)                                                                   //±£»¤£¬Ìì²»»á³öÉÏÏÞ
- 942   4                                      {
- 943   5                                              tempUP = UpEdgeEl;
- 944   5                                      }       
- 945   4                              }       
- 946   3                      }//end if(DirFlag == 0) 
- 947   2                      
- 948   2                      if(DirFlag == 1)                                                                                                //ÌìÏßÏòÉÏËÑË÷
- 949   2                      {
- 950   3                              if(StationEl < tempUP)
- 951   3                              {
- 952   4                                      MotorFun(ELUP, MOTORSTOP, SpeedSearchEl);
- 953   4                              }
- 954   3                              else
- 955   3                              {
- 956   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchAzS);
- 957   4                                      DirFlag = 2;
- 958   4                              }
- 959   3                      }//end if(DirFlag == 1)
- 960   2                      
- 961   2                      if(DirFlag == 2)                                                                                                //ÌìÏßÏòÓÒËÑË÷
- 962   2                      {
- 963   3                              if(StationAz < RightEdgeAz)
- 964   3                              {
- 965   4                                      if(StationAz > RightEdgeAz - 2.0)
- 966   4                                      {
- 967   5                                              MotorFun(MOTORSTOP, AZRIGHT, SpeedSearchAzS);
- 968   5                                      }
- 969   4                                      else if(StationAz < LeftEdgeAz + 2.0)
- 970   4                                      {
- 971   5                                              MotorFun(MOTORSTOP, AZRIGHT, SpeedSearchAzS);
- 972   5                                      }
- 973   4                                      else
- 974   4                                      {
- 975   5                                              MotorFun(MOTORSTOP, AZRIGHT, GetAzS1());
- 976   5                                      }
- 977   4                                      if(FlagSpeed == 1)      
- 978   4                                      {
- 979   5                                              MotorFun(MOTORSTOP, AZRIGHT, 0xD000);
- 980   5                                      }
- 981   4                              }
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 17  
+ 920   4                              }
+ 921   3                      }
+ 922   2      
+ 923   2                      if(DirFlag == 2)
+ 924   2                      {
+ 925   3                              if(fabs(StationEl - tempUP) > 1.2)
+ 926   3                              {
+ 927   4                                      MotorCtrl(UPDOWN, tempUP, SpeedSearchEl);
+ 928   4                              }
+ 929   3                      }
+ 930   2      
+ 931   2                      if(DirFlag == 0)                                                                                                //ÌìÏßÏò×óËÑË÷
+ 932   2                      {
+ 933   3                              if(StationAz > LeftEdgeAz)
+ 934   3                              {
+ 935   4                                      if(StationAz > RightEdgeAz - 2.0)
+ 936   4                                      {
+ 937   5                                              MotorFun(MOTORSTOP, AZLEFT, SpeedSearchAzS);
+ 938   5                                      }
+ 939   4                                      else if(StationAz < LeftEdgeAz + 2.0)
+ 940   4                                      {
+ 941   5                                              MotorFun(MOTORSTOP, AZLEFT, SpeedSearchAzS);
+ 942   5                                      }
+ 943   4                                      else
+ 944   4                                      {
+ 945   5                                              MotorFun(MOTORSTOP, AZLEFT, GetAzS1());
+ 946   5                                      }
+ 947   4                                      if(FlagSpeed == 1)      
+ 948   4                                      {
+ 949   5                                              MotorFun(MOTORSTOP, AZLEFT, 0xD000);
+ 950   5                                      }
+ 951   4                              }
+ 952   3                              else
+ 953   3                              {
+ 954   4                                      CountHoop++;                                                                                    //ÓÃÀ´¼ÆÈ¦Êý
+ 955   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
+ 956   4                                      DirFlag = 1;
+ 957   4                                      tempCH += 1.0;
+ 958   4                                      tempUP = StationElTemp + tempCH;                                        //2009/5/21
+ 959   4                                      if(tempUP > UpEdgeEl)                                                                   //±£»¤£¬Ìì²»»á³öÉÏÏÞ
+ 960   4                                      {
+ 961   5                                              tempUP = UpEdgeEl;
+ 962   5                                      }       
+ 963   4                              }       
+ 964   3                      }//end if(DirFlag == 0) 
+ 965   2                      
+ 966   2                      if(DirFlag == 1)                                                                                                //ÌìÏßÏòÉÏËÑË÷
+ 967   2                      {
+ 968   3                              if(StationEl < tempUP)
+ 969   3                              {
+ 970   4                                      MotorFun(ELUP, MOTORSTOP, SpeedSearchEl);
+ 971   4                              }
+ 972   3                              else
+ 973   3                              {
+ 974   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchAzS);
+ 975   4                                      DirFlag = 2;
+ 976   4                              }
+ 977   3                      }//end if(DirFlag == 1)
+ 978   2                      
+ 979   2                      if(DirFlag == 2)                                                                                                //ÌìÏßÏòÓÒËÑË÷
+ 980   2                      {
+ 981   3                              if(StationAz < RightEdgeAz)
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 17  
 
- 982   3                              else
- 983   3                              {
- 984   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
- 985   4                                      DirFlag = 3;
- 986   4                                      tempDOWN = StationElTemp - tempCH;
- 987   4                                      if(tempDOWN < DownEdgeEl)                                                               //±£»¤£¬ÌìÏß²»»á³öÏÂÏÞ
+ 982   3                              {
+ 983   4                                      if(StationAz > RightEdgeAz - 2.0)
+ 984   4                                      {
+ 985   5                                              MotorFun(MOTORSTOP, AZRIGHT, SpeedSearchAzS);
+ 986   5                                      }
+ 987   4                                      else if(StationAz < LeftEdgeAz + 2.0)
  988   4                                      {
- 989   5                                              tempDOWN = DownEdgeEl;
+ 989   5                                              MotorFun(MOTORSTOP, AZRIGHT, SpeedSearchAzS);
  990   5                                      }
- 991   4                              }       
- 992   3                      }//end if(DirFlag == 2)
- 993   2                      
- 994   2                      if(DirFlag == 3)                                                                                                //ÌìÏßÏòÏÂËÑË÷
- 995   2                      {
- 996   3                              if(StationEl > tempDOWN)
- 997   3                              {
- 998   4                                      MotorFun(ELDOWN, MOTORSTOP, SpeedSearchEl);
+ 991   4                                      else
+ 992   4                                      {
+ 993   5                                              MotorFun(MOTORSTOP, AZRIGHT, GetAzS1());
+ 994   5                                      }
+ 995   4                                      if(FlagSpeed == 1)      
+ 996   4                                      {
+ 997   5                                              MotorFun(MOTORSTOP, AZRIGHT, 0xD000);
+ 998   5                                      }
  999   4                              }
 1000   3                              else
 1001   3                              {
-1002   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchAzS);
-1003   4                                      DirFlag = 0;
-1004   4                              }
-1005   3                      }//end if(DirFlag == 2)
-1006   2      
-1007   2                      AGC = GetAGC();
-1008   2                      if((AGC > AGCNoise + ThresholdS * 0.9) && (AGCNoise > AGCNoiseNor))
-1009   2                      {       
-1010   3                              if((ReceiverKindFlagS == SHARPREC) && (SrcStarKbS - 10.0 > 0.0))
-1011   3                              {
-1012   4                                      FlagSpeed = 1;  
-1013   4                                      Delay(100);
-1014   4      
-1015   4                                      r = A2108_IDVBSxRx_GetLockStatus(&uiLockStatus, pA2108Chip);
-1016   4                                      if ((0 == r)&&(1 == uiLockStatus))
-1017   4                                      {
-1018   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);  
-1019   5                                              status = TRACKING;
-1020   5                                              AntennaTracking();
-1021   5                                      }
-1022   4      
-1023   4                              }
-1024   3                              else
-1025   3                              {       
-1026   4                                      if((XinBiaoFlagNum == TRUE) && (ReceiverKindFlagS != SHARPREC))
-1027   4                                      {
-1028   5                                              GetXinBiaoVorX();
-1029   5                                              if(XinBiaoVorX == 'V')
-1030   5                                              {
-1031   6                                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
-1032   6                                                      status = TRACKING;
-1033   6                                                      AntennaTracking();
-1034   6                                              }
-1035   5                                      }
-1036   4                                      else
-1037   4                                      {
-1038   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
-1039   5                                              status = TRACKING;
-1040   5                                              AntennaTracking();
-1041   5                                      }
-1042   4                              }                                               
-1043   3                      }
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 18  
+1002   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
+1003   4                                      DirFlag = 3;
+1004   4                                      tempDOWN = StationElTemp - tempCH;
+1005   4                                      if(tempDOWN < DownEdgeEl)                                                               //±£»¤£¬ÌìÏß²»»á³öÏÂÏÞ
+1006   4                                      {
+1007   5                                              tempDOWN = DownEdgeEl;
+1008   5                                      }
+1009   4                              }       
+1010   3                      }//end if(DirFlag == 2)
+1011   2                      
+1012   2                      if(DirFlag == 3)                                                                                                //ÌìÏßÏòÏÂËÑË÷
+1013   2                      {
+1014   3                              if(StationEl > tempDOWN)
+1015   3                              {
+1016   4                                      MotorFun(ELDOWN, MOTORSTOP, SpeedSearchEl);
+1017   4                              }
+1018   3                              else
+1019   3                              {
+1020   4                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchAzS);
+1021   4                                      DirFlag = 0;
+1022   4                              }
+1023   3                      }//end if(DirFlag == 2)
+1024   2      
+1025   2                      AGC = GetAGC();
+1026   2                      if((AGC > AGCNoise + ThresholdS * 0.9) && (AGCNoise > AGCNoiseNor))
+1027   2                      {       
+1028   3                              if((ReceiverKindFlagS == SHARPREC) && (SrcStarKbS - 10.0 > 0.0))
+1029   3                              {
+1030   4                                      FlagSpeed = 1;  
+1031   4                                      Delay(100);
+1032   4      
+1033   4                                      r = A2108_IDVBSxRx_GetLockStatus(&uiLockStatus, pA2108Chip);
+1034   4                                      if ((0 == r)&&(1 == uiLockStatus))
+1035   4                                      {
+1036   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);  
+1037   5                                              status = TRACKING;
+1038   5                                              AntennaTracking();
+1039   5                                      }
+1040   4      
+1041   4                              }
+1042   3                              else
+1043   3                              {       
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 18  
 
-1044   2                      else
-1045   2                      {
-1046   3                              FlagSpeed = 0;  
-1047   3                      }
-1048   2      
-1049   2                      /*LNB¸ÕÉÏµçÓÃ!!!²»Í¬½ÓÊÕ»ú¿ÉÄÜAGCNoiseNor²»Í¬, ¿ÉÒÔÔÚ³õÊ¼»¯Ê±£ºAGCNoiseNor = -1.0*/
-1050   2      /*              if((AGCNoise < AGCNoiseNor) && (AGC > AGCNoiseNor))
-1051   2                      {
-1052   2                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
-1053   2                              GotoAzMid();
-1054   2                              status = SEARCHREADY;
-1055   2                              TimeTest(1);
-1056   2                              return;
-1057   2                      }
-1058   2       */
-1059   2                      watch();
-1060   2                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1061   2                      {
-1062   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
-1063   3                              return;
-1064   3                      }       
-1065   2              }
-1066   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
-1067   1              status = SEARCHREADY;
-1068   1              TimeTest(1);
-1069   1              return;
-1070   1      }
-1071          
-1072          
-1073          /***********************************************************************
-1074          *
-1075          * º¯ÊýÔ­ÐÍ£ºvoid GoToObjStar(void)
-1076          *
-1077          * Èë¿Ú²ÎÊý£ºÎÞ
-1078          *
-1079          * ³ö¿Ú²ÎÊý£ºÎÞ
-1080          *
-1081          * ¹¦ÄÜÃèÊö£ºÌìÏß´Ó²Î¿¼ÎÀÐÇµ½Ä¿±êÎÀÐÇµÄ¹ý³Ì
-1082          *
-1083          ***********************************************************************/
-1084          static void GoToObjStar(void)
-1085          {
-1086   1              float AzTemp;
-1087   1              float ElTemp;
-1088   1              UINT8 TempF;
-1089   1      
-1090   1              TempF = SatLongEastFlagS;
-1091   1              SatLongEastFlagS = SatLongEastFlag;
-1092   1              FindAnt(StationLong, StationLat, SatLong, StationPloMode);
-1093   1              AzTemp = StationAzCal;
-1094   1              ElTemp = StationElCal;  
-1095   1      
-1096   1              GotoPolarAngle(StationPolCal);
-1097   1      
-1098   1              if(ReceiverKindFlag == XINBIAOREC)
-1099   1              {
-1100   2                      ReceiverKindFlagS = XINBIAOREC;
-1101   2                      SetXinBiaoFreqKC(XinBiaoRecFreq);                               //ÉèÖÃÐÅ±êÆµÂÊ
-1102   2              }       
-1103   1              else
-1104   1              {
-1105   2                      ReceiverKindFlagS = SHARPREC;
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 19  
+1044   4                                      if((XinBiaoFlagNum == TRUE) && (ReceiverKindFlagS != SHARPREC))
+1045   4                                      {
+1046   5                                              GetXinBiaoVorX();
+1047   5                                              if(XinBiaoVorX == 'V')
+1048   5                                              {
+1049   6                                                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
+1050   6                                                      status = TRACKING;
+1051   6                                                      AntennaTracking();
+1052   6                                              }
+1053   5                                      }
+1054   4                                      else
+1055   4                                      {
+1056   5                                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
+1057   5                                              status = TRACKING;
+1058   5                                              AntennaTracking();
+1059   5                                      }
+1060   4                              }                                               
+1061   3                      }
+1062   2                      else
+1063   2                      {
+1064   3                              FlagSpeed = 0;  
+1065   3                      }
+1066   2      
+1067   2                      /*LNB¸ÕÉÏµçÓÃ!!!²»Í¬½ÓÊÕ»ú¿ÉÄÜAGCNoiseNor²»Í¬, ¿ÉÒÔÔÚ³õÊ¼»¯Ê±£ºAGCNoiseNor = -1.0*/
+1068   2      /*              if((AGCNoise < AGCNoiseNor) && (AGC > AGCNoiseNor))
+1069   2                      {
+1070   2                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
+1071   2                              GotoAzMid();
+1072   2                              status = SEARCHREADY;
+1073   2                              TimeTest(1);
+1074   2                              return;
+1075   2                      }
+1076   2       */
+1077   2                      watch();
+1078   2                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1079   2                      {
+1080   3                              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
+1081   3                              return;
+1082   3                      }       
+1083   2              }
+1084   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedSearchEl);
+1085   1              status = SEARCHREADY;
+1086   1              TimeTest(1);
+1087   1              return;
+1088   1      }
+1089          
+1090          
+1091          /***********************************************************************
+1092          *
+1093          * º¯ÊýÔ­ÐÍ£ºvoid GoToObjStar(void)
+1094          *
+1095          * Èë¿Ú²ÎÊý£ºÎÞ
+1096          *
+1097          * ³ö¿Ú²ÎÊý£ºÎÞ
+1098          *
+1099          * ¹¦ÄÜÃèÊö£ºÌìÏß´Ó²Î¿¼ÎÀÐÇµ½Ä¿±êÎÀÐÇµÄ¹ý³Ì
+1100          *
+1101          ***********************************************************************/
+1102          static void GoToObjStar(void)
+1103          {
+1104   1              float AzTemp;
+1105   1              float ElTemp;
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 19  
 
-1106   2                      SharpRecNormalFlag = SetSharpFreq1(SharpRecFreq, SSrcStarKbS);  
-1107   2              }
-1108   1              SatLongEastFlagS = TempF;
-1109   1              FindAnt(StationLong, StationLat, SatLongS, StationPloModeS);
-1110   1      
-1111   1              AzTemp -= StationAzCal;
-1112   1              ElTemp -= StationElCal;
-1113   1              ElTemp += StationEl;
-1114   1      
-1115   1              AGC = GetAGC(); 
-1116   1              AGCNoise = AGC;
-1117   1      
-1118   1              MotorCtrl(RIGHTLEFT, StationAz + AzTemp, SpeedSearchAzF);
-1119   1      
-1120   1              if(StationEl < ElTemp)                                          //µ½ÀíÂÛ¸©ÑöÎ»ÖÃ
-1121   1              {
-1122   2                      MotorFun(ELUP, MOTORSTOP, GetElS1());
-1123   2                      while(StationEl < ElTemp)
-1124   2                      {
-1125   3                              ReadGradient();
-1126   3                              if(GradientNormal == 1 &&                       \
-1127   3                                 GradientY - StationEl < 8.0 &&       \
-1128   3                                 GradientY - StationEl > -8.0)                //Èç¹ûÇãÐ±ÒÇÕý³£
-1129   3                              {
-1130   4                                      StationEl = GradientY;
-1131   4                              }
-1132   3                      }
-1133   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
-1134   2              }
-1135   1              else
-1136   1              {
-1137   2                      MotorFun(ELDOWN, MOTORSTOP, GetElS1());
-1138   2                      while(StationEl > ElTemp)
-1139   2                      {
-1140   3                              ReadGradient();
-1141   3                              if(GradientNormal == 1 &&                       \
-1142   3                                 GradientY - StationEl < 8.0 &&       \
-1143   3                                 GradientY - StationEl > -8.0)                //Èç¹ûÇãÐ±ÒÇÕý³£
-1144   3                              {
-1145   4                                      StationEl = GradientY;
-1146   4                              }
-1147   3                      }
-1148   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
-1149   2              }//if(StationEl < MotorLook)    
-1150   1              watch();
-1151   1              if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1152   1              {
-1153   2                      return;
-1154   2              }
-1155   1      
-1156   1              TackingUpDownRightLeft(3.0, 3.0, 0.1);
-1157   1              watch();
-1158   1              if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1159   1              {
-1160   2                      return;
-1161   2              }
-1162   1              AGC = GetAGC(); 
-1163   1              AGCNoise = AGC - ThresholdS * 1.1;
-1164   1              return;
-1165   1      }
-1166          
-1167          
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 20  
+1106   1              UINT8 TempF;
+1107   1      
+1108   1              TempF = SatLongEastFlagS;
+1109   1              SatLongEastFlagS = SatLongEastFlag;
+1110   1              FindAnt(StationLong, StationLat, SatLong, StationPloMode);
+1111   1              AzTemp = StationAzCal;
+1112   1              ElTemp = StationElCal;  
+1113   1      
+1114   1              GotoPolarAngle(StationPolCal);
+1115   1      
+1116   1              if(ReceiverKindFlag == XINBIAOREC)
+1117   1              {
+1118   2                      ReceiverKindFlagS = XINBIAOREC;
+1119   2                      SetXinBiaoFreqKC(XinBiaoRecFreq);                               //ÉèÖÃÐÅ±êÆµÂÊ
+1120   2              }       
+1121   1              else
+1122   1              {
+1123   2                      ReceiverKindFlagS = SHARPREC;
+1124   2                      SharpRecNormalFlag = SetSharpFreq1(SharpRecFreq, SSrcStarKbS);  
+1125   2              }
+1126   1              SatLongEastFlagS = TempF;
+1127   1              FindAnt(StationLong, StationLat, SatLongS, StationPloModeS);
+1128   1      
+1129   1              AzTemp -= StationAzCal;
+1130   1              ElTemp -= StationElCal;
+1131   1              ElTemp += StationEl;
+1132   1      
+1133   1              AGC = GetAGC(); 
+1134   1              AGCNoise = AGC;
+1135   1      
+1136   1              MotorCtrl(RIGHTLEFT, StationAz + AzTemp, SpeedSearchAzF);
+1137   1      
+1138   1              if(StationEl < ElTemp)                                          //µ½ÀíÂÛ¸©ÑöÎ»ÖÃ
+1139   1              {
+1140   2                      MotorFun(ELUP, MOTORSTOP, GetElS1());
+1141   2                      while(StationEl < ElTemp)
+1142   2                      {
+1143   3                              ReadGradient();
+1144   3                              if(GradientNormal == 1 &&                       \
+1145   3                                 GradientY - StationEl < 8.0 &&       \
+1146   3                                 GradientY - StationEl > -8.0)                //Èç¹ûÇãÐ±ÒÇÕý³£
+1147   3                              {
+1148   4                                      StationEl = GradientY;
+1149   4                              }
+1150   3                      }
+1151   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+1152   2              }
+1153   1              else
+1154   1              {
+1155   2                      MotorFun(ELDOWN, MOTORSTOP, GetElS1());
+1156   2                      while(StationEl > ElTemp)
+1157   2                      {
+1158   3                              ReadGradient();
+1159   3                              if(GradientNormal == 1 &&                       \
+1160   3                                 GradientY - StationEl < 8.0 &&       \
+1161   3                                 GradientY - StationEl > -8.0)                //Èç¹ûÇãÐ±ÒÇÕý³£
+1162   3                              {
+1163   4                                      StationEl = GradientY;
+1164   4                              }
+1165   3                      }
+1166   2                      MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+1167   2              }//if(StationEl < MotorLook)    
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 20  
 
-1168          /***********************************************************************
-1169          *
-1170          * º¯ÊýÔ­ÐÍ£ºvoid AntennaTracking(void)
-1171          *
-1172          * Èë¿Ú²ÎÊý£ºÎÞ
-1173          *
-1174          * ³ö¿Ú²ÎÊý£ºÎÞ
-1175          *
-1176          * ¹¦ÄÜÃèÊö£ºÌìÏß×¼±¸¸ú×Ù
-1177          *
-1178          ***********************************************************************/
-1179          void AntennaTracking(void)
-1180          {
-1181   1              UINT8 DIR_Flag;                                 //·½Ïò±êÖ¾,È¡Öµ0,1,2,3,·Ö±ð¶ÔÓ¦×ó,ÉÏ,ÓÒ,ÏÂ
-1182   1              UINT8 count;                                    //ÓÃÀ´¼ÇÒ»È¦AGCµÄ¸öÊý
-1183   1              UINT8 Trackcount;                               //¸ú×ÙÈ¦Êý
-1184   1              float AGCPrev = 0.0;                    //ÉÏÒ»´Î²ÉÑùÖµ
-1185   1              float TrackingStep = 0.1;               //·½Î»¸ú×Ù²½³¤
-1186   1              float AverageAGC = 0.0;                 //¸ú×Ù×´Ì¬µÄÃ¿È¦Æ½¾ùAGCÖµ
-1187   1      
-1188   1              DIR_Flag        = 0;
-1189   1              AGCPrev         = GetAGC();
-1190   1              AverageAGC      = AGCPrev;
-1191   1              count           = 1;
-1192   1              Trackcount  = 0;
-1193   1              while(1)
-1194   1              {
-1195   2                      if(DIR_Flag == 0)                       //×ó¸ú×Ù
-1196   2                      {       
-1197   3                              MotorCtrl(RIGHTLEFT, StationAz - TrackingStep, SpeedTRACKING);
-1198   3                              AGC = GetAGC();
-1199   3                              AverageAGC += AGC;
-1200   3                              count++;
-1201   3                              if(AGC < AGCPrev)
-1202   3                              {
-1203   4                                      DIR_Flag = 1;
-1204   4                              }
-1205   3                              AGCPrev = AGC;
-1206   3                      }
-1207   2                      
-1208   2                      if(DIR_Flag == 1)
-1209   2                      {
-1210   3                              MotorCtrl(UPDOWN, StationEl + TrackingStep, SpeedTRACKING - SElspeed);
-1211   3                              AGC = GetAGC();
-1212   3                              AverageAGC += AGC;
-1213   3                              count++;
-1214   3                              if(AGC < AGCPrev)
-1215   3                              {
-1216   4                                      DIR_Flag = 2;
-1217   4                              }
-1218   3                              AGCPrev = AGC;
-1219   3                      }
-1220   2                      
-1221   2                      if(DIR_Flag == 2)                       //ÓÒ¸ú×Ù
-1222   2                      {
-1223   3                              MotorCtrl(RIGHTLEFT, StationAz + TrackingStep, SpeedTRACKING);
-1224   3                              AGC = GetAGC();
-1225   3                              AverageAGC += AGC;
-1226   3                              count++;
-1227   3                              if(AGC < AGCPrev)
-1228   3                              {
-1229   4                                      DIR_Flag = 3;
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 21  
+1168   1              watch();
+1169   1              if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1170   1              {
+1171   2                      return;
+1172   2              }
+1173   1      
+1174   1              TackingUpDownRightLeft(3.0, 3.0, 0.1);
+1175   1              watch();
+1176   1              if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1177   1              {
+1178   2                      return;
+1179   2              }
+1180   1              AGC = GetAGC(); 
+1181   1              AGCNoise = AGC - ThresholdS * 1.1;
+1182   1              return;
+1183   1      }
+1184          
+1185          
+1186          /***********************************************************************
+1187          *
+1188          * º¯ÊýÔ­ÐÍ£ºvoid AntennaTracking(void)
+1189          *
+1190          * Èë¿Ú²ÎÊý£ºÎÞ
+1191          *
+1192          * ³ö¿Ú²ÎÊý£ºÎÞ
+1193          *
+1194          * ¹¦ÄÜÃèÊö£ºÌìÏß×¼±¸¸ú×Ù
+1195          *
+1196          ***********************************************************************/
+1197          void AntennaTracking(void)
+1198          {
+1199   1              UINT8 DIR_Flag;                                 //·½Ïò±êÖ¾,È¡Öµ0,1,2,3,·Ö±ð¶ÔÓ¦×ó,ÉÏ,ÓÒ,ÏÂ
+1200   1              UINT8 count;                                    //ÓÃÀ´¼ÇÒ»È¦AGCµÄ¸öÊý
+1201   1              UINT8 Trackcount;                               //¸ú×ÙÈ¦Êý
+1202   1              float AGCPrev = 0.0;                    //ÉÏÒ»´Î²ÉÑùÖµ
+1203   1              float TrackingStep = 0.1;               //·½Î»¸ú×Ù²½³¤
+1204   1              float AverageAGC = 0.0;                 //¸ú×Ù×´Ì¬µÄÃ¿È¦Æ½¾ùAGCÖµ
+1205   1      
+1206   1              DIR_Flag        = 0;
+1207   1              AGCPrev         = GetAGC();
+1208   1              AverageAGC      = AGCPrev;
+1209   1              count           = 1;
+1210   1              Trackcount  = 0;
+1211   1              while(1)
+1212   1              {
+1213   2                      if(DIR_Flag == 0)                       //×ó¸ú×Ù
+1214   2                      {       
+1215   3                              MotorCtrl(RIGHTLEFT, StationAz - TrackingStep, SpeedTRACKING);
+1216   3                              AGC = GetAGC();
+1217   3                              AverageAGC += AGC;
+1218   3                              count++;
+1219   3                              if(AGC < AGCPrev)
+1220   3                              {
+1221   4                                      DIR_Flag = 1;
+1222   4                              }
+1223   3                              AGCPrev = AGC;
+1224   3                      }
+1225   2                      
+1226   2                      if(DIR_Flag == 1)
+1227   2                      {
+1228   3                              MotorCtrl(UPDOWN, StationEl + TrackingStep, SpeedTRACKING - SElspeed);
+1229   3                              AGC = GetAGC();
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 21  
 
-1230   4                              }
-1231   3                              AGCPrev = AGC;
-1232   3                      }
-1233   2                      
-1234   2                      if(DIR_Flag == 3)
-1235   2                      {
-1236   3                              MotorCtrl(UPDOWN, StationEl - TrackingStep, SpeedTRACKING - SElspeed);
-1237   3                              AGC = GetAGC();
-1238   3                              AverageAGC += AGC;
-1239   3                              count++;
-1240   3                              AverageAGC /= count;
-1241   3                              count = 1;
-1242   3                              if(AverageAGC < AGCNoise + ThresholdS * 0.9)
-1243   3                              {
-1244   4                                      status = SEARCHING;
-1245   4                                      return;
-1246   4                              }
-1247   3                              if(Trackcount > 1)
-1248   3                              {
-1249   4                                      TackingUpDownRightLeft(2.0, 2.0, 0.1);
-1250   4                                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS) //Rill add 101202
-1251   4                                      {
-1252   5                                              return;
-1253   5                                      }
-1254   4      
-1255   4                                      if(EnBaseStar != 1)
-1256   4                                      {
-1257   5                                              GoToObjStar();
-1258   5                                              EnBaseStar = 1;
-1259   5                                      }
-1260   4                                      TrackingSucceed();
-1261   4                                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1262   4                                      {
-1263   5                                              return;
-1264   5                                      }
-1265   4                              }
-1266   3                              if(AGC < AGCPrev)
-1267   3                              {
-1268   4                                      DIR_Flag = 0;
-1269   4                                      Trackcount++;
-1270   4                              }
-1271   3                              AGCPrev = AGC;
-1272   3                      }
-1273   2                      watch();
-1274   2                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1275   2                      {
-1276   3                              return;
-1277   3                      }
-1278   2              }
-1279   1      }
-1280          
-1281          
-1282          /***********************************************************************
-1283          *
-1284          * º¯ÊýÔ­ÐÍ£ºvoid AntennaManual(void)
-1285          *
-1286          * Èë¿Ú²ÎÊý£ºÎÞ
-1287          *
-1288          * ³ö¿Ú²ÎÊý£ºÎÞ
-1289          *
-1290          * ¹¦ÄÜÃèÊö£ºÌìÏßÊÖ¶¯
-1291          *
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 22  
+1230   3                              AverageAGC += AGC;
+1231   3                              count++;
+1232   3                              if(AGC < AGCPrev)
+1233   3                              {
+1234   4                                      DIR_Flag = 2;
+1235   4                              }
+1236   3                              AGCPrev = AGC;
+1237   3                      }
+1238   2                      
+1239   2                      if(DIR_Flag == 2)                       //ÓÒ¸ú×Ù
+1240   2                      {
+1241   3                              MotorCtrl(RIGHTLEFT, StationAz + TrackingStep, SpeedTRACKING);
+1242   3                              AGC = GetAGC();
+1243   3                              AverageAGC += AGC;
+1244   3                              count++;
+1245   3                              if(AGC < AGCPrev)
+1246   3                              {
+1247   4                                      DIR_Flag = 3;
+1248   4                              }
+1249   3                              AGCPrev = AGC;
+1250   3                      }
+1251   2                      
+1252   2                      if(DIR_Flag == 3)
+1253   2                      {
+1254   3                              MotorCtrl(UPDOWN, StationEl - TrackingStep, SpeedTRACKING - SElspeed);
+1255   3                              AGC = GetAGC();
+1256   3                              AverageAGC += AGC;
+1257   3                              count++;
+1258   3                              AverageAGC /= count;
+1259   3                              count = 1;
+1260   3                              if(AverageAGC < AGCNoise + ThresholdS * 0.9)
+1261   3                              {
+1262   4                                      status = SEARCHING;
+1263   4                                      return;
+1264   4                              }
+1265   3                              if(Trackcount > 1)
+1266   3                              {
+1267   4                                      TackingUpDownRightLeft(2.0, 2.0, 0.1);
+1268   4                                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS) //Rill add 101202
+1269   4                                      {
+1270   5                                              return;
+1271   5                                      }
+1272   4      
+1273   4                                      if(EnBaseStar != 1)
+1274   4                                      {
+1275   5                                              GoToObjStar();
+1276   5                                              EnBaseStar = 1;
+1277   5                                      }
+1278   4                                      TrackingSucceed();
+1279   4                                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1280   4                                      {
+1281   5                                              return;
+1282   5                                      }
+1283   4                              }
+1284   3                              if(AGC < AGCPrev)
+1285   3                              {
+1286   4                                      DIR_Flag = 0;
+1287   4                                      Trackcount++;
+1288   4                              }
+1289   3                              AGCPrev = AGC;
+1290   3                      }
+1291   2                      watch();
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 22  
 
-1292          ***********************************************************************/
-1293          void AntennaManual(void)
-1294          {
-1295   1              LEDLOCKLOST;    //2009/12/8
-1296   1              LEDLOCK;
-1297   1      
-1298   1              while(1)
-1299   1              {
-1300   2                      Delay(60000);
-1301   2                      status = MANUALMODE;
-1302   2                      watch();
-1303   2                      if(status == STORESTATUS || status == SEARCHREADY || status == SEARCHING)
-1304   2                      {
-1305   3                              LEDLOCKLOST;    //2009/12/8
-1306   3                              break;
-1307   3                      }               
-1308   2              }
-1309   1              if(status == SEARCHING)
-1310   1              {
-1311   2                      AGC = GetAGC();
-1312   2                      if((AGC > AGCNoise + ThresholdS * 0.9) && (AGCNoise > AGCNoiseNor))
-1313   2                      {
-1314   3                              LEDLOCKLOST;    //2009/12/8
-1315   3                              status = TRACKING;                                      
-1316   3                      }
-1317   2              }
-1318   1              return;
-1319   1      }
-1320          
-1321          /***********************************************************************
-1322          *
-1323          * º¯ÊýÔ­ÐÍ£ºvoid AntennaStore(void)
-1324          *
-1325          * Èë¿Ú²ÎÊý£ºÎÞ
-1326          *
-1327          * ³ö¿Ú²ÎÊý£ºÎÞ
-1328          *
-1329          * ¹¦ÄÜÃèÊö£ºÌìÏßÊÕ²Ø
-1330          *
-1331          ***********************************************************************/
-1332          void AntennaStore(void)
-1333          {
-1334   1              float temp;
-1335   1      
-1336   1      //      GotoPolarAngle(90.0);                                                                   //¼«»¯»ØÁã
-1337   1              MotorCtrl(UPDOWN, 35.0, GetElS1());                                             //¸©Ñöµ½35¶È
-1338   1      //      MotorCtrl(UPDOWN, 35.0, 0xF000);        
-1339   1      
-1340   1              if(AzMidLimit != MotorLimitFlag)                                                //µ½ÖÐ¼äÏÞÎ»
-1341   1              {
-1342   2                      TimeTest(2);
-1343   2                      GoAM();
-1344   2                      StoreStatus1 = 2;
-1345   2              }
-1346   1              else if(StoreStatus1 == 0)  //2008-07-31 ÊÕ²Ø²»ÓÃµ½ÖÐ¼äÏÞÎ»ÒÔÍâ
-1347   1              {
-1348   2                      StoreStatus1 = 2;
-1349   2                      MotorCtrl(RIGHTLEFT, AZ180 - 15.0, GetAzS2());
-1350   2                      TimeTest(2);
-1351   2                      GoAM();
-1352   2              }
-1353   1              StoreStatus1 = 0;
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 23  
+1292   2                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1293   2                      {
+1294   3                              return;
+1295   3                      }
+1296   2              }
+1297   1      }
+1298          
+1299          
+1300          /***********************************************************************
+1301          *
+1302          * º¯ÊýÔ­ÐÍ£ºvoid AntennaManual(void)
+1303          *
+1304          * Èë¿Ú²ÎÊý£ºÎÞ
+1305          *
+1306          * ³ö¿Ú²ÎÊý£ºÎÞ
+1307          *
+1308          * ¹¦ÄÜÃèÊö£ºÌìÏßÊÖ¶¯
+1309          *
+1310          ***********************************************************************/
+1311          void AntennaManual(void)
+1312          {
+1313   1              LEDLOCKLOST;    //2009/12/8
+1314   1              LEDLOCK;
+1315   1      
+1316   1              while(1)
+1317   1              {
+1318   2                      Delay(60000);
+1319   2                      status = MANUALMODE;
+1320   2                      watch();
+1321   2                      if(status == STORESTATUS || status == SEARCHREADY || status == SEARCHING)
+1322   2                      {
+1323   3                              LEDLOCKLOST;    //2009/12/8
+1324   3                              break;
+1325   3                      }               
+1326   2              }
+1327   1              if(status == SEARCHING)
+1328   1              {
+1329   2                      AGC = GetAGC();
+1330   2                      if((AGC > AGCNoise + ThresholdS * 0.9) && (AGCNoise > AGCNoiseNor))
+1331   2                      {
+1332   3                              LEDLOCKLOST;    //2009/12/8
+1333   3                              status = TRACKING;                                      
+1334   3                      }
+1335   2              }
+1336   1              return;
+1337   1      }
+1338          
+1339          /***********************************************************************
+1340          *
+1341          * º¯ÊýÔ­ÐÍ£ºvoid AntennaStore(void)
+1342          *
+1343          * Èë¿Ú²ÎÊý£ºÎÞ
+1344          *
+1345          * ³ö¿Ú²ÎÊý£ºÎÞ
+1346          *
+1347          * ¹¦ÄÜÃèÊö£ºÌìÏßÊÕ²Ø
+1348          *
+1349          ***********************************************************************/
+1350          void AntennaStore(void)
+1351          {
+1352   1              float temp;
+1353   1      
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 23  
 
-1354   1              UninstallBianbanFlag = 0;
-1355   1              OpenTimer0Interrupt();
-1356   1              while(!UninstallBianbanFlag &&  \
-1357   1                         OverflowT0 < 1200 &&         \
-1358   1                         ChangeKit != 0)                                                                              //²éÑ¯±ß°êÊÇ·ñÐ¶ÔØ
+1354   1      //      GotoPolarAngle(90.0);                                                                   //¼«»¯»ØÁã
+1355   1              MotorCtrl(UPDOWN, 35.0, GetElS1());                                             //¸©Ñöµ½35¶È
+1356   1      //      MotorCtrl(UPDOWN, 35.0, 0xF000);        
+1357   1      
+1358   1              if(AzMidLimit != MotorLimitFlag)                                                //µ½ÖÐ¼äÏÞÎ»
 1359   1              {
-1360   2                      Delay(3000);
-1361   2                      SendSJ();
-1362   2                      Delay(3000);    
-1363   2                      watch();
-1364   2              }
-1365   1              CloseTimer0Interrupt();
-1366   1              UninstallBianbanFlag = 0;
-1367   1      
-1368   1              if(AZDir == AZLEFT)                                                                                     //Èç¹û´ÓÓÒ±ß¹ýÀ´£¬ÔÙ¼ÌÐø×ª,ÒòÎªÖÐ¼äÏÞÎ»½ÏÆ«
-1369   1              {
-1370   2                      temp = (float)ReadEEPROM(rightONE) / 10.0;
-1371   2                      temp = 4;
-1372   2                      if(temp < 10.0)
-1373   2                      {
-1374   3                              MotorCtrl(RIGHTLEFT, AZ180 - temp, GetAzS2());
-1375   3                      }
-1376   2                      else
-1377   2                      {
-1378   3                              MotorCtrl(RIGHTLEFT, AZ180 - 2.0, GetAzS2());
-1379   3                      }
-1380   2              }
-1381   1              else
-1382   1              {
-1383   2                      temp = (float)ReadEEPROM(rightTWO) / 10.0;
-1384   2                      temp = 5;
-1385   2                      if(temp < 10.0)
-1386   2                      {
-1387   3                              MotorCtrl(RIGHTLEFT, AZ180 + temp, SpeedSearchAzF);
-1388   3                      }
-1389   2                      else
-1390   2                      {
-1391   3                              MotorCtrl(RIGHTLEFT, AZ180 + 2.0, SpeedSearchAzF);
-1392   3                      }
-1393   2              }
-1394   1      
-1395   1              ReadGradient();
-1396   1              if(GradientNormal == 1)
-1397   1              {
-1398   2                      if(GradientY - StationEl < 8.0 && GradientY - StationEl > -8.0)
-1399   2                      {
-1400   3                              StationEl = GradientY;
-1401   3                      }
-1402   2              }
-1403   1      
-1404   1              if(ReadEEPROM(StoreELSignAddress) == '-')
-1405   1              {
-1406   2                      temp = 0.0 - ReadEEPROM(StoreElDownAddress);
-1407   2              }
-1408   1              else if(ReadEEPROM(StoreELSignAddress) == '+')
-1409   1              {
-1410   2                      temp = ReadEEPROM(StoreElDownAddress);  
+1360   2                      TimeTest(2);
+1361   2                      GoAM();
+1362   2                      StoreStatus1 = 2;
+1363   2              }
+1364   1              else if(StoreStatus1 == 0)  //2008-07-31 ÊÕ²Ø²»ÓÃµ½ÖÐ¼äÏÞÎ»ÒÔÍâ
+1365   1              {
+1366   2                      StoreStatus1 = 2;
+1367   2                      MotorCtrl(RIGHTLEFT, AZ180 - 15.0, GetAzS2());
+1368   2                      TimeTest(2);
+1369   2                      GoAM();
+1370   2              }
+1371   1              StoreStatus1 = 0;
+1372   1              UninstallBianbanFlag = 0;
+1373   1              OpenTimer0Interrupt();
+1374   1              while(!UninstallBianbanFlag &&  \
+1375   1                         OverflowT0 < 1200 &&         \
+1376   1                         ChangeKit != 0)                                                                              //²éÑ¯±ß°êÊÇ·ñÐ¶ÔØ
+1377   1              {
+1378   2                      Delay(3000);
+1379   2                      SendSJ();
+1380   2                      Delay(3000);    
+1381   2                      watch();
+1382   2              }
+1383   1              CloseTimer0Interrupt();
+1384   1              UninstallBianbanFlag = 0;
+1385   1      
+1386   1              if(AZDir == AZLEFT)                                                                                     //Èç¹û´ÓÓÒ±ß¹ýÀ´£¬ÔÙ¼ÌÐø×ª,ÒòÎªÖÐ¼äÏÞÎ»½ÏÆ«
+1387   1              {
+1388   2                      temp = (float)ReadEEPROM(rightONE) / 10.0;
+1389   2                      temp = 5;
+1390   2                      if(temp < 10.0)
+1391   2                      {
+1392   3                              MotorCtrl(RIGHTLEFT, AZ180 - temp, GetAzS2());
+1393   3                      }
+1394   2                      else
+1395   2                      {
+1396   3                              MotorCtrl(RIGHTLEFT, AZ180 - 2.0, GetAzS2());
+1397   3                      }
+1398   2              }
+1399   1              else
+1400   1              {
+1401   2                      temp = (float)ReadEEPROM(rightTWO) / 10.0;
+1402   2                      temp = 5;
+1403   2                      if(temp < 10.0)
+1404   2                      {
+1405   3                              MotorCtrl(RIGHTLEFT, AZ180 + temp, SpeedSearchAzF);
+1406   3                      }
+1407   2                      else
+1408   2                      {
+1409   3                              MotorCtrl(RIGHTLEFT, AZ180 + 2.0, SpeedSearchAzF);
+1410   3                      }
 1411   2              }
-1412   1              else
-1413   1              {
-1414   2                      temp = 0.0;
-1415   2              }
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 24  
+1412   1      
+1413   1              ReadGradient();
+1414   1              if(GradientNormal == 1)
+1415   1              {
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 24  
 
-1416   1      
-1417   1              ELDOWNlimit     = -120.0;
-1418   1              if(temp > 20.0) //2009/8/6ÓÉÓÚÇãÐ±ÒÇµÄÎÊÌâ£¨×î´ó60¶È£©
-1419   1              {
-1420   2                      temp = 20.0;    
-1421   2              }
-1422   1              if(temp < -30.0)
+1416   2                      if(GradientY - StationEl < 8.0 && GradientY - StationEl > -8.0)
+1417   2                      {
+1418   3                              StationEl = GradientY;
+1419   3                      }
+1420   2              }
+1421   1      
+1422   1              if(ReadEEPROM(StoreELSignAddress) == '-')
 1423   1              {
-1424   2                      temp = -30.0;
+1424   2                      temp = 0.0 - ReadEEPROM(StoreElDownAddress);
 1425   2              }
-1426   1              if(temp < StationEl)
-1427   1              {       
-1428   2                      MotorCtrl(UPDOWN, temp, GetElS1());                                             //ÏÂµ½Ð±ÆÂµÄ½Ç¶È
+1426   1              else if(ReadEEPROM(StoreELSignAddress) == '+')
+1427   1              {
+1428   2                      temp = ReadEEPROM(StoreElDownAddress);  
 1429   2              }
-1430   1              WriteEEPROM(0, AbnormalFlagAddress);                                            //¸Äµ½ÕâÊ±ºò±£´æÕý³£¹Ø»ú±êÖ¾
-1431   1      
-1432   1      /*2008-11-14¼ÓÈë£¬ÊÕ²ØÉÏÏÂ¿Éµ÷*/
-1433   1              TimeTest(5);
-1434   1              temp = (float)ReadEEPROM(rightSIX);
-1435   1              if(temp > 99.0)
-1436   1              {
-1437   2                      temp = 90.0; 
-1438   2              }
-1439   1              
-1440   1              if(temp < 50.0)
+1430   1              else
+1431   1              {
+1432   2                      temp = 0.0;
+1433   2              }
+1434   1      
+1435   1              ELDOWNlimit     = -120.0;
+1436   1              if(temp > 20.0) //2009/8/6ÓÉÓÚÇãÐ±ÒÇµÄÎÊÌâ£¨×î´ó60¶È£©
+1437   1              {
+1438   2                      temp = 20.0;    
+1439   2              }
+1440   1              if(temp < -30.0)
 1441   1              {
-1442   2                      temp = 50.0;    
+1442   2                      temp = -30.0;
 1443   2              }
-1444   1      
-1445   1              MotorCtrl(UPDOWN, StationEl - temp, GetElS1()); 
-1446   1      
-1447   1              while(ChangeKit != 0)
-1448   1              {       
-1449   2                      Delay(6000);
-1450   2              }
-1451   1              Delay(60000);
-1452   1              while(ChangeKit == 0)
-1453   1              {
-1454   2                      ;
-1455   2              }
-1456   1              status = INIT;
-1457   1              BianBanFlag = 0;
-1458   1              Abnormal = 0;
-1459   1              ELDOWNlimit = ELDOWNlimitDef;
-1460   1      
-1461   1              return;
-1462   1      }
-1463          
-1464          
-1465          /***********************************************************************
-1466          *
-1467          * º¯ÊýÔ­ÐÍ£ºvoid TrackingSucceed(void)
-1468          *
-1469          * Èë¿Ú²ÎÊý£ºÉÏÏÂDeltaEl,×óÓÒDeltaAz
-1470          *
-1471          * ³ö¿Ú²ÎÊý£ºÎÞ
-1472          *
-1473          * ¹¦ÄÜÃèÊö£ºÌìÏßÉÏÏÂ×óÓÒ¸ú×Ù×î´óÖµ,²ÉÓÃµÝÍÆÆ½¾ùÂË²¨·¨
-1474          *
-1475          ***********************************************************************/
-1476          static void TackingUpDownRightLeft(float DeltaAz,float DeltaEl, float St)
-1477          {
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 25  
+1444   1              if(temp < StationEl)
+1445   1              {       
+1446   2                      MotorCtrl(UPDOWN, temp, GetElS1());                                             //ÏÂµ½Ð±ÆÂµÄ½Ç¶È
+1447   2              }
+1448   1              WriteEEPROM(0, AbnormalFlagAddress);                                            //¸Äµ½ÕâÊ±ºò±£´æÕý³£¹Ø»ú±êÖ¾
+1449   1      
+1450   1      /*2008-11-14¼ÓÈë£¬ÊÕ²ØÉÏÏÂ¿Éµ÷*/
+1451   1              TimeTest(5);
+1452   1              temp = (float)ReadEEPROM(rightSIX);
+1453   1              if(temp > 85.0)
+1454   1              {
+1455   2                      temp = 85.0; 
+1456   2              }
+1457   1              
+1458   1              if(temp < 50.0)
+1459   1              {
+1460   2                      temp = 50.0;    
+1461   2              }
+1462   1      
+1463   1              MotorCtrl(UPDOWN, StationEl - temp, GetElS1()); 
+1464   1      
+1465   1              while(ChangeKit != 0)
+1466   1              {       
+1467   2                      Delay(6000);                            //about 3ms
+1468   2              }
+1469   1              Delay(60000);                                   //about 3ms
+1470   1              while(ChangeKit == 0)
+1471   1              {
+1472   2                      ;
+1473   2              }
+1474   1              status = INIT;
+1475   1              BianBanFlag = 0;
+1476   1              Abnormal = 0;
+1477   1              ELDOWNlimit = ELDOWNlimitDef;
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 25  
 
-1478   1              UINT16 i, j, k;
-1479   1              UINT16 AzNumbers, ElNumbers;                            //¶¯0.1¶ÈµÄ¸öÊý
-1480   1              float Filters[MaxFilterLen];                            //ÂË²¨Æ÷´æ´¢agc
-1481   1              float MaxStationAz_1;
-1482   1              float MaxStationAz_2;
-1483   1              float MaxStationEl_1;
-1484   1              float MaxStationEl_2;
-1485   1              float MaxStationAz;
-1486   1              float MaxAverageAGC;
-1487   1              float SumAGC = 0;
-1488   1              AzNumbers = DeltaAz / St;
-1489   1              ElNumbers = DeltaEl / St;
-1490   1      
-1491   1              MotorCtrl(RIGHTLEFT, StationAz - DeltaAz, SpeedTRACKING);
-1492   1              for(i = 0; i < MaxFilterLen; i++)
-1493   1              {
-1494   2                       Filters[i] = GetAGC();
-1495   2              }                                                                                       //³õÊ¼»¯ÂË²¨Æ÷
-1496   1      
-1497   1              MaxStationAz_1 = StationAz;                                     //³õÊ¼»¯×î´óÖµ
-1498   1              MaxAverageAGC = Filters[0];                                     //³õÊ¼»¯Æ½¾ùagc
-1499   1              j = 0;                                                                          //³õÊ¼»¯ÆðÊ¼µã
-1500   1              for(i = 0; i < AzNumbers * 2; i++)
-1501   1              {
-1502   2                 MotorCtrl(RIGHTLEFT, StationAz + St, SpeedTRACKING); //ÔÙÏòÓÒÖð²½×ß0.1
-1503   2                 watch();
-1504   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1505   2                              return;
-1506   2                 Filters[j++] = GetAGC();                                                     //Òý½øÒ»¸öÐÂµÄ²ÉÑùÖµ
-1507   2                 if(j == MaxFilterLen)
-1508   2                              j = 0;                                                                          //Ñ­»·
-1509   2                 for(k = 0; k < MaxFilterLen; k++)
-1510   2                        SumAGC += Filters[k];                                                 //ËãÊõºÍ
-1511   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)          //ÅÐ¶Ï×î´óÖµÔÚÄÄ
-1512   2                 {
-1513   3                        MaxStationAz_1 = StationAz;
-1514   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
-1515   3                 }
-1516   2                 SumAGC = 0;                                                                          //ËãÊõÆ½¾ùÇåÁã
-1517   2              }
-1518   1      
-1519   1      
-1520   1              for(i = 0; i < MaxFilterLen; i++)
-1521   1              {
-1522   2                       Filters[i] = GetAGC();
-1523   2              }
-1524   1              MaxStationAz_2 = StationAz;
-1525   1              MaxAverageAGC = Filters[0];
-1526   1              j = 0;
-1527   1              for(i = 0; i < 2 * AzNumbers; i++)
-1528   1              {
-1529   2                 MotorCtrl(RIGHTLEFT, StationAz - St, SpeedTRACKING);         //ÔÙÏò×óÖð²½×ß0.1
-1530   2                 watch();
-1531   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1532   2                              return;
-1533   2                 Filters[j++] = GetAGC();
-1534   2                 if(j == MaxFilterLen)
-1535   2                              j = 0;
-1536   2                 for(k = 0;k < MaxFilterLen; k++)
-1537   2                        SumAGC += Filters[k];
-1538   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
-1539   2                 {
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 26  
+1478   1      
+1479   1              return;
+1480   1      }
+1481          
+1482          
+1483          /***********************************************************************
+1484          *
+1485          * º¯ÊýÔ­ÐÍ£ºvoid TrackingSucceed(void)
+1486          *
+1487          * Èë¿Ú²ÎÊý£ºÉÏÏÂDeltaEl,×óÓÒDeltaAz
+1488          *
+1489          * ³ö¿Ú²ÎÊý£ºÎÞ
+1490          *
+1491          * ¹¦ÄÜÃèÊö£ºÌìÏßÉÏÏÂ×óÓÒ¸ú×Ù×î´óÖµ,²ÉÓÃµÝÍÆÆ½¾ùÂË²¨·¨
+1492          *
+1493          ***********************************************************************/
+1494          static void TackingUpDownRightLeft(float DeltaAz,float DeltaEl, float St)
+1495          {
+1496   1              UINT16 i, j, k;
+1497   1              UINT16 AzNumbers, ElNumbers;                            //¶¯0.1¶ÈµÄ¸öÊý
+1498   1              float Filters[MaxFilterLen];                            //ÂË²¨Æ÷´æ´¢agc
+1499   1              float MaxStationAz_1;
+1500   1              float MaxStationAz_2;
+1501   1              float MaxStationEl_1;
+1502   1              float MaxStationEl_2;
+1503   1              float MaxStationAz;
+1504   1              float MaxAverageAGC;
+1505   1              float SumAGC = 0;
+1506   1              AzNumbers = DeltaAz / St;
+1507   1              ElNumbers = DeltaEl / St;
+1508   1      
+1509   1              MotorCtrl(RIGHTLEFT, StationAz - DeltaAz, SpeedTRACKING);
+1510   1              for(i = 0; i < MaxFilterLen; i++)
+1511   1              {
+1512   2                       Filters[i] = GetAGC();
+1513   2              }                                                                                       //³õÊ¼»¯ÂË²¨Æ÷
+1514   1      
+1515   1              MaxStationAz_1 = StationAz;                                     //³õÊ¼»¯×î´óÖµ
+1516   1              MaxAverageAGC = Filters[0];                                     //³õÊ¼»¯Æ½¾ùagc
+1517   1              j = 0;                                                                          //³õÊ¼»¯ÆðÊ¼µã
+1518   1              for(i = 0; i < AzNumbers * 2; i++)
+1519   1              {
+1520   2                 MotorCtrl(RIGHTLEFT, StationAz + St, SpeedTRACKING); //ÔÙÏòÓÒÖð²½×ß0.1
+1521   2                 watch();
+1522   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1523   2                              return;
+1524   2                 Filters[j++] = GetAGC();                                                     //Òý½øÒ»¸öÐÂµÄ²ÉÑùÖµ
+1525   2                 if(j == MaxFilterLen)
+1526   2                              j = 0;                                                                          //Ñ­»·
+1527   2                 for(k = 0; k < MaxFilterLen; k++)
+1528   2                        SumAGC += Filters[k];                                                 //ËãÊõºÍ
+1529   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)          //ÅÐ¶Ï×î´óÖµÔÚÄÄ
+1530   2                 {
+1531   3                        MaxStationAz_1 = StationAz;
+1532   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
+1533   3                 }
+1534   2                 SumAGC = 0;                                                                          //ËãÊõÆ½¾ùÇåÁã
+1535   2              }
+1536   1      
+1537   1      
+1538   1              for(i = 0; i < MaxFilterLen; i++)
+1539   1              {
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 26  
 
-1540   3                        MaxStationAz_2 = StationAz;
-1541   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
-1542   3                 }
-1543   2                 SumAGC = 0;
-1544   2              }
-1545   1      
-1546   1              MaxStationAz = (MaxStationAz_1 + MaxStationAz_2) / 2;
-1547   1      
-1548   1              MotorCtrl(RIGHTLEFT, MaxStationAz, SpeedTRACKING);                      //»Øµ½×î´óµã·½Î»
-1549   1              Delay(60000);
-1550   1      
-1551   1      
-1552   1              MotorCtrl(UPDOWN, StationEl - DeltaEl, SpeedTRACKING - SElspeed);                       //ÏÈÏòÏÂ×ß2¶È
-1553   1              for(i = 0;i < MaxFilterLen; i++)
-1554   1              {
-1555   2                       Filters[i] = GetAGC();
-1556   2              }
-1557   1              MaxStationEl_1 = StationEl;
-1558   1              MaxAverageAGC = Filters[0];
-1559   1              j = 0;
-1560   1              for(i = 0;i < 2 * ElNumbers; i++)
-1561   1              {
-1562   2                 MotorCtrl(UPDOWN, StationEl + St, SpeedTRACKING - SElspeed);                         //ÔÙÏòÉÏÖð²½×ß0.01
-1563   2                 watch();
-1564   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1565   2                              return;
-1566   2                 Filters[j++] = GetAGC();
-1567   2                 if(j == MaxFilterLen)
-1568   2                              j = 0;
-1569   2                 for(k = 0; k < MaxFilterLen; k++)
-1570   2                        SumAGC += Filters[k];
-1571   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
-1572   2                 {
-1573   3                        MaxStationEl_1 = StationEl;
-1574   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
-1575   3                 }
-1576   2                 SumAGC = 0;
-1577   2              }
-1578   1      //      MotorCtrl(UPDOWN, MaxStationEl_1, SpeedTRACKING);
-1579   1      
-1580   1      
-1581   1              for(i = 0;i < MaxFilterLen; i++)                                                                                          
-1582   1              {
-1583   2                       Filters[i] = GetAGC();
-1584   2              }
-1585   1              MaxStationEl_2 = StationEl;
-1586   1              MaxAverageAGC = Filters[0];
-1587   1              j = 0;
-1588   1              for(i = 0;i < 2 * ElNumbers; i++)
-1589   1              {
-1590   2                 MotorCtrl(UPDOWN, StationEl - St, SpeedTRACKING - SElspeed);         //ÔÙÏòÉÏÖð²½×ß0.01
-1591   2                 watch();
-1592   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1593   2                              return;
-1594   2                 Filters[j++] = GetAGC();
-1595   2                 if(j == MaxFilterLen)
-1596   2                              j = 0;
-1597   2                 for(k = 0; k < MaxFilterLen; k++)
-1598   2                        SumAGC += Filters[k];
-1599   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
-1600   2                 {
-1601   3                        MaxStationEl_2 = StationEl;
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 27  
+1540   2                       Filters[i] = GetAGC();
+1541   2              }
+1542   1              MaxStationAz_2 = StationAz;
+1543   1              MaxAverageAGC = Filters[0];
+1544   1              j = 0;
+1545   1              for(i = 0; i < 2 * AzNumbers; i++)
+1546   1              {
+1547   2                 MotorCtrl(RIGHTLEFT, StationAz - St, SpeedTRACKING);         //ÔÙÏò×óÖð²½×ß0.1
+1548   2                 watch();
+1549   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1550   2                              return;
+1551   2                 Filters[j++] = GetAGC();
+1552   2                 if(j == MaxFilterLen)
+1553   2                              j = 0;
+1554   2                 for(k = 0;k < MaxFilterLen; k++)
+1555   2                        SumAGC += Filters[k];
+1556   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
+1557   2                 {
+1558   3                        MaxStationAz_2 = StationAz;
+1559   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
+1560   3                 }
+1561   2                 SumAGC = 0;
+1562   2              }
+1563   1      
+1564   1              MaxStationAz = (MaxStationAz_1 + MaxStationAz_2) / 2;
+1565   1      
+1566   1              MotorCtrl(RIGHTLEFT, MaxStationAz, SpeedTRACKING);                      //»Øµ½×î´óµã·½Î»
+1567   1              Delay(60000);
+1568   1      
+1569   1      
+1570   1              MotorCtrl(UPDOWN, StationEl - DeltaEl, SpeedTRACKING - SElspeed);                       //ÏÈÏòÏÂ×ß2¶È
+1571   1              for(i = 0;i < MaxFilterLen; i++)
+1572   1              {
+1573   2                       Filters[i] = GetAGC();
+1574   2              }
+1575   1              MaxStationEl_1 = StationEl;
+1576   1              MaxAverageAGC = Filters[0];
+1577   1              j = 0;
+1578   1              for(i = 0;i < 2 * ElNumbers; i++)
+1579   1              {
+1580   2                 MotorCtrl(UPDOWN, StationEl + St, SpeedTRACKING - SElspeed);                         //ÔÙÏòÉÏÖð²½×ß0.01
+1581   2                 watch();
+1582   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1583   2                              return;
+1584   2                 Filters[j++] = GetAGC();
+1585   2                 if(j == MaxFilterLen)
+1586   2                              j = 0;
+1587   2                 for(k = 0; k < MaxFilterLen; k++)
+1588   2                        SumAGC += Filters[k];
+1589   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
+1590   2                 {
+1591   3                        MaxStationEl_1 = StationEl;
+1592   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
+1593   3                 }
+1594   2                 SumAGC = 0;
+1595   2              }
+1596   1      //      MotorCtrl(UPDOWN, MaxStationEl_1, SpeedTRACKING);
+1597   1      
+1598   1      
+1599   1              for(i = 0;i < MaxFilterLen; i++)                                                                                          
+1600   1              {
+1601   2                       Filters[i] = GetAGC();
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 27  
 
-1602   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
-1603   3                 }
-1604   2                 SumAGC = 0;
-1605   2              }
-1606   1              MotorCtrl(UPDOWN, (MaxStationEl_1 + MaxStationEl_2) / 2.0, SpeedTRACKING - SElspeed);
-1607   1      
-1608   1              return;
-1609   1      }
-1610          
-1611          
-1612          /***********************************************************************
-1613          *
-1614          * º¯ÊýÔ­ÐÍ£ºvoid TrackingSucceed(void)
-1615          *
-1616          * Èë¿Ú²ÎÊý£ºÎÞ
-1617          *
-1618          * ³ö¿Ú²ÎÊý£ºÎÞ
-1619          *
-1620          * ¹¦ÄÜÃèÊö£ºÌìÏß¸ú×ÙÉÏÎÀÐÇ,Ëø¶¨×´Ì¬
-1621          *
-1622          * ÐÞ    ¸Ä£º¼ÓÈëÁ¬ÐøÊ®ÃëÓÐÕÚµ²Çé¿öÏÂµÄ·´Ó¦,Á¬ÐøµÄ10ÃëÕÚµ²Ôò½øÈë×¼±¸ËÑË÷
-1623          *
-1624          *           ÐÞ¸ÄÈË£ºÑî´¾ö©
-1625          *
-1626          *           ÐÞ¸ÄÊ±¼ä£º2008-11-04
-1627          *
-1628          ***********************************************************************/
-1629          static void TrackingSucceed(void)
-1630          {
-1631   1              float temp_agc;
-1632   1              UINT8 i;
-1633   1              UINT16 DelTemp1;
-1634   1      
-1635   1              LockFlag = 1;   
-1636   1              LEDCLOSE;               
-1637   1              while(1)
-1638   1              {
-1639   2                      LEDGREEN;                       //2009/10/12
-1640   2                      temp_agc = 0;
-1641   2                      for(i = 0; i < 3; i++)
-1642   2                      {
-1643   3                              Delay(60000);
-1644   3                              watch();
-1645   3                              if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1646   3                              {
-1647   4                                      LockFlag = 0;
-1648   4                                      LEDCLOSE;
-1649   4                                      LEDRED;                 //2009/10/12
-1650   4                                      return;
-1651   4                              }
-1652   3                              temp_agc += GetAGC();
-1653   3                      }
-1654   2                      AGC = temp_agc / (float)i;
-1655   2              
-1656   2                      /****************************************************           
-1657   2                      *Èç¹ûÓÐÁ¬ÐøµÄ10ÃëÕÚµ²
-1658   2                      *Ôò½øÈë×¼±¸ËÑË÷
-1659   2                      ****************************************************/
-1660   2                      if(AGC < AGCNoise + 0.8 * ThresholdS)
-1661   2                      {
-1662   3                              DelTemp1 = 0;
-1663   3                              while(AGC < AGCNoise + 0.8 * ThresholdS)
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 28  
+1602   2              }
+1603   1              MaxStationEl_2 = StationEl;
+1604   1              MaxAverageAGC = Filters[0];
+1605   1              j = 0;
+1606   1              for(i = 0;i < 2 * ElNumbers; i++)
+1607   1              {
+1608   2                 MotorCtrl(UPDOWN, StationEl - St, SpeedTRACKING - SElspeed);         //ÔÙÏòÉÏÖð²½×ß0.01
+1609   2                 watch();
+1610   2                 if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1611   2                              return;
+1612   2                 Filters[j++] = GetAGC();
+1613   2                 if(j == MaxFilterLen)
+1614   2                              j = 0;
+1615   2                 for(k = 0; k < MaxFilterLen; k++)
+1616   2                        SumAGC += Filters[k];
+1617   2                 if((SumAGC / MaxFilterLen) > MaxAverageAGC)
+1618   2                 {
+1619   3                        MaxStationEl_2 = StationEl;
+1620   3                        MaxAverageAGC = (SumAGC / MaxFilterLen);
+1621   3                 }
+1622   2                 SumAGC = 0;
+1623   2              }
+1624   1              MotorCtrl(UPDOWN, (MaxStationEl_1 + MaxStationEl_2) / 2.0, SpeedTRACKING - SElspeed);
+1625   1      
+1626   1              return;
+1627   1      }
+1628          
+1629          
+1630          /***********************************************************************
+1631          *
+1632          * º¯ÊýÔ­ÐÍ£ºvoid TrackingSucceed(void)
+1633          *
+1634          * Èë¿Ú²ÎÊý£ºÎÞ
+1635          *
+1636          * ³ö¿Ú²ÎÊý£ºÎÞ
+1637          *
+1638          * ¹¦ÄÜÃèÊö£ºÌìÏß¸ú×ÙÉÏÎÀÐÇ,Ëø¶¨×´Ì¬
+1639          *
+1640          * ÐÞ    ¸Ä£º¼ÓÈëÁ¬ÐøÊ®ÃëÓÐÕÚµ²Çé¿öÏÂµÄ·´Ó¦,Á¬ÐøµÄ10ÃëÕÚµ²Ôò½øÈë×¼±¸ËÑË÷
+1641          *
+1642          *           ÐÞ¸ÄÈË£ºÑî´¾ö©
+1643          *
+1644          *           ÐÞ¸ÄÊ±¼ä£º2008-11-04
+1645          *
+1646          ***********************************************************************/
+1647          static void TrackingSucceed(void)
+1648          {
+1649   1              float temp_agc;
+1650   1              UINT8 i;
+1651   1              UINT16 DelTemp1;
+1652   1      
+1653   1              LockFlag = 1;   
+1654   1              LEDCLOSE;               
+1655   1              while(1)
+1656   1              {
+1657   2                      LEDGREEN;                       //2009/10/12
+1658   2                      temp_agc = 0;
+1659   2                      for(i = 0; i < 3; i++)
+1660   2                      {
+1661   3                              Delay(60000);
+1662   3                              watch();
+1663   3                              if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 28  
 
 1664   3                              {
-1665   4                                      AGC = GetAGC();
-1666   4                                      if(/*(AGC < AGCNoiseNor) || */(DelTemp1 > 350 - 1))//Rill delete 101202
-1667   4                                      {
-1668   5                                              status = SEARCHREADY;
-1669   5                                              LockFlag = 0;
-1670   5                                              LEDCLOSE;
-1671   5                                              LEDRED;                 //2009/10/12
-1672   5                                              return; 
-1673   5                                      }
-1674   4                                      DelTemp1++;
-1675   4                                      watch();
-1676   4                                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
-1677   4                                      {
-1678   5                                              LockFlag = 0;
-1679   5                                              LEDCLOSE;
-1680   5                                              LEDRED;                 //2009/10/12
-1681   5                                              return;
-1682   5                                      }
-1683   4                              }//end while(AGC <  AGCNoise + 0.8 * Threshold)
-1684   3                      }//end 10 sec. if(AGC <  AGCNoise + 0.8 * Threshold)
-1685   2              }//end while(1)
-1686   1      }
-1687          
-1688          
-1689          static void LEDTest(void);
-1690          static void GradientTest(void);
-1691          static void MotorUp(void);
-1692          static void TestXianWei(void);
-1693          static void TestPolar(void);
-1694          static void TestXinBiao(void);
-1695          static void TestGPS(void);
-1696          /*************************²âÊÔÓÃ(2009-3-9)*********************/
-1697          static void AntTestFun(void)
-1698          {
-1699   1              while(1)
-1700   1              {
-1701   2                      LEDTest();//²âÊÔLED
-1702   2                      GradientTest();//²âÊÔÇãÐ±ÒÇ
-1703   2                      MotorUp();//²âÊÔ¸©Ñöµç»ú
-1704   2                      TestXianWei();//²âÊÔ·½Î»µç»úÓëÏÞÎ»
-1705   2                      TestPolar();//²âÊÔ¼«»¯
-1706   2                      TestXinBiao();//²âÊÔÐÅ±ê
-1707   2                      TestGPS();//²âÊÔGPS
-1708   2              }
-1709   1      }
-1710          
-1711          #define TIME3 1
-1712          
-1713          static void LEDTest(void)
-1714          {
-1715   1              int a, b, c, d, i;
-1716   1              float j;
-1717   1              static int MAkitFlag = 0;
-1718   1              ReceiverKindFlag = XINBIAOREC;
-1719   1              TimeTest(1);
-1720   1              /*ÇåÏÞÎ»¹ÊÕÏ±êÖ¾*/
-1721   1              AzMidLimitF     = 0xff;                 //2010-7-7
-1722   1              AZLeftLimitF    = 0xff;
-1723   1              AZRightLimitF   = 0xff;
-1724   1      
-1725   1              WriteEEPROM(AzMidLimitF, AzMidLimitFAddr);
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 29  
+1665   4                                      LockFlag = 0;
+1666   4                                      LEDCLOSE;
+1667   4                                      LEDRED;                 //2009/10/12
+1668   4                                      return;
+1669   4                              }
+1670   3                              temp_agc += GetAGC();
+1671   3                      }
+1672   2                      AGC = temp_agc / (float)i;
+1673   2              
+1674   2                      /****************************************************           
+1675   2                      *Èç¹ûÓÐÁ¬ÐøµÄ10ÃëÕÚµ²
+1676   2                      *Ôò½øÈë×¼±¸ËÑË÷
+1677   2                      ****************************************************/
+1678   2                      if(AGC < AGCNoise + 0.8 * ThresholdS)
+1679   2                      {
+1680   3                              DelTemp1 = 0;
+1681   3                              while(AGC < AGCNoise + 0.8 * ThresholdS)
+1682   3                              {
+1683   4                                      AGC = GetAGC();
+1684   4                                      if(/*(AGC < AGCNoiseNor) || */(DelTemp1 > 350 - 1))//Rill delete 101202
+1685   4                                      {
+1686   5                                              status = SEARCHREADY;
+1687   5                                              LockFlag = 0;
+1688   5                                              LEDCLOSE;
+1689   5                                              LEDRED;                 //2009/10/12
+1690   5                                              return; 
+1691   5                                      }
+1692   4                                      DelTemp1++;
+1693   4                                      watch();
+1694   4                                      if(status == MANUALMODE || status == SEARCHREADY || status == STORESTATUS)
+1695   4                                      {
+1696   5                                              LockFlag = 0;
+1697   5                                              LEDCLOSE;
+1698   5                                              LEDRED;                 //2009/10/12
+1699   5                                              return;
+1700   5                                      }
+1701   4                              }//end while(AGC <  AGCNoise + 0.8 * Threshold)
+1702   3                      }//end 10 sec. if(AGC <  AGCNoise + 0.8 * Threshold)
+1703   2              }//end while(1)
+1704   1      }
+1705          
+1706          
+1707          static void LEDTest(void);
+1708          static void GradientTest(void);
+1709          static void MotorUp(void);
+1710          static void TestXianWei(void);
+1711          static void TestPolar(void);
+1712          static void TestXinBiao(void);
+1713          static void TestGPS(void);
+1714          /*************************²âÊÔÓÃ(2009-3-9)*********************/
+1715          static void AntTestFun(void)
+1716          {
+1717   1              while(1)
+1718   1              {
+1719   2                      LEDTest();//²âÊÔLED
+1720   2                      GradientTest();//²âÊÔÇãÐ±ÒÇ
+1721   2                      MotorUp();//²âÊÔ¸©Ñöµç»ú
+1722   2                      TestXianWei();//²âÊÔ·½Î»µç»úÓëÏÞÎ»
+1723   2                      TestPolar();//²âÊÔ¼«»¯
+1724   2                      TestXinBiao();//²âÊÔÐÅ±ê
+1725   2                      TestGPS();//²âÊÔGPS
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 29  
 
-1726   1              WriteEEPROM(AZLeftLimitF, AZLeftLimitFAddr);
-1727   1              WriteEEPROM(AZRightLimitF, AZRightLimitFAddr);
-1728   1      
-1729   1              StationLong = 117.5;
-1730   1              StationLat = 28.2;
-1731   1              a = (int)(StationLong);
-1732   1              b = (StationLong - (float)a) * 100.0;
-1733   1              WriteEEPROM(a, StationLongAddress);     
-1734   1              WriteEEPROM(b, StationLongAddress + 1);
-1735   1              
-1736   1              a = (int)(StationLat);
-1737   1              b = (StationLat - (float)a) * 100.0;
-1738   1              WriteEEPROM(a, StationLatAddress);              
-1739   1              WriteEEPROM(b, StationLatAddress + 1);
-1740   1              SatLong = 138.0;
-1741   1              a = (int)(SatLong);
-1742   1              b = (SatLong - (float)a) * 100.0;
-1743   1              WriteEEPROM(a, SatLongAddress);                         
-1744   1              WriteEEPROM(b, SatLongAddress + 1);
-1745   1              XinBiaoRecFreq = 951.0;
-1746   1              i = (int)(XinBiaoRecFreq);
-1747   1              j = (XinBiaoRecFreq - i)*1000;
-1748   1              a = i / 100;                                                            //a=14
-1749   1              b = i % 100;                                                            //b=49
-1750   1              c = j / 10;                                                                     //c=50
-1751   1              d = ((int)j) % 10;                                                      //d=0
-1752   1              WriteEEPROM(a, SatXinBiaoFreqAddress);          //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÇ§Î»°ÙÎ»Öµ
-1753   1              WriteEEPROM(b, SatXinBiaoFreqAddress + 1);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÊ®Î»¸öÎ»Öµ
-1754   1              WriteEEPROM(c, SatXinBiaoFreqAddress + 2);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÊ®·Ö°Ù·ÖÖµ
-1755   1              WriteEEPROM(d, SatXinBiaoFreqAddress + 3);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÇ§·ÖÎ»Öµ
-1756   1              StationPloMode = V;
-1757   1              WriteEEPROM(StationPloMode, StationPloModeAddress);
-1758   1              TimeTest(1);
-1759   1              WriteEEPROM(ReceiverKindFlag, ReceiverKindAddress);
-1760   1      
-1761   1              SatLong = 134.0;
-1762   1              TimeTest(1);
-1763   1              a = (int)(SatLong);
-1764   1              b = (SatLong - (float)a) * 100.0;
-1765   1              WriteEEPROM(a, BaseStarLONGAddr);                               
-1766   1              WriteEEPROM(b, BaseStarLONGAddr + 1);
-1767   1              TimeTest(1);
-1768   1      
-1769   1              LEDCLOSE;
-1770   1              LEDGREEN;
-1771   1              LEDGREENOPEN;
-1772   1              TimeTest(TIME3 * 4);
-1773   1              for(i  = 0; i < 3; i++)
-1774   1              {
-1775   2                      LEDCLOSE;
-1776   2                      LEDGREENCLOSE;
-1777   2                      LEDREDCLOSE;
-1778   2                      TimeTest(TIME3);
-1779   2                      LEDRED;
-1780   2                      LEDREDCOPEN;
-1781   2                      TimeTest(TIME3);
-1782   2              }
-1783   1              LEDREDCLOSE;
-1784   1              TimeTest(TIME3);
-1785   1              LEDGREEN;
-1786   1              LEDGREENOPEN;
-1787   1              TimeTest(TIME3 * 4);
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 30  
+1726   2              }
+1727   1      }
+1728          
+1729          #define TIME3 1
+1730          
+1731          static void LEDTest(void)
+1732          {
+1733   1              int a, b, c, d, i;
+1734   1              float j;
+1735   1              static int MAkitFlag = 0;
+1736   1              ReceiverKindFlag = XINBIAOREC;
+1737   1              TimeTest(1);
+1738   1              /*ÇåÏÞÎ»¹ÊÕÏ±êÖ¾*/
+1739   1              AzMidLimitF     = 0xff;                 //2010-7-7
+1740   1              AZLeftLimitF    = 0xff;
+1741   1              AZRightLimitF   = 0xff;
+1742   1      
+1743   1              WriteEEPROM(AzMidLimitF, AzMidLimitFAddr);
+1744   1              WriteEEPROM(AZLeftLimitF, AZLeftLimitFAddr);
+1745   1              WriteEEPROM(AZRightLimitF, AZRightLimitFAddr);
+1746   1      
+1747   1              StationLong = 117.5;
+1748   1              StationLat = 28.2;
+1749   1              a = (int)(StationLong);
+1750   1              b = (StationLong - (float)a) * 100.0;
+1751   1              WriteEEPROM(a, StationLongAddress);     
+1752   1              WriteEEPROM(b, StationLongAddress + 1);
+1753   1              
+1754   1              a = (int)(StationLat);
+1755   1              b = (StationLat - (float)a) * 100.0;
+1756   1              WriteEEPROM(a, StationLatAddress);              
+1757   1              WriteEEPROM(b, StationLatAddress + 1);
+1758   1              SatLong = 138.0;
+1759   1              a = (int)(SatLong);
+1760   1              b = (SatLong - (float)a) * 100.0;
+1761   1              WriteEEPROM(a, SatLongAddress);                         
+1762   1              WriteEEPROM(b, SatLongAddress + 1);
+1763   1              XinBiaoRecFreq = 951.0;
+1764   1              i = (int)(XinBiaoRecFreq);
+1765   1              j = (XinBiaoRecFreq - i)*1000;
+1766   1              a = i / 100;                                                            //a=14
+1767   1              b = i % 100;                                                            //b=49
+1768   1              c = j / 10;                                                                     //c=50
+1769   1              d = ((int)j) % 10;                                                      //d=0
+1770   1              WriteEEPROM(a, SatXinBiaoFreqAddress);          //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÇ§Î»°ÙÎ»Öµ
+1771   1              WriteEEPROM(b, SatXinBiaoFreqAddress + 1);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÊ®Î»¸öÎ»Öµ
+1772   1              WriteEEPROM(c, SatXinBiaoFreqAddress + 2);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÊ®·Ö°Ù·ÖÖµ
+1773   1              WriteEEPROM(d, SatXinBiaoFreqAddress + 3);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÇ§·ÖÎ»Öµ
+1774   1              StationPloMode = V;
+1775   1              WriteEEPROM(StationPloMode, StationPloModeAddress);
+1776   1              TimeTest(1);
+1777   1              WriteEEPROM(ReceiverKindFlag, ReceiverKindAddress);
+1778   1      
+1779   1              SatLong = 134.0;
+1780   1              TimeTest(1);
+1781   1              a = (int)(SatLong);
+1782   1              b = (SatLong - (float)a) * 100.0;
+1783   1              WriteEEPROM(a, BaseStarLONGAddr);                               
+1784   1              WriteEEPROM(b, BaseStarLONGAddr + 1);
+1785   1              TimeTest(1);
+1786   1      
+1787   1              LEDCLOSE;
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 30  
 
-1788   1      
-1789   1      /*2009/11/4*/
-1790   1              Tempearter = 1;
-1791   1              TimeTest(TIME3 * 40);
-1792   1              Tempearter = 0;
-1793   1      
-1794   1              if(MAkitFlag == 0)
-1795   1              {       
-1796   2                      while(MAkit == 1)
-1797   2                      {
-1798   3                      LEDREDCOPEN;
-1799   3                      }
-1800   2                      while(MAkit == 0)
-1801   2                      {
-1802   3                              LEDGREENOPEN;
-1803   3                      }
-1804   2                      MAkitFlag = 1;
-1805   2              }
-1806   1              LEDREDCOPEN;            
-1807   1      }
-1808          
-1809          static void GradientTest(void)
-1810          {
-1811   1              LEDCLOSE;
-1812   1              LEDGREENCLOSE;
-1813   1              LEDREDCLOSE;
-1814   1              ReadGradient();
-1815   1              
-1816   1              if(GradientNormal != 1)
-1817   1              {
-1818   2                      while(1)
+1788   1              LEDGREEN;
+1789   1              LEDGREENOPEN;
+1790   1              TimeTest(TIME3 * 4);
+1791   1              for(i  = 0; i < 3; i++)
+1792   1              {
+1793   2                      LEDCLOSE;
+1794   2                      LEDGREENCLOSE;
+1795   2                      LEDREDCLOSE;
+1796   2                      TimeTest(TIME3);
+1797   2                      LEDRED;
+1798   2                      LEDREDCOPEN;
+1799   2                      TimeTest(TIME3);
+1800   2              }
+1801   1              LEDREDCLOSE;
+1802   1              TimeTest(TIME3);
+1803   1              LEDGREEN;
+1804   1              LEDGREENOPEN;
+1805   1              TimeTest(TIME3 * 4);
+1806   1      
+1807   1      /*2009/11/4*/
+1808   1              Tempearter = 1;
+1809   1              TimeTest(TIME3 * 40);
+1810   1              Tempearter = 0;
+1811   1      
+1812   1              if(MAkitFlag == 0)
+1813   1              {       
+1814   2                      while(MAkit == 1)
+1815   2                      {
+1816   3                      LEDREDCOPEN;
+1817   3                      }
+1818   2                      while(MAkit == 0)
 1819   2                      {
-1820   3                              LEDRED;
-1821   3                              Delay(40000);
-1822   3                              LEDCLOSE;
-1823   3                              Delay(40000);
-1824   3                      }
-1825   2              }
-1826   1      }
-1827          
-1828          static void MotorUp(void)
-1829          {
-1830   1              ReadGradient();
-1831   1              StationEl = GradientY;
-1832   1              MotorFun(ELUP, MOTORSTOP, GetElS1());     //ÌìÏßÏòÉÏµ½65¶È
-1833   1              while(65.0 > StationEl)
-1834   1              {
-1835   2                      ReadGradient();
-1836   2                      StationEl = GradientY;
-1837   2              }
-1838   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
-1839   1              TimeTest(TIME3);
-1840   1      
-1841   1              MotorFun(ELDOWN, MOTORSTOP, GetElS1());   //ÌìÏßÏòÏÂµ½40¶È
-1842   1              while(StationEl > 40.0)
-1843   1              {
-1844   2                      ;
-1845   2              }
-1846   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
-1847   1              TimeTest(TIME3);        
-1848   1      }
-1849          
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 31  
+1820   3                              LEDGREENOPEN;
+1821   3                      }
+1822   2                      MAkitFlag = 1;
+1823   2              }
+1824   1              LEDREDCOPEN;            
+1825   1      }
+1826          
+1827          static void GradientTest(void)
+1828          {
+1829   1              LEDCLOSE;
+1830   1              LEDGREENCLOSE;
+1831   1              LEDREDCLOSE;
+1832   1              ReadGradient();
+1833   1              
+1834   1              if(GradientNormal != 1)
+1835   1              {
+1836   2                      while(1)
+1837   2                      {
+1838   3                              LEDRED;
+1839   3                              Delay(40000);
+1840   3                              LEDCLOSE;
+1841   3                              Delay(40000);
+1842   3                      }
+1843   2              }
+1844   1      }
+1845          
+1846          static void MotorUp(void)
+1847          {
+1848   1              ReadGradient();
+1849   1              StationEl = GradientY;
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 31  
 
-1850          static void TestXianWei(void)
-1851          {
-1852   1              AzMidLimitF     = 0x5;                  //2010-10-26
-1853   1              AZLeftLimitF    = 0x5;
-1854   1              AZRightLimitF   = 0x5;
-1855   1              StationAz = 150.0;
-1856   1              MotorCtrl(RIGHTLEFT, 270.0, GetAzS2());
-1857   1              StationAzLimit = 270.0;
+1850   1              MotorFun(ELUP, MOTORSTOP, GetElS1());     //ÌìÏßÏòÉÏµ½65¶È
+1851   1              while(65.0 > StationEl)
+1852   1              {
+1853   2                      ReadGradient();
+1854   2                      StationEl = GradientY;
+1855   2              }
+1856   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+1857   1              TimeTest(TIME3);
 1858   1      
-1859   1              if(AZRightLimit != MotorLimitFlag)
-1860   1              {
-1861   2                      Delay(5000);
-1862   2                      if(AZRightLimit != MotorLimitFlag)
-1863   2                      {
-1864   3                              while(1)
-1865   3                              {
-1866   4                                      LEDRED;
-1867   4                                      Delay(40000);
-1868   4                                      LEDCLOSE;
-1869   4                                      Delay(40000);
-1870   4                              }               
-1871   3                      }
-1872   2              }
-1873   1      
-1874   1      
-1875   1              TimeTest(TIME3);
-1876   1              MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
-1877   1              while(AzMidLimit != MotorLimitFlag && StationAz > 150.0)
+1859   1              MotorFun(ELDOWN, MOTORSTOP, GetElS1());   //ÌìÏßÏòÏÂµ½40¶È
+1860   1              while(StationEl > 40.0)
+1861   1              {
+1862   2                      ;
+1863   2              }
+1864   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);
+1865   1              TimeTest(TIME3);        
+1866   1      }
+1867          
+1868          static void TestXianWei(void)
+1869          {
+1870   1              AzMidLimitF     = 0x5;                  //2010-10-26
+1871   1              AZLeftLimitF    = 0x5;
+1872   1              AZRightLimitF   = 0x5;
+1873   1              StationAz = 150.0;
+1874   1              MotorCtrl(RIGHTLEFT, 270.0, GetAzS2());
+1875   1              StationAzLimit = 270.0;
+1876   1      
+1877   1              if(AZRightLimit != MotorLimitFlag)
 1878   1              {
-1879   2                      ;
-1880   2              }
-1881   1              MotorFun(MOTORSTOP, MOTORSTOP, GetAzS2());
-1882   1              if(AzMidLimit != MotorLimitFlag)
-1883   1              {
-1884   2                      Delay(5000);
-1885   2                      if(AzMidLimit != MotorLimitFlag)
-1886   2                      {
-1887   3                              while(1)
-1888   3                              {
-1889   4                                      LEDRED;
-1890   4                                      Delay(40000);
-1891   4                                      LEDCLOSE;
-1892   4                                      Delay(40000);
-1893   4                              }               
-1894   3                      }
-1895   2              }
-1896   1              TimeTest(TIME3);
-1897   1              StationAz = 200.0;
-1898   1              MotorCtrl(RIGHTLEFT, 90.0, GetAzS2());
-1899   1              if(AZLeftLimit != MotorLimitFlag)
-1900   1              {
-1901   2                      Delay(5000);
-1902   2                      if(AZLeftLimit != MotorLimitFlag)
-1903   2                      {
-1904   3                      while(1)
-1905   3                      {
-1906   4                              LEDRED;
-1907   4                              Delay(40000);
-1908   4                              LEDCLOSE;
-1909   4                              Delay(40000);
-1910   4                      }               
-1911   3              }
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 32  
+1879   2                      Delay(5000);
+1880   2                      if(AZRightLimit != MotorLimitFlag)
+1881   2                      {
+1882   3                              while(1)
+1883   3                              {
+1884   4                                      LEDRED;
+1885   4                                      Delay(40000);
+1886   4                                      LEDCLOSE;
+1887   4                                      Delay(40000);
+1888   4                              }               
+1889   3                      }
+1890   2              }
+1891   1      
+1892   1      
+1893   1              TimeTest(TIME3);
+1894   1              MotorFun(MOTORSTOP, AZLEFT, GetAzS2());
+1895   1              while(AzMidLimit != MotorLimitFlag && StationAz > 150.0)
+1896   1              {
+1897   2                      ;
+1898   2              }
+1899   1              MotorFun(MOTORSTOP, MOTORSTOP, GetAzS2());
+1900   1              if(AzMidLimit != MotorLimitFlag)
+1901   1              {
+1902   2                      Delay(5000);
+1903   2                      if(AzMidLimit != MotorLimitFlag)
+1904   2                      {
+1905   3                              while(1)
+1906   3                              {
+1907   4                                      LEDRED;
+1908   4                                      Delay(40000);
+1909   4                                      LEDCLOSE;
+1910   4                                      Delay(40000);
+1911   4                              }               
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 32  
 
-1912   2              }
-1913   1              TimeTest(TIME3);
-1914   1              StationAz = 90.0;
-1915   1              MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
-1916   1              while(AzMidLimit != MotorLimitFlag)
-1917   1              {
-1918   2                      ;
-1919   2              }
-1920   1              MotorFun(MOTORSTOP, MOTORSTOP, GetAzS2());
-1921   1              TimeTest(TIME3);
-1922   1      
-1923   1              StationAz = AZ180;                                                       //2016/3/15
-1924   1              MotorCtrl(RIGHTLEFT, AZ180 + 5, GetAzS2());      //2016/3/15   ÃÖ²¹»Øµ½ÖÐ¼äÏÞÎ»ºóµÄÆ«²î
-1925   1              return; 
-1926   1      }
-1927          static void TestPolar(void)
-1928          {
-1929   1              StationPol = GetComPolA();
-1930   1              if(StationPol > 30.0 || StationPol < -30.0)
-1931   1              {
-1932   2                      while(1)
-1933   2                      {
-1934   3                              LEDRED;
-1935   3                              Delay(40000);
-1936   3                              LEDCLOSE;
-1937   3                              Delay(40000);
-1938   3                      }
-1939   2              }
+1912   3                      }
+1913   2              }
+1914   1              TimeTest(TIME3);
+1915   1              StationAz = 200.0;
+1916   1              MotorCtrl(RIGHTLEFT, 90.0, GetAzS2());
+1917   1              if(AZLeftLimit != MotorLimitFlag)
+1918   1              {
+1919   2                      Delay(5000);
+1920   2                      if(AZLeftLimit != MotorLimitFlag)
+1921   2                      {
+1922   3                      while(1)
+1923   3                      {
+1924   4                              LEDRED;
+1925   4                              Delay(40000);
+1926   4                              LEDCLOSE;
+1927   4                              Delay(40000);
+1928   4                      }               
+1929   3              }
+1930   2              }
+1931   1              TimeTest(TIME3);
+1932   1              StationAz = 90.0;
+1933   1              MotorFun(MOTORSTOP, AZRIGHT, GetAzS2());
+1934   1              while(AzMidLimit != MotorLimitFlag)
+1935   1              {
+1936   2                      ;
+1937   2              }
+1938   1              MotorFun(MOTORSTOP, MOTORSTOP, GetAzS2());
+1939   1              TimeTest(TIME3);
 1940   1      
-1941   1              POLAR_LEFT;
-1942   1              TimeTest(7);
-1943   1              POLAR_STOP;
-1944   1      
-1945   1              if(StationPol > GetPolarAngle())
-1946   1              {
-1947   2                      while(1)
-1948   2                      {
-1949   3                              LEDRED;
-1950   3                              Delay(40000);
-1951   3                              LEDCLOSE;
-1952   3                              Delay(40000);
-1953   3                      }
-1954   2              }
-1955   1              TimeTest(TIME3);
-1956   1              POLAR_RIGHT;
-1957   1              while(GetPolarAngle() /* - StationPol */ > 0.1)
-1958   1              {
-1959   2                      ;
-1960   2              }
-1961   1              POLAR_STOP;
-1962   1              TimeTest(TIME3);
-1963   1              return;
-1964   1      }
-1965          static void TestXinBiao(void)
-1966          {
-1967   1              int i;
-1968   1      
-1969   1              MotorFun(ELDOWN, MOTORSTOP, GetElS1());   //ÌìÏßÏòÏÂµ½40¶È
-1970   1              while(StationEl > 30.0)
-1971   1              {
-1972   2                      ;
-1973   2              }
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 33  
+1941   1              StationAz = AZ180;                                                       //2016/3/15
+1942   1              MotorCtrl(RIGHTLEFT, AZ180 + 5, GetAzS2());      //2016/3/15   ÃÖ²¹»Øµ½ÖÐ¼äÏÞÎ»ºóµÄÆ«²î
+1943   1              return; 
+1944   1      }
+1945          static void TestPolar(void)
+1946          {
+1947   1              PolarAngleInit();
+1948   1              StationPol = GetComPolA();
+1949   1              GotoPolarAngle(45);     
+1950   1              GotoPolarAngle(315);
+1951   1              PolarAngleInit();       
+1952   1      
+1953   1      
+1954   1      
+1955   1      
+1956   1      //      StationPol = GetComPolA();
+1957   1      //      if(StationPol > 30.0 || StationPol < -30.0)
+1958   1      //      {
+1959   1      //              while(1)
+1960   1      //              {
+1961   1      //                      LEDRED;
+1962   1      //                      Delay(40000);
+1963   1      //                      LEDCLOSE;
+1964   1      //                      Delay(40000);
+1965   1      //              }
+1966   1      //      }
+1967   1      //
+1968   1      //      POLAR_LEFT;
+1969   1      //      TimeTest(7);
+1970   1      //      POLAR_STOP;
+1971   1      //
+1972   1      //      if(StationPol > GetPolarAngle())
+1973   1      //      {
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 33  
 
-1974   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);     
-1975   1              SetXinBiaoFreqKC(XinBiaoRecFreq);
-1976   1              if(!XinBiaoRecNormalFlag)
-1977   1              {
-1978   2                      for(i  = 0; i < 10; i++)
-1979   2                      {
-1980   3                              TimeTest(TIME3 + TIME3);
-1981   3                              LEDRED;
-1982   3                              TimeTest(TIME3 + TIME3);
-1983   3                              LEDCLOSE;
-1984   3                              Delay(40000);
-1985   3                              LEDRED;
-1986   3                              Delay(40000);
-1987   3                              LEDCLOSE;
-1988   3                      }
-1989   2              }
-1990   1              TimeTest(TIME3);
-1991   1              return;
-1992   1      }
-1993          static void TestGPS(void)
-1994          {
-1995   1              int i;
-1996   1              ReadGPS();
-1997   1              if(!GPSNormal)
+1974   1      //              while(1)
+1975   1      //              {
+1976   1      //                      LEDRED;
+1977   1      //                      Delay(40000);
+1978   1      //                      LEDCLOSE;
+1979   1      //                      Delay(40000);
+1980   1      //              }
+1981   1      //      }
+1982   1      //      TimeTest(TIME3);
+1983   1      //      POLAR_RIGHT;
+1984   1      //      while(GetPolarAngle() /* - StationPol */ > 0.1)
+1985   1      //      {
+1986   1      //              ;
+1987   1      //      }
+1988   1      //      POLAR_STOP;
+1989   1              TimeTest(TIME3);
+1990   1              return;
+1991   1      }
+1992          static void TestXinBiao(void)
+1993          {
+1994   1              int i;
+1995   1      
+1996   1              MotorFun(ELDOWN, MOTORSTOP, GetElS1());   //ÌìÏßÏòÏÂµ½40¶È
+1997   1              while(StationEl > 30.0)
 1998   1              {
-1999   2                      while(1)
-2000   2                      {
-2001   3                              LEDRED;
-2002   3                              Delay(40000);
-2003   3                              LEDCLOSE;
-2004   3                              Delay(40000);
-2005   3                      }
-2006   2              }
-2007   1              if(GPSNormal == 1)
-2008   1              {
-2009   2                      for(i = 0; i < 10; i++)
-2010   2                      {
+1999   2                      ;
+2000   2              }
+2001   1              MotorFun(MOTORSTOP, MOTORSTOP, SpeedInitF);     
+2002   1              SetXinBiaoFreqKC(XinBiaoRecFreq);
+2003   1              if(!XinBiaoRecNormalFlag)
+2004   1              {
+2005   2                      for(i  = 0; i < 10; i++)
+2006   2                      {
+2007   3                              TimeTest(TIME3 + TIME3);
+2008   3                              LEDRED;
+2009   3                              TimeTest(TIME3 + TIME3);
+2010   3                              LEDCLOSE;
 2011   3                              Delay(40000);
-2012   3                              LEDGREEN;
+2012   3                              LEDRED;
 2013   3                              Delay(40000);
 2014   3                              LEDCLOSE;
-2015   3                      }               
+2015   3                      }
 2016   2              }
 2017   1              TimeTest(TIME3);
-2018   1      }
-2019          
-2020          
-2021          /***********************************************************************
-2022          *
-2023          * º¯ÊýÔ­ÐÍ£ºvoid StorSrcPara(void)
-2024          *
-2025          * Èë¿Ú²ÎÊý£ºÎÞ
-2026          *
-2027          * ³ö¿Ú²ÎÊý£ºÎÞ
-2028          *
-2029          * ¹¦ÄÜÃèÊö£º±£´æÄ¿±êÎÀÐÇ²ÎÊý
-2030          *
-2031          ***********************************************************************/
-2032          static void StorSrcPara(void)
-2033          {
-2034   1              int a, b, c, d, i;
-2035   1              float j;
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 34  
+2018   1              return;
+2019   1      }
+2020          static void TestGPS(void)
+2021          {
+2022   1              int i;
+2023   1              ReadGPS();
+2024   1              if(!GPSNormal)
+2025   1              {
+2026   2                      while(1)
+2027   2                      {
+2028   3                              LEDRED;
+2029   3                              Delay(40000);
+2030   3                              LEDCLOSE;
+2031   3                              Delay(40000);
+2032   3                      }
+2033   2              }
+2034   1              if(GPSNormal == 1)
+2035   1              {
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 34  
 
-2036   1      
-2037   1              /****************************************************
-2038   1              *´æ´¢¸÷¸öÖµ 
-2039   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾¾­¶È,´æ´¢·½·¨ÈçÏÂ
-2040   1              *Éè¾­¶ÈÎª118.78£¬Ôòa=118£¬b=78
-2041   1              ****************************************************/
-2042   1              TimeTest(1);
-2043   1              a = (int)(StationLong);
-2044   1              b = (StationLong - (float)a) * 100.0;
-2045   1              WriteEEPROM(a, StationLongAddress);     
-2046   1              WriteEEPROM(b, StationLongAddress + 1);
-2047   1              
-2048   1              /****************************************************
-2049   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾¶«¾­±êÖ¾,´æ´¢·½·¨ÈçÏÂ 
-2050   1              *´æ´¢0»òÕß1
-2051   1              ****************************************************/
-2052   1              WriteEEPROM(StationEastFlag, StationEastFlagAddress);
-2053   1              
-2054   1              /****************************************************
-2055   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾Î³¶È,´æ´¢·½·¨ÈçÏÂ
-2056   1              *Éè¾­¶ÈÎª32.04£¬Ôòa=32£¬b=4
-2057   1              ****************************************************/
-2058   1              a = (int)(StationLat);
-2059   1              b = (StationLat - (float)a) * 100.0;
-2060   1              WriteEEPROM(a, StationLatAddress);              
-2061   1              WriteEEPROM(b, StationLatAddress + 1);
-2062   1              
-2063   1              /****************************************************           
-2064   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾±±Î³±êÖ¾,´æ´¢·½·¨ÈçÏÂ
-2065   1              *´æ´¢0»òÕß1
-2066   1              ****************************************************/           
-2067   1              WriteEEPROM(StationNorthFlag, StationNorthFlagAddress);
-2068   1              
-2069   1              /****************************************************           
-2070   1              *ÒÔÏÂ´æ´¢ÎÀÐÇ¾­¶È,´æ´¢·½·¨ÈçÏÂ
-2071   1              *Éè¾­¶ÈÎª87.5£¬Ôòa=87£¬b=50
-2072   1              ****************************************************/
-2073   1              a = (int)(SatLong);
-2074   1              b = (SatLong - (float)a) * 100.0;
-2075   1              WriteEEPROM(a, SatLongAddress);                         
-2076   1              WriteEEPROM(b, SatLongAddress + 1);
-2077   1              
-2078   1              /****************************************************           
-2079   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾¼«»¯·½Ê½,´æ´¢·½·¨ÈçÏÂ
-2080   1              *´æ´¢0»òÕß1
-2081   1              ****************************************************/   
-2082   1              WriteEEPROM(StationPloMode, StationPloModeAddress);     
-2083   1              
-2084   1      
-2085   1              /****************************************************           
-2086   1              *ÒÔÏÂ´æ´¢ÎÀÐÇ¶«Î÷¾­±êÖÂ,´æ´¢·½·¨ÈçÏÂ
-2087   1              *´æ´¢0»òÕß1
-2088   1              ****************************************************/   
-2089   1              WriteEEPROM(SatLongEastFlag, SatLongEastFlagAddr);
-2090   1      
-2091   1              /****************************************************           
-2092   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾½ÓÊÕ»úÀàÐÍ,´æ´¢·½·¨ÈçÏÂ
-2093   1              *´æ´¢0»òÕß1
-2094   1              ****************************************************/   
-2095   1              WriteEEPROM(ReceiverKindFlag, ReceiverKindAddress);              
-2096   1              
-2097   1              /****************************************************           
-C51 COMPILER V9.00   ANTENNA                                                               03/29/2016 14:57:52 PAGE 35  
+2036   2                      for(i = 0; i < 10; i++)
+2037   2                      {
+2038   3                              Delay(40000);
+2039   3                              LEDGREEN;
+2040   3                              Delay(40000);
+2041   3                              LEDCLOSE;
+2042   3                      }               
+2043   2              }
+2044   1              TimeTest(TIME3);
+2045   1      }
+2046          
+2047          
+2048          /***********************************************************************
+2049          *
+2050          * º¯ÊýÔ­ÐÍ£ºvoid StorSrcPara(void)
+2051          *
+2052          * Èë¿Ú²ÎÊý£ºÎÞ
+2053          *
+2054          * ³ö¿Ú²ÎÊý£ºÎÞ
+2055          *
+2056          * ¹¦ÄÜÃèÊö£º±£´æÄ¿±êÎÀÐÇ²ÎÊý
+2057          *
+2058          ***********************************************************************/
+2059          static void StorSrcPara(void)
+2060          {
+2061   1              int a, b, c, d, i;
+2062   1              float j;
+2063   1      
+2064   1              /****************************************************
+2065   1              *´æ´¢¸÷¸öÖµ 
+2066   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾¾­¶È,´æ´¢·½·¨ÈçÏÂ
+2067   1              *Éè¾­¶ÈÎª118.78£¬Ôòa=118£¬b=78
+2068   1              ****************************************************/
+2069   1              TimeTest(1);
+2070   1              a = (int)(StationLong);
+2071   1              b = (StationLong - (float)a) * 100.0;
+2072   1              WriteEEPROM(a, StationLongAddress);     
+2073   1              WriteEEPROM(b, StationLongAddress + 1);
+2074   1              
+2075   1              /****************************************************
+2076   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾¶«¾­±êÖ¾,´æ´¢·½·¨ÈçÏÂ 
+2077   1              *´æ´¢0»òÕß1
+2078   1              ****************************************************/
+2079   1              WriteEEPROM(StationEastFlag, StationEastFlagAddress);
+2080   1              
+2081   1              /****************************************************
+2082   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾Î³¶È,´æ´¢·½·¨ÈçÏÂ
+2083   1              *Éè¾­¶ÈÎª32.04£¬Ôòa=32£¬b=4
+2084   1              ****************************************************/
+2085   1              a = (int)(StationLat);
+2086   1              b = (StationLat - (float)a) * 100.0;
+2087   1              WriteEEPROM(a, StationLatAddress);              
+2088   1              WriteEEPROM(b, StationLatAddress + 1);
+2089   1              
+2090   1              /****************************************************           
+2091   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾±±Î³±êÖ¾,´æ´¢·½·¨ÈçÏÂ
+2092   1              *´æ´¢0»òÕß1
+2093   1              ****************************************************/           
+2094   1              WriteEEPROM(StationNorthFlag, StationNorthFlagAddress);
+2095   1              
+2096   1              /****************************************************           
+2097   1              *ÒÔÏÂ´æ´¢ÎÀÐÇ¾­¶È,´æ´¢·½·¨ÈçÏÂ
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 35  
 
-2098   1              *ÒÔÏÂ´æ´¢ÏÄÆÕ½ÓÊÕ»úÆµÂÊ,´æ´¢·½·¨ÈçÏÂ
-2099   1              *ÉèÆµÂÊÎª1051.000£¬Ôòa=10£¬b=51,c=00,d=0
-2100   1              ****************************************************/
-2101   1              i = (int)(SharpRecFreq);
-2102   1              j = (SharpRecFreq - i) * 1000;
-2103   1              a = i / 100;                                                            //a=10
-2104   1              b = i % 100;                                                            //b=51
-2105   1              c = j / 10;                                                                     //c=00
-2106   1              d = ((int)j) % 10;                                                      //d=0
-2107   1              WriteEEPROM(a, SatSharpFreqAddress);            //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÕûÊýÇ§Î»°ÙÎ»Öµ
-2108   1              WriteEEPROM(b, SatSharpFreqAddress + 1);        //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÕûÊýÊ®Î»¸öÎ»Öµ
-2109   1              WriteEEPROM(c, SatSharpFreqAddress + 2);        //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÐ¡ÊýÊ®·Ö°Ù·ÖÖµ
-2110   1              WriteEEPROM(d, SatSharpFreqAddress + 3);        //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÐ¡Êý°Ù·Ö°Ù·ÖÖµ
-2111   1              WriteEEPROM(SharpThreshold * 10.0, SharpAgcThresholdAddress);             //´æ´¢ÃÅÏÞ
-2112   1              
-2113   1              /****************************************************           
-2114   1              *ÒÔÏÂ´æ´¢ÐÅ±ê½ÓÊÕ»úÆµÂÊ,´æ´¢·½·¨ÈçÏÂ
-2115   1              *ÉèÆµÂÊÎª1449.500£¬Ôòa=11£¬b=49,c=50,c=50,d=0
-2116   1              ****************************************************/
-2117   1              i = (int)(XinBiaoRecFreq);
-2118   1              j = (XinBiaoRecFreq - i)*1000;
-2119   1              a = i / 100;                                                            //a=14
-2120   1              b = i % 100;                                                            //b=49
-2121   1              c = j / 10;                                                                     //c=50
-2122   1              d = ((int)j) % 10;                                                      //d=0
-2123   1              WriteEEPROM(a, SatXinBiaoFreqAddress);          //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÇ§Î»°ÙÎ»Öµ
-2124   1              WriteEEPROM(b, SatXinBiaoFreqAddress + 1);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÊ®Î»¸öÎ»Öµ
-2125   1              WriteEEPROM(c, SatXinBiaoFreqAddress + 2);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÊ®·Ö°Ù·ÖÖµ
-2126   1              WriteEEPROM(d, SatXinBiaoFreqAddress + 3);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÇ§·ÖÎ»Öµ  
-2127   1              WriteEEPROM(XinBiaoThreshold * 10.0, XBThresholdAddress);                                 //´æ´¢ÃÅÏÞ
-2128   1      }
+2098   1              *Éè¾­¶ÈÎª87.5£¬Ôòa=87£¬b=50
+2099   1              ****************************************************/
+2100   1              a = (int)(SatLong);
+2101   1              b = (SatLong - (float)a) * 100.0;
+2102   1              WriteEEPROM(a, SatLongAddress);                         
+2103   1              WriteEEPROM(b, SatLongAddress + 1);
+2104   1              
+2105   1              /****************************************************           
+2106   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾¼«»¯·½Ê½,´æ´¢·½·¨ÈçÏÂ
+2107   1              *´æ´¢0»òÕß1
+2108   1              ****************************************************/   
+2109   1              WriteEEPROM(StationPloMode, StationPloModeAddress);     
+2110   1              
+2111   1      
+2112   1              /****************************************************           
+2113   1              *ÒÔÏÂ´æ´¢ÎÀÐÇ¶«Î÷¾­±êÖÂ,´æ´¢·½·¨ÈçÏÂ
+2114   1              *´æ´¢0»òÕß1
+2115   1              ****************************************************/   
+2116   1              WriteEEPROM(SatLongEastFlag, SatLongEastFlagAddr);
+2117   1      
+2118   1              /****************************************************           
+2119   1              *ÒÔÏÂ´æ´¢µØÇòÕ¾½ÓÊÕ»úÀàÐÍ,´æ´¢·½·¨ÈçÏÂ
+2120   1              *´æ´¢0»òÕß1
+2121   1              ****************************************************/   
+2122   1              WriteEEPROM(ReceiverKindFlag, ReceiverKindAddress);              
+2123   1              
+2124   1              /****************************************************           
+2125   1              *ÒÔÏÂ´æ´¢ÏÄÆÕ½ÓÊÕ»úÆµÂÊ,´æ´¢·½·¨ÈçÏÂ
+2126   1              *ÉèÆµÂÊÎª1051.000£¬Ôòa=10£¬b=51,c=00,d=0
+2127   1              ****************************************************/
+2128   1              i = (int)(SharpRecFreq);
+2129   1              j = (SharpRecFreq - i) * 1000;
+2130   1              a = i / 100;                                                            //a=10
+2131   1              b = i % 100;                                                            //b=51
+2132   1              c = j / 10;                                                                     //c=00
+2133   1              d = ((int)j) % 10;                                                      //d=0
+2134   1              WriteEEPROM(a, SatSharpFreqAddress);            //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÕûÊýÇ§Î»°ÙÎ»Öµ
+2135   1              WriteEEPROM(b, SatSharpFreqAddress + 1);        //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÕûÊýÊ®Î»¸öÎ»Öµ
+2136   1              WriteEEPROM(c, SatSharpFreqAddress + 2);        //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÐ¡ÊýÊ®·Ö°Ù·ÖÖµ
+2137   1              WriteEEPROM(d, SatSharpFreqAddress + 3);        //´æ´¢ÏÄÆÕ½ÓÊÕ»úµÄÆµÂÊÐ¡Êý°Ù·Ö°Ù·ÖÖµ
+2138   1              WriteEEPROM(SharpThreshold * 10.0, SharpAgcThresholdAddress);             //´æ´¢ÃÅÏÞ
+2139   1              
+2140   1              /****************************************************           
+2141   1              *ÒÔÏÂ´æ´¢ÐÅ±ê½ÓÊÕ»úÆµÂÊ,´æ´¢·½·¨ÈçÏÂ
+2142   1              *ÉèÆµÂÊÎª1449.500£¬Ôòa=11£¬b=49,c=50,c=50,d=0
+2143   1              ****************************************************/
+2144   1              i = (int)(XinBiaoRecFreq);
+2145   1              j = (XinBiaoRecFreq - i)*1000;
+2146   1              a = i / 100;                                                            //a=14
+2147   1              b = i % 100;                                                            //b=49
+2148   1              c = j / 10;                                                                     //c=50
+2149   1              d = ((int)j) % 10;                                                      //d=0
+2150   1              WriteEEPROM(a, SatXinBiaoFreqAddress);          //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÇ§Î»°ÙÎ»Öµ
+2151   1              WriteEEPROM(b, SatXinBiaoFreqAddress + 1);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÕûÊý²¿·ÖÊ®Î»¸öÎ»Öµ
+2152   1              WriteEEPROM(c, SatXinBiaoFreqAddress + 2);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÊ®·Ö°Ù·ÖÖµ
+2153   1              WriteEEPROM(d, SatXinBiaoFreqAddress + 3);      //´æ´¢ÐÅ±ê½ÓÊÕ»úµÄÆµÂÊÐ¡Êý²¿·ÖÇ§·ÖÎ»Öµ  
+2154   1              WriteEEPROM(XinBiaoThreshold * 10.0, XBThresholdAddress);                                 //´æ´¢ÃÅÏÞ
+2155   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =  17835    ----
+   CODE SIZE        =  17805    ----
+C51 COMPILER V9.01   ANTENNA                                                               12/06/2016 17:32:34 PAGE 36  
+
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =    216    ----
    PDATA SIZE       =   ----    ----

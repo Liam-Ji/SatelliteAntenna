@@ -1,9 +1,9 @@
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 1   
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 1   
 
 
-C51 COMPILER V9.00, COMPILATION OF MODULE UART
+C51 COMPILER V9.01, COMPILATION OF MODULE UART
 OBJECT MODULE PLACED IN uart.OBJ
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE uart.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Applications\Keil\C51\BIN\C51.EXE uart.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
 
 line level    source
 
@@ -61,1128 +61,1211 @@ line level    source
   52          static char data Uart0StartF;
   53          static char data Uart0TxFlag;
   54          
-  55          
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 2   
+  55          static int  data flagG;
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 2   
 
-  56          /*静态函数*/
-  57          static void SelectGradient(void);
-  58          static void SelectGPS(void);
-  59          static void SelectXinBiao(void);
-  60          static void OpenUart1(void);
-  61          static void CloseUart1(void);
-  62          static void SetXinBiaoFreqNum(double Freq);             //2009-2-17
-  63          static void PutXinBiaoS(void);
-  64          
-  65          
-  66          /*有无线切换相关*/
-  67          static int  GetG8(void);
-  68          static char GetG8Flag(void);
-  69          static void SetFlag(char);
-  70          static void InitWire(void);
-  71          
+  56          static int  data flagP;
+  57          static int  data flagR;
+  58          static int  data flagM;
+  59          static int  data flagC;
+  60          
+  61          static int  data selectmode;                     //1=GPS,2=倾斜仪,3=信标机
+  62          
+  63          
+  64          /*静态函数*/
+  65          static void SelectGradient(void);
+  66          static void SelectGPS(void);
+  67          static void SelectXinBiao(void);
+  68          static void OpenUart1(void);
+  69          static void CloseUart1(void);
+  70          static void SetXinBiaoFreqNum(double Freq);             //2009-2-17
+  71          static void PutXinBiaoS(void);
   72          
-  73          /***********************************************************************
-  74          *
-  75          * 函数原型：void Uart0Init(void)
-  76          *
-  77          * 入口参数：无
-  78          *
-  79          * 出口参数：无
-  80          *
-  81          * 功能描述：串口0初始化,定时器1作为时钟源，初值自动重装
+  73          
+  74          /*有无线切换相关*/
+  75          static int  GetG8(void);
+  76          static char GetG8Flag(void);
+  77          static void SetFlag(char);
+  78          static void InitWire(void);
+  79          
+  80          
+  81          /***********************************************************************
   82          *
-  83          ***********************************************************************/
-  84          void Uart0Init(void)
-  85          {
-  86   1              UINT16 Counter;  //定义unsigned short int Counter  
-  87   1              Counter = 65536-(SYSCLK/UARTBR19200/16);          //原来是16，注意
-  88   1              EA=0;                          //所有页
-  89   1         
-  90   1              SFRPAGE   = TMR4_PAGE; 
-  91   1              TMR4CF    |= 0x08;       //系统时钟
-  92   1              TMR4CN    &= 0xFC;  //工作方式：16位自动重载，和定时器功能 
-  93   1      
-  94   1              RCAP4L |= Counter%256;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
-  95   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
-  96   1              RCAP4H |=Counter/256;
-  97   1       
-  98   1              TMR4H=RCAP4H;   
-  99   1      
- 100   1              SFRPAGE   = UART0_PAGE;
- 101   1              SCON0     |= 0x50;      //方式1：8 位UART，可变波特率 , 并且UART0 接收允许 
- 102   1              SSTA0     |= 0x1F;      //定时器4作为接收和发送时钟源（波特率发生器），禁止波特率加倍
- 103   1      
- 104   1      
- 105   1              SFRPAGE   = TMR4_PAGE;
- 106   1              TMR4CN    |= 0x04;      //定时器4允许
+  83          * 函数原型：void Uart0Init(void)
+  84          *
+  85          * 入口参数：无
+  86          *
+  87          * 出口参数：无
+  88          *
+  89          * 功能描述：串口0初始化,定时器1作为时钟源，初值自动重装
+  90          *
+  91          ***********************************************************************/
+  92          void Uart0Init(void)
+  93          {
+  94   1              UINT16 Counter;  //定义unsigned short int Counter  
+  95   1              Counter = 65536-(SYSCLK/UARTBR19200/16);          //原来是16，注意
+  96   1              EA=0;                          //所有页
+  97   1         
+  98   1              SFRPAGE   = TMR4_PAGE; 
+  99   1              TMR4CF    |= 0x08;       //系统时钟
+ 100   1              TMR4CN    &= 0xFC;  //工作方式：16位自动重载，和定时器功能 
+ 101   1      
+ 102   1              RCAP4L |= Counter%256;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
+ 103   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
+ 104   1              RCAP4H |=Counter/256;
+ 105   1       
+ 106   1              TMR4H=RCAP4H;   
  107   1      
- 108   1              ES0        = 0;            //开串口0中断，所有页          
- 109   1              EA=1;
- 110   1      }
- 111          
- 112          
- 113          /***********************************************************************
- 114          *
- 115          * 函数原型：void OpenUart0(void)
- 116          *
- 117          * 入口参数：无
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 3   
+ 108   1              SFRPAGE   = UART0_PAGE;
+ 109   1              SCON0     |= 0x50;      //方式1：8 位UART，可变波特率 , 并且UART0 接收允许 
+ 110   1              SSTA0     |= 0x1F;      //定时器4作为接收和发送时钟源（波特率发生器），禁止波特率加倍
+ 111   1      
+ 112   1      
+ 113   1              SFRPAGE   = TMR4_PAGE;
+ 114   1              TMR4CN    |= 0x04;      //定时器4允许
+ 115   1      
+ 116   1              ES0        = 0;            //开串口0中断，所有页          
+ 117   1              EA=1;
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 3   
 
- 118          *
- 119          * 出口参数：无
- 120          *
- 121          * 功能描述：串口0开
+ 118   1      }
+ 119          
+ 120          
+ 121          /***********************************************************************
  122          *
- 123          ***********************************************************************/
- 124          void OpenUart0(void)
- 125          {
- 126   1              ES0     = 1;                                                    //打开串口0中断
- 127   1              SFRPAGE   = TMR4_PAGE;
- 128   1              TMR4CN    &= ~0x80;             //溢出清空  
- 129   1              TMR4CN    |= 0x04;         //允许定时器4
- 130   1      }
- 131          
- 132          
- 133          /***********************************************************************
- 134          *
- 135          * 函数原型：void CloseUart0(void)
- 136          *
- 137          * 入口参数：无
- 138          *
- 139          * 出口参数：无
- 140          *
- 141          * 功能描述：串口0关
+ 123          * 函数原型：void OpenUart0(void)
+ 124          *
+ 125          * 入口参数：无
+ 126          *
+ 127          * 出口参数：无
+ 128          *
+ 129          * 功能描述：串口0开
+ 130          *
+ 131          ***********************************************************************/
+ 132          void OpenUart0(void)
+ 133          {
+ 134   1              ES0     = 1;                                                    //打开串口0中断
+ 135   1              SFRPAGE   = TMR4_PAGE;
+ 136   1              TMR4CN    &= ~0x80;             //溢出清空  
+ 137   1              TMR4CN    |= 0x04;         //允许定时器4
+ 138   1      }
+ 139          
+ 140          
+ 141          /***********************************************************************
  142          *
- 143          ***********************************************************************/
- 144          void CloseUart0(void)
- 145          {
- 146   1              SFRPAGE   = TMR4_PAGE;
- 147   1              TMR4CN    &= ~0x04;     //禁止定时器4
- 148   1              ES0     = 0;                                                    //关闭串口0中断
- 149   1      }
- 150          
- 151          
- 152          /***********************************************************************
- 153          *
- 154          * 函数原型：void Uart0Interrupt(void)
- 155          *
- 156          * 入口参数：无
- 157          *
- 158          * 出口参数：无
- 159          *
- 160          * 功能描述：串口0中断
+ 143          * 函数原型：void CloseUart0(void)
+ 144          *
+ 145          * 入口参数：无
+ 146          *
+ 147          * 出口参数：无
+ 148          *
+ 149          * 功能描述：串口0关
+ 150          *
+ 151          ***********************************************************************/
+ 152          void CloseUart0(void)
+ 153          {
+ 154   1              SFRPAGE   = TMR4_PAGE;
+ 155   1              TMR4CN    &= ~0x04;     //禁止定时器4
+ 156   1              ES0     = 0;                                                    //关闭串口0中断
+ 157   1      }
+ 158          
+ 159          
+ 160          /***********************************************************************
  161          *
- 162          * 修    改： 2009/9/11加入对接收计数变量的保护
+ 162          * 函数原型：void Uart0Interrupt(void)
  163          *
- 164          ***********************************************************************/
- 165          void Uart0Interrupt(void) interrupt UART0INTNUMBER
- 166          {
- 167   1              TEMPAGE = SFRPAGE;                //120修改
- 168   1              SFRPAGE = UART0_PAGE;
- 169   1      
- 170   1              if(TI0)                                                         //发送中断响应
- 171   1              {
- 172   2                      TI0 = 0;
- 173   2                      if(Uart0TNum > MAXLENGTH - 1)
- 174   2                      {
- 175   3                              Uart0TNum = 0;
- 176   3                      }
- 177   2                      if(Uart0TxFlag == TRUE)
- 178   2                      {
- 179   3                              SBUF0 = Uart0T[Uart0TNum++];    
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 4   
+ 164          * 入口参数：无
+ 165          *
+ 166          * 出口参数：无
+ 167          *
+ 168          * 功能描述：串口0中断
+ 169          *
+ 170          * 修    改： 2009/9/11加入对接收计数变量的保护
+ 171          *
+ 172          ***********************************************************************/
+ 173          void Uart0Interrupt(void) interrupt UART0INTNUMBER
+ 174          {
+ 175   1              TEMPAGE = SFRPAGE;                //120修改
+ 176   1              SFRPAGE = UART0_PAGE;
+ 177   1      
+ 178   1              if(TI0)                                                         //发送中断响应
+ 179   1              {
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 4   
 
- 180   3                      }
- 181   2              }
- 182   1              
- 183   1              if(RI0)                                                         //接收中断响应
- 184   1              {
- 185   2                      RI0 = 0;
- 186   2                      if(Uart0RNum < MAXLENGTH)               //溢出保护2009.9.11
- 187   2                      {
- 188   3                              if(SBUF0 == Uart0StartF)        //如果串口0接收寄存器中的字符是$
- 189   3                              {
- 190   4                                      Uart0Enflag = 1;                //理解为“使能”标志，用于判断是否开始存储数据
- 191   4                              }
- 192   3                              if(Uart0Enflag == 1)
- 193   3                              {
- 194   4                                      Uart0R[Uart0RNum++] = SBUF0;
- 195   4                              }
- 196   3                      }
- 197   2                      else
- 198   2                      {
- 199   3                              Uart0RNum = 0;                           //数组溢出时，将数组下标置为0，重新开始存储
- 200   3                      }
- 201   2              }
- 202   1              SFRPAGE = TEMPAGE;  //120修改
- 203   1      }
- 204          
- 205          
- 206          /***********************************************************************
- 207          *
- 208          * 函数原型：void SelectGPS(void)
- 209          *
- 210          * 入口参数：无
- 211          *
- 212          * 出口参数：无
- 213          *
- 214          * 功能描述：串口0切换到GPS，并且将波特率切换到4800
- 215          *
- 216          ***********************************************************************/
- 217          static void SelectGPS(void)
- 218          { 
- 219   1              UINT16 Counter;  //定义unsigned short int Counter 
- 220   1      
- 221   1              CloseUart0();
- 222   1                      
- 223   1              SFRPAGE = 0x0F;   //120修改      页F
- 224   1      //      SELECT0H;                 //P6^5=1
- 225   1      //      SELECT1L;                 //P6^6=0       选择GPS
- 226   1              SELECT0H;                 //P6^5=1
- 227   1              SELECT1H;                 //P6^6=1       选择GPS
- 228   1      
- 229   1          SFRPAGE   = TMR4_PAGE;
- 230   1              TMR4CN    &= ~0x04;     //禁止定时器4
- 231   1                                                               
- 232   1              Counter=65536-(SYSCLK/UARTBR9600/16);   
- 233   1              RCAP4L=Counter&0x00ff;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
- 234   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
- 235   1              Counter=Counter>>8;
- 236   1              RCAP4H=Counter&0x00ff;   //把计数值的高8位赋给定时器4捕捉寄存器高字节 
- 237   1              TMR4H=RCAP4H;
- 238   1                                                              
- 239   1              TMR4CN    &= ~0x80;             //溢出清空  
- 240   1              TMR4CN    |= 0x04;         //允许定时器4 
- 241   1      
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 5   
+ 180   2                      TI0 = 0;
+ 181   2                      if(Uart0TNum > MAXLENGTH - 1)
+ 182   2                      {
+ 183   3                              Uart0TNum = 0;
+ 184   3                      }
+ 185   2                      if(Uart0TxFlag == TRUE)
+ 186   2                      {
+ 187   3                              SBUF0 = Uart0T[Uart0TNum++];    
+ 188   3                      }
+ 189   2              }
+ 190   1              
+ 191   1              if(RI0)                                                         //接收中断响应
+ 192   1              {
+ 193   2                      RI0 = 0;
+ 194   2                      if(selectmode == 1){
+ 195   3                              if(Uart0RNum < MAXLENGTH)               //溢出保护2009.9.11
+ 196   3                              {
+ 197   4                                      if(SBUF0 == Uart0StartF)        //如果串口0接收寄存器中的字符是$
+ 198   4                                      {
+ 199   5                                              Uart0Enflag = 1;                //理解为“使能”标志，用于判断是否开始存储数据
+ 200   5                                      }
+ 201   4                                      if(Uart0Enflag == 1 && SBUF0 == 'G')
+ 202   4                                              flagG = 1;
+ 203   4                                      if(flagG == 1 && SBUF0 == 'P')
+ 204   4                                              flagP = 1;
+ 205   4                                      if(flagP == 1 && SBUF0 == 'R')
+ 206   4                                              flagR = 1;
+ 207   4                                      if(flagR == 1 && SBUF0 == 'M')
+ 208   4                                              flagM = 1;
+ 209   4                                      if(flagM == 1 && SBUF0 == 'C')
+ 210   4                                              flagC = 1;
+ 211   4                                      if(flagC == 1)
+ 212   4                                      {
+ 213   5                                              Uart0R[Uart0RNum++] = SBUF0;
+ 214   5                                      }
+ 215   4                              }
+ 216   3                              else
+ 217   3                              {
+ 218   4                                      Uart0RNum = 0;                           //数组溢出时，将数组下标置为0，重新开始存储
+ 219   4                              }
+ 220   3                      }else{
+ 221   3                              if(Uart0RNum < MAXLENGTH)               //溢出保护2009.9.11
+ 222   3                              {
+ 223   4                                      if(SBUF0 == Uart0StartF)        //如果串口0接收寄存器中的字符是$
+ 224   4                                      {
+ 225   5                                              Uart0Enflag = 1;                //理解为“使能”标志，用于判断是否开始存储数据
+ 226   5                                      }
+ 227   4                                      if(Uart0Enflag == 1)
+ 228   4                                      {
+ 229   5                                              Uart0R[Uart0RNum++] = SBUF0;
+ 230   5                                      }
+ 231   4                              }
+ 232   3                              else
+ 233   3                              {
+ 234   4                                      Uart0RNum = 0;                           //数组溢出时，将数组下标置为0，重新开始存储
+ 235   4                              }
+ 236   3                      }
+ 237   2              }
+ 238   1              SFRPAGE = TEMPAGE;  //120修改
+ 239   1      }
+ 240          
+ 241          
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 5   
 
- 242   1              OpenUart0();               //打开串口中断，准备接收GPS信息
- 243   1      }
- 244          
- 245          
- 246          /***********************************************************************
+ 242          /***********************************************************************
+ 243          *
+ 244          * 函数原型：void SelectGPS(void)
+ 245          *
+ 246          * 入口参数：无
  247          *
- 248          * 函数原型：void SelectGradient(void)
+ 248          * 出口参数：无
  249          *
- 250          * 入口参数：无
+ 250          * 功能描述：串口0切换到GPS，并且将波特率切换到4800
  251          *
- 252          * 出口参数：无
- 253          *
- 254          * 功能描述：串口0切换到倾斜仪，并且将波特率切换到9600
- 255          *
- 256          ***********************************************************************/
- 257          static void SelectGradient(void)
- 258          {
- 259   1              UINT16 Counter;  //定义unsigned short int Counter  
- 260   1              
- 261   1              CloseUart0();   
- 262   1      
- 263   1              SFRPAGE = 0x0F;   //120修改      页F
- 264   1              SELECT0L;
- 265   1              SELECT1L;
- 266   1      
- 267   1          SFRPAGE   = TMR4_PAGE;
- 268   1              TMR4CN    &=0xFB;       //禁止定时器4
- 269   1                                                               
- 270   1              Counter=65536-(SYSCLK/UARTBR9600/16);   
- 271   1              RCAP4L=Counter&0x00ff;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
- 272   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
- 273   1              Counter=Counter>>8;
- 274   1              RCAP4H=Counter&0x00ff;   //把计数值的高8位赋给定时器4捕捉寄存器高字节 
- 275   1              TMR4H=RCAP4H;
- 276   1       
- 277   1              TMR4CN    |= 0x04;         //允许定时器4 
- 278   1      
- 279   1              OpenUart0();
- 280   1      }
+ 252          ***********************************************************************/
+ 253          static void SelectGPS(void)
+ 254          { 
+ 255   1              UINT16 Counter;  //定义unsigned short int Counter 
+ 256   1              selectmode = 1;
+ 257   1              CloseUart0();
+ 258   1                      
+ 259   1              SFRPAGE = 0x0F;   //120修改      页F
+ 260   1      //      SELECT0H;                 //P6^5=1
+ 261   1      //      SELECT1L;                 //P6^6=0       选择GPS
+ 262   1              SELECT0H;                 //P6^5=1
+ 263   1              SELECT1H;                 //P6^6=1       选择GPS
+ 264   1      
+ 265   1          SFRPAGE   = TMR4_PAGE;
+ 266   1              TMR4CN    &= ~0x04;     //禁止定时器4
+ 267   1                                                               
+ 268   1              Counter=65536-(SYSCLK/UARTBR9600/16);   
+ 269   1              RCAP4L=Counter&0x00ff;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
+ 270   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
+ 271   1              Counter=Counter>>8;
+ 272   1              RCAP4H=Counter&0x00ff;   //把计数值的高8位赋给定时器4捕捉寄存器高字节 
+ 273   1              TMR4H=RCAP4H;
+ 274   1                                                              
+ 275   1              TMR4CN    &= ~0x80;             //溢出清空  
+ 276   1              TMR4CN    |= 0x04;         //允许定时器4 
+ 277   1      
+ 278   1              OpenUart0();               //打开串口中断，准备接收GPS信息
+ 279   1      }
+ 280          
  281          
- 282          
- 283          /***********************************************************************
- 284          *
- 285          * 函数原型：void SelectXinBiao(void)
- 286          *
- 287          * 入口参数：无
- 288          *
- 289          * 出口参数：无
- 290          *
- 291          * 功能描述：选择信标接收机
- 292          
- 293          *
- 294          * 加入时间：2009-1-4，杨淳雯
- 295          *
- 296          ***********************************************************************/
- 297          static void SelectXinBiao(void)
- 298          {
- 299   1              UINT16 Counter;  //定义unsigned short int Counter  
- 300   1              
- 301   1              CloseUart0();   
+ 282          /***********************************************************************
+ 283          *
+ 284          * 函数原型：void SelectGradient(void)
+ 285          *
+ 286          * 入口参数：无
+ 287          *
+ 288          * 出口参数：无
+ 289          *
+ 290          * 功能描述：串口0切换到倾斜仪，并且将波特率切换到9600
+ 291          *
+ 292          ***********************************************************************/
+ 293          static void SelectGradient(void)
+ 294          {
+ 295   1              UINT16 Counter;  //定义unsigned short int Counter  
+ 296   1              selectmode = 2;
+ 297   1              CloseUart0();   
+ 298   1      
+ 299   1              SFRPAGE = 0x0F;   //120修改      页F
+ 300   1              SELECT0L;
+ 301   1              SELECT1L;
  302   1      
- 303   1              SFRPAGE = 0x0F;   //120修改      页F
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 6   
+ 303   1          SFRPAGE   = TMR4_PAGE;
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 6   
 
- 304   1              SELECT0L;
- 305   1              SELECT1H;
- 306   1      
- 307   1          SFRPAGE   = TMR4_PAGE;
- 308   1              TMR4CN    &=0xFB;       //禁止定时器4
- 309   1                                                               
- 310   1              Counter=65536-(SYSCLK/UARTBR19200/16);  
- 311   1              RCAP4L=Counter&0x00ff;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
- 312   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
- 313   1              Counter=Counter>>8;
- 314   1              RCAP4H=Counter&0x00ff;   //把计数值的高8位赋给定时器4捕捉寄存器高字节 
- 315   1              TMR4H=RCAP4H;
- 316   1       
- 317   1              TMR4CN    |= 0x04;         //允许定时器4 
- 318   1      
- 319   1              OpenUart0();
- 320   1      }
- 321          
- 322          
- 323          /***********************************************************************
+ 304   1              TMR4CN    &=0xFB;       //禁止定时器4
+ 305   1                                                               
+ 306   1              Counter=65536-(SYSCLK/UARTBR9600/16);   
+ 307   1              RCAP4L=Counter&0x00ff;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
+ 308   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
+ 309   1              Counter=Counter>>8;
+ 310   1              RCAP4H=Counter&0x00ff;   //把计数值的高8位赋给定时器4捕捉寄存器高字节 
+ 311   1              TMR4H=RCAP4H;
+ 312   1       
+ 313   1              TMR4CN    |= 0x04;         //允许定时器4 
+ 314   1      
+ 315   1              OpenUart0();
+ 316   1      }
+ 317          
+ 318          
+ 319          /***********************************************************************
+ 320          *
+ 321          * 函数原型：void SelectXinBiao(void)
+ 322          *
+ 323          * 入口参数：无
  324          *
- 325          * 函数原型：float SelectFreq(void)
+ 325          * 出口参数：无
  326          *
- 327          * 入口参数：无
- 328          *
- 329          * 出口参数：无
- 330          *
- 331          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
- 332          *
- 333          * 加入时间：2009-1-4，杨淳雯
- 334          *
- 335          * 说    明：参考相关信标接收机说明文档，
- 336          *
- 337          ***********************************************************************/
- 338          void SetXinBiaoFreqKC(double freq)
- 339          {
- 340   1              int i = 5;
- 341   1              while(i--)
- 342   1              {
- 343   2                      Delay(10000);
- 344   2                      SetXinBiaoFreqNum(freq);
- 345   2                      if(XinBiaoFlagNum == TRUE)
- 346   2                      {
- 347   3      ;//                     PutXinBiaoS();
- 348   3                      }
- 349   2                      if(XinBiaoRecNormalFlag == TRUE)
- 350   2                      {
- 351   3                              break;
- 352   3                      }       
- 353   2              }
- 354   1      }
- 355          
- 356          
- 357          /***********************************************************************
- 358          *
- 359          * 函数原型：void SetXinBiaoFreqNum(void)
+ 327          * 功能描述：选择信标接收机
+ 328          
+ 329          *
+ 330          * 加入时间：2009-1-4，杨淳雯
+ 331          *
+ 332          ***********************************************************************/
+ 333          static void SelectXinBiao(void)
+ 334          {
+ 335   1              UINT16 Counter;  //定义unsigned short int Counter  
+ 336   1              selectmode = 3;
+ 337   1              CloseUart0();   
+ 338   1      
+ 339   1              SFRPAGE = 0x0F;   //120修改      页F
+ 340   1              SELECT0L;
+ 341   1              SELECT1H;
+ 342   1      
+ 343   1          SFRPAGE   = TMR4_PAGE;
+ 344   1              TMR4CN    &=0xFB;       //禁止定时器4
+ 345   1                                                               
+ 346   1              Counter=65536-(SYSCLK/UARTBR19200/16);  
+ 347   1              RCAP4L=Counter&0x00ff;   // 把计数值的低8位赋给定时器4捕捉寄存器低字节 
+ 348   1              TMR4L=RCAP4L;            //赋值给定时器4低字节 
+ 349   1              Counter=Counter>>8;
+ 350   1              RCAP4H=Counter&0x00ff;   //把计数值的高8位赋给定时器4捕捉寄存器高字节 
+ 351   1              TMR4H=RCAP4H;
+ 352   1       
+ 353   1              TMR4CN    |= 0x04;         //允许定时器4 
+ 354   1      
+ 355   1              OpenUart0();
+ 356   1      }
+ 357          
+ 358          
+ 359          /***********************************************************************
  360          *
- 361          * 入口参数：无
+ 361          * 函数原型：float SelectFreq(void)
  362          *
- 363          * 出口参数：无
+ 363          * 入口参数：无
  364          *
- 365          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 7   
+ 365          * 出口参数：无
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 7   
 
  366          *
- 367          * 修    改：（2009-3-5）
+ 367          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
  368          *
- 369          ***********************************************************************/
- 370          static void SetXinBiaoFreqNum(double Freq)
- 371          {
- 372   1              int FreqT;
- 373   1      
- 374   1              FreqT = (int)Freq;
- 375   1      
- 376   1              Uart0T[0] = '<';
- 377   1              Uart0T[1] = 'F';
- 378   1              Uart0T[2] = FreqT / 1000 + '0';
- 379   1              FreqT %= 1000;
- 380   1              Uart0T[3] = FreqT / 100 + '0';
- 381   1              FreqT %= 100;
- 382   1              Uart0T[4] = FreqT / 10 + '0';
- 383   1              FreqT %= 10;
- 384   1              Uart0T[5] = FreqT % 10 + '0';
- 385   1              Uart0T[6] = '.';
- 386   1      
- 387   1              FreqT = (int)Freq;
- 388   1              FreqT = (Freq - FreqT) * 1000;
- 389   1      
- 390   1              FreqT %= 1000;
- 391   1              Uart0T[7] = FreqT / 100 + '0';
- 392   1              FreqT %= 100;
- 393   1              Uart0T[8] = FreqT / 10 + '0';
- 394   1              FreqT %= 10;
- 395   1              Uart0T[9] = FreqT % 10 + '0';
- 396   1      
- 397   1              Uart0T[10] = 0xd;
- 398   1              Uart0T[11] = 0xa;
- 399   1      
- 400   1              Uart0Enflag     = 0;
- 401   1              Uart0RNum       = 0;    
- 402   1              Uart0StartF     = '<';
- 403   1              Uart0TNum = 1;
- 404   1              Uart0TxFlag = TRUE;
- 405   1              SelectXinBiao();
- 406   1              Delay(40);
- 407   1      
- 408   1              SFRPAGE = UART0_PAGE;
- 409   1              SBUF0 = Uart0T[0];                                                              //开始发送
- 410   1              
- 411   1              OpenTimer0Interrupt();
- 412   1              while((OverflowT0 < 10) && SBUF0 != 'T')                //得到信标接收机的返回值，放入Uart0R[]中
- 413   1              {
- 414   2                      if(Uart0TNum > 11)
- 415   2                      {
- 416   3                               Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
- 417   3                               Uart0Enflag = 0;                                               //2009/9/8
- 418   3                      }
- 419   2              }
- 420   1              CloseUart0();
- 421   1              CloseTimer0Interrupt();
- 422   1              TI0 = 0;
- 423   1              Uart0Enflag = 0;
- 424   1              Uart0TxFlag = FALSE;
- 425   1              if(OverflowT0 > 9)
- 426   1              {
- 427   2                      XinBiaoRecNormalFlag = FALSE;                           //判断信标为故障
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 8   
+ 369          * 加入时间：2009-1-4，杨淳雯
+ 370          *
+ 371          * 说    明：参考相关信标接收机说明文档，
+ 372          *
+ 373          ***********************************************************************/
+ 374          void SetXinBiaoFreqKC(double freq)
+ 375          {
+ 376   1              int i = 5;
+ 377   1              while(i--)
+ 378   1              {
+ 379   2                      Delay(10000);
+ 380   2                      SetXinBiaoFreqNum(freq);
+ 381   2                      if(XinBiaoFlagNum == TRUE)
+ 382   2                      {
+ 383   3      ;//                     PutXinBiaoS();
+ 384   3                      }
+ 385   2                      if(XinBiaoRecNormalFlag == TRUE)
+ 386   2                      {
+ 387   3                              break;
+ 388   3                      }       
+ 389   2              }
+ 390   1      }
+ 391          
+ 392          
+ 393          /***********************************************************************
+ 394          *
+ 395          * 函数原型：void SetXinBiaoFreqNum(void)
+ 396          *
+ 397          * 入口参数：无
+ 398          *
+ 399          * 出口参数：无
+ 400          *
+ 401          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
+ 402          *
+ 403          * 修    改：（2009-3-5）
+ 404          *
+ 405          ***********************************************************************/
+ 406          static void SetXinBiaoFreqNum(double Freq)
+ 407          {
+ 408   1              int FreqT;
+ 409   1      
+ 410   1              FreqT = (int)Freq;
+ 411   1      
+ 412   1              Uart0T[0] = '<';
+ 413   1              Uart0T[1] = 'F';
+ 414   1              Uart0T[2] = FreqT / 1000 + '0';
+ 415   1              FreqT %= 1000;
+ 416   1              Uart0T[3] = FreqT / 100 + '0';
+ 417   1              FreqT %= 100;
+ 418   1              Uart0T[4] = FreqT / 10 + '0';
+ 419   1              FreqT %= 10;
+ 420   1              Uart0T[5] = FreqT % 10 + '0';
+ 421   1              Uart0T[6] = '.';
+ 422   1      
+ 423   1              FreqT = (int)Freq;
+ 424   1              FreqT = (Freq - FreqT) * 1000;
+ 425   1      
+ 426   1              FreqT %= 1000;
+ 427   1              Uart0T[7] = FreqT / 100 + '0';
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 8   
 
- 428   2              }
- 429   1              else
- 430   1              {
- 431   2                      XinBiaoRecNormalFlag = TRUE;                            //判断信标志着为正常            
- 432   2              }       
- 433   1      }
- 434          
- 435          
- 436          /***********************************************************************
- 437          *
- 438          * 函数原型：void GetXinBiaoVER(void)
- 439          *
- 440          * 入口参数：无
- 441          *
- 442          * 出口参数：无
- 443          *
- 444          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
- 445          *
- 446          * 修    改：（2009-3-5）
- 447          *
- 448          ***********************************************************************/
- 449          void GetXinBiaoVER(void)
- 450          {
- 451   1              char i;
- 452   1              char j;
- 453   1      
- 454   1              Uart0T[0] = '<';
- 455   1              Uart0T[1] = 'V';
- 456   1              Uart0T[2] = 'E';
- 457   1              Uart0T[3] = 'R';
- 458   1              Uart0T[4] = '?';
- 459   1              Uart0T[5] = 0xd;
- 460   1              Uart0T[6] = 0xa;
- 461   1      
- 462   1              Uart0Enflag     = 0;
- 463   1              Uart0RNum       = 0;    
- 464   1              Uart0StartF     = '<';
- 465   1              Uart0TNum = 1;
- 466   1              Uart0TxFlag = TRUE;
- 467   1      
- 468   1              SelectXinBiao();
- 469   1              Delay(40);
- 470   1      
- 471   1              SFRPAGE = UART0_PAGE;
- 472   1              SBUF0 = Uart0T[0];                                                              //开始发送
- 473   1              
- 474   1              OpenTimer0Interrupt();
- 475   1              while((OverflowT0 < 10) && SBUF0 != 'K')                //得到gradient的值，放入Uart0R[]中
- 476   1              {
- 477   2                      i = SBUF0;
- 478   2                      if(i != j)
- 479   2                      {
- 480   3                              if((i == 'F') && (j == 'R'))
- 481   3                              {
- 482   4                                      break;
- 483   4                              }
- 484   3                              j = i;
- 485   3                      }
- 486   2                      if(Uart0TNum > 6)
- 487   2                      {
- 488   3                               Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
- 489   3                               Uart0Enflag = 0;
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 9   
+ 428   1              FreqT %= 100;
+ 429   1              Uart0T[8] = FreqT / 10 + '0';
+ 430   1              FreqT %= 10;
+ 431   1              Uart0T[9] = FreqT % 10 + '0';
+ 432   1      
+ 433   1              Uart0T[10] = 0xd;
+ 434   1              Uart0T[11] = 0xa;
+ 435   1      
+ 436   1              Uart0Enflag     = 0;
+ 437   1              Uart0RNum       = 0;    
+ 438   1              Uart0StartF     = '<';
+ 439   1              Uart0TNum = 1;
+ 440   1              Uart0TxFlag = TRUE;
+ 441   1              SelectXinBiao();
+ 442   1              Delay(40);
+ 443   1      
+ 444   1              SFRPAGE = UART0_PAGE;
+ 445   1              SBUF0 = Uart0T[0];                                                              //开始发送
+ 446   1              
+ 447   1              OpenTimer0Interrupt();
+ 448   1              while((OverflowT0 < 10) && SBUF0 != 'T')                //得到信标接收机的返回值，放入Uart0R[]中
+ 449   1              {
+ 450   2                      if(Uart0TNum > 11)
+ 451   2                      {
+ 452   3                               Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
+ 453   3                               Uart0Enflag = 0;                                               //2009/9/8
+ 454   3                      }
+ 455   2              }
+ 456   1              CloseUart0();
+ 457   1              CloseTimer0Interrupt();
+ 458   1              TI0 = 0;
+ 459   1              Uart0Enflag = 0;
+ 460   1              Uart0TxFlag = FALSE;
+ 461   1              if(OverflowT0 > 9)
+ 462   1              {
+ 463   2                      XinBiaoRecNormalFlag = FALSE;                           //判断信标为故障
+ 464   2              }
+ 465   1              else
+ 466   1              {
+ 467   2                      XinBiaoRecNormalFlag = TRUE;                            //判断信标志着为正常            
+ 468   2              }       
+ 469   1      }
+ 470          
+ 471          
+ 472          /***********************************************************************
+ 473          *
+ 474          * 函数原型：void GetXinBiaoVER(void)
+ 475          *
+ 476          * 入口参数：无
+ 477          *
+ 478          * 出口参数：无
+ 479          *
+ 480          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
+ 481          *
+ 482          * 修    改：（2009-3-5）
+ 483          *
+ 484          ***********************************************************************/
+ 485          void GetXinBiaoVER(void)
+ 486          {
+ 487   1              char i;
+ 488   1              char j;
+ 489   1      
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 9   
 
- 490   3                      }
- 491   2              }
- 492   1              CloseUart0();
- 493   1              CloseTimer0Interrupt();
- 494   1      
- 495   1              Uart0Enflag = 0;
- 496   1              TI0 = 0;
- 497   1              Uart0TxFlag = FALSE;
- 498   1              if(OverflowT0 < 10)
- 499   1              {
- 500   2                      XinBiaoFlagNum = TRUE;                                          //判断信标志着为正常            
- 501   2              }
- 502   1              else
- 503   1              {
- 504   2                      XinBiaoFlagNum = FALSE;
- 505   2              }       
- 506   1      }
- 507          
- 508          
- 509          /***********************************************************************
- 510          *
- 511          * 函数原型：void GetXinBiaoVER(void)
- 512          *
- 513          * 入口参数：无
- 514          *
- 515          * 出口参数：无
- 516          *
- 517          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
- 518          *
- 519          * 修    改：（2009-3-5）
- 520          *
- 521          ***********************************************************************/
- 522          void GetXinBiaoVorX(void)
- 523          {
- 524   1              Uart0T[0] = '<';
- 525   1              Uart0T[1] = 'C';
- 526   1              Uart0T[2] = 0xd;
- 527   1              Uart0T[3] = 0xa;
- 528   1      
- 529   1              Uart0Enflag     = 0;
- 530   1              Uart0RNum       = 0;    
- 531   1              Uart0StartF     = '>';
- 532   1              Uart0TNum = 1;
- 533   1              Uart0TxFlag = TRUE;
- 534   1              SelectXinBiao();
- 535   1              Delay(40);
- 536   1      
- 537   1              SFRPAGE = UART0_PAGE;
- 538   1              SBUF0 = Uart0T[0];                                                              //开始发送
- 539   1              
- 540   1              OpenTimer0Interrupt();
- 541   1              while((OverflowT0 < 10) && SBUF0 != 'V' && SBUF0 != 'X')                //得到gradient的值，放入Uart0R[]中
- 542   1              {
- 543   2                      if(Uart0TNum > 3)
- 544   2                      {
- 545   3                               Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
- 546   3                               Uart0Enflag = 0;
- 547   3                      }
- 548   2              }
- 549   1              XinBiaoVorX = SBUF0;
- 550   1              CloseUart0();
- 551   1              CloseTimer0Interrupt();
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 10  
+ 490   1              Uart0T[0] = '<';
+ 491   1              Uart0T[1] = 'V';
+ 492   1              Uart0T[2] = 'E';
+ 493   1              Uart0T[3] = 'R';
+ 494   1              Uart0T[4] = '?';
+ 495   1              Uart0T[5] = 0xd;
+ 496   1              Uart0T[6] = 0xa;
+ 497   1      
+ 498   1              Uart0Enflag     = 0;
+ 499   1              Uart0RNum       = 0;    
+ 500   1              Uart0StartF     = '<';
+ 501   1              Uart0TNum = 1;
+ 502   1              Uart0TxFlag = TRUE;
+ 503   1      
+ 504   1              SelectXinBiao();
+ 505   1              Delay(40);
+ 506   1      
+ 507   1              SFRPAGE = UART0_PAGE;
+ 508   1              SBUF0 = Uart0T[0];                                                              //开始发送
+ 509   1              
+ 510   1              OpenTimer0Interrupt();
+ 511   1              while((OverflowT0 < 10) && SBUF0 != 'K')                //得到gradient的值，放入Uart0R[]中
+ 512   1              {
+ 513   2                      i = SBUF0;
+ 514   2                      if(i != j)
+ 515   2                      {
+ 516   3                              if((i == 'F') && (j == 'R'))
+ 517   3                              {
+ 518   4                                      break;
+ 519   4                              }
+ 520   3                              j = i;
+ 521   3                      }
+ 522   2                      if(Uart0TNum > 6)
+ 523   2                      {
+ 524   3                               Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
+ 525   3                               Uart0Enflag = 0;
+ 526   3                      }
+ 527   2              }
+ 528   1              CloseUart0();
+ 529   1              CloseTimer0Interrupt();
+ 530   1      
+ 531   1              Uart0Enflag = 0;
+ 532   1              TI0 = 0;
+ 533   1              Uart0TxFlag = FALSE;
+ 534   1              if(OverflowT0 < 10)
+ 535   1              {
+ 536   2                      XinBiaoFlagNum = TRUE;                                          //判断信标志着为正常            
+ 537   2              }
+ 538   1              else
+ 539   1              {
+ 540   2                      XinBiaoFlagNum = FALSE;
+ 541   2              }       
+ 542   1      }
+ 543          
+ 544          
+ 545          /***********************************************************************
+ 546          *
+ 547          * 函数原型：void GetXinBiaoVER(void)
+ 548          *
+ 549          * 入口参数：无
+ 550          *
+ 551          * 出口参数：无
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 10  
 
- 552   1              Uart0Enflag = 0;
- 553   1              TI0 = 0;
- 554   1              Uart0TxFlag = FALSE;                            
- 555   1      }
- 556          
- 557          
- 558          /*以后可能用不到*/
- 559          /*
- 560          static void PutXinBiaoS(void)
- 561          {
- 562                  Uart0T[0] = '<';
- 563                  Uart0T[1] = 'S';
- 564                  Uart0T[2] = 0xd;
- 565                  Uart0T[3] = 0xa;
- 566          
- 567                  Uart0Enflag     = 0;
- 568                  Uart0RNum       = 0;    
- 569                  Uart0StartF     = '<';
- 570                  Uart0TNum = 1;
- 571                  Uart0TxFlag = TRUE;
- 572                  SelectXinBiao();
- 573                  Delay(40);
- 574                  SBUF0 = Uart0T[0];                                                              //开始发送
- 575                  
- 576                  OpenTimer0Interrupt();
- 577                  while((OverflowT0 < 10) && SBUF0 != 0xa)                //得到gradient的值，放入Uart0R[]中
- 578                  {
- 579                          if(Uart0TNum > 3)
- 580                          {
- 581                                   Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
- 582                                   Uart0Enflag = 0;
- 583                          }
- 584                  }
- 585                  CloseUart0();
- 586                  CloseTimer0Interrupt();
- 587                  TI0 = 0;
- 588                  Uart0Enflag = 0;
- 589                  Uart0TxFlag = FALSE;                            
- 590          }
- 591          */
- 592          /***********************************************************************
- 593          *
- 594          * 函数原型：float GetKCAGC(void)
- 595          *
- 596          * 入口参数：无
- 597          *
- 598          * 出口参数：float agc，从串口得到AGC
- 599          *
- 600          * 功能描述：得到信标接收机AGC
- 601          *
- 602          ***********************************************************************/
- 603          float GetKCAGC(void)
- 604          {
- 605   1              float agc;
- 606   1      
- 607   1              Uart0Enflag     = 0;
- 608   1              Uart0RNum       = 0;    
- 609   1              Uart0StartF     = '>';
- 610   1              
- 611   1              OpenTimer0Interrupt();
- 612   1              SelectXinBiao();
- 613   1              while((OverflowT0 < 10) && Uart0RNum < 7)               //得到gradient的值，放入Uart0R[]中
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 11  
+ 552          *
+ 553          * 功能描述：给信标接收机写频率字（南京宽超信标接收机用）
+ 554          *
+ 555          * 修    改：（2009-3-5）
+ 556          *
+ 557          ***********************************************************************/
+ 558          void GetXinBiaoVorX(void)
+ 559          {
+ 560   1              Uart0T[0] = '<';
+ 561   1              Uart0T[1] = 'C';
+ 562   1              Uart0T[2] = 0xd;
+ 563   1              Uart0T[3] = 0xa;
+ 564   1      
+ 565   1              Uart0Enflag     = 0;
+ 566   1              Uart0RNum       = 0;    
+ 567   1              Uart0StartF     = '>';
+ 568   1              Uart0TNum = 1;
+ 569   1              Uart0TxFlag = TRUE;
+ 570   1              SelectXinBiao();
+ 571   1              Delay(40);
+ 572   1      
+ 573   1              SFRPAGE = UART0_PAGE;
+ 574   1              SBUF0 = Uart0T[0];                                                              //开始发送
+ 575   1              
+ 576   1              OpenTimer0Interrupt();
+ 577   1              while((OverflowT0 < 10) && SBUF0 != 'V' && SBUF0 != 'X')                //得到gradient的值，放入Uart0R[]中
+ 578   1              {
+ 579   2                      if(Uart0TNum > 3)
+ 580   2                      {
+ 581   3                               Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
+ 582   3                               Uart0Enflag = 0;
+ 583   3                      }
+ 584   2              }
+ 585   1              XinBiaoVorX = SBUF0;
+ 586   1              CloseUart0();
+ 587   1              CloseTimer0Interrupt();
+ 588   1              Uart0Enflag = 0;
+ 589   1              TI0 = 0;
+ 590   1              Uart0TxFlag = FALSE;                            
+ 591   1      }
+ 592          
+ 593          
+ 594          /*以后可能用不到*/
+ 595          /*
+ 596          static void PutXinBiaoS(void)
+ 597          {
+ 598                  Uart0T[0] = '<';
+ 599                  Uart0T[1] = 'S';
+ 600                  Uart0T[2] = 0xd;
+ 601                  Uart0T[3] = 0xa;
+ 602          
+ 603                  Uart0Enflag     = 0;
+ 604                  Uart0RNum       = 0;    
+ 605                  Uart0StartF     = '<';
+ 606                  Uart0TNum = 1;
+ 607                  Uart0TxFlag = TRUE;
+ 608                  SelectXinBiao();
+ 609                  Delay(40);
+ 610                  SBUF0 = Uart0T[0];                                                              //开始发送
+ 611                  
+ 612                  OpenTimer0Interrupt();
+ 613                  while((OverflowT0 < 10) && SBUF0 != 0xa)                //得到gradient的值，放入Uart0R[]中
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 11  
 
- 614   1              {
- 615   2                      ;
- 616   2              }
- 617   1              CloseUart0();
- 618   1              CloseTimer0Interrupt();
- 619   1              Uart0Enflag = 0;
- 620   1              if(OverflowT0 > 9 || Uart0RNum < 7)
- 621   1              {
- 622   2                      return 0.0;
- 623   2              }
- 624   1              if(Uart0R[1] == 'D')
- 625   1              {
- 626   2                      return 0.5;
- 627   2              }
- 628   1              agc = (Uart0R[2] - '0') +               \
- 629   1                        (Uart0R[4] - '0') * 0.1 + \
- 630   1                        (Uart0R[5] - '0') * 0.01;
- 631   1              if(Uart0R[1] == 'T')
- 632   1              {
- 633   2                      return AGC;     
- 634   2              }
- 635   1      
- 636   1              return agc;                             
- 637   1      }
- 638          
- 639          
- 640          /***********************************************************************
- 641          *
- 642          * 函数原型：void ReadGradient(void)
- 643          *
- 644          * 入口参数：无
- 645          *
- 646          * 出口参数：无
- 647          *
- 648          * 功能描述：打开串口0中断,接收倾斜仪数据
- 649          *
- 650          ***********************************************************************/
- 651          void ReadGradient(void)
- 652          {
- 653   1              Uart0Enflag             = 0;
- 654   1              GradientNormal  = 0;    
- 655   1      
- 656   1              for(Uart0RNum = MAXLENGTH-1; Uart0RNum >= 0; Uart0RNum--)
- 657   1                      Uart0R[Uart0RNum] = '\0';
- 658   1              Uart0RNum               = 0;
- 659   1              Uart0StartF             = '$';                                                  //倾斜仪开始标志
- 660   1              OpenTimer0Interrupt();
- 661   1              SelectGradient();
- 662   1      
- 663   1              while(OverflowT0 < 15 && Uart0RNum < 12)                //得到gradient的值，放入Uart0R[]中
- 664   1              {
- 665   2                      ;
- 666   2              }
- 667   1              CloseUart0();
- 668   1              CloseTimer0Interrupt();
- 669   1              Uart0Enflag     = 0;
- 670   1      
- 671   1      /*
- 672   1              if((Uart0R[3] == '+') || (Uart0R[3] == '-'))
- 673   1              {
- 674   1                      GradientY = (Uart0R[4] - '0') * 10.0  + \                
- 675   1                                              (Uart0R[5] - '0')                 + \
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 12  
+ 614                  {
+ 615                          if(Uart0TNum > 3)
+ 616                          {
+ 617                                   Uart0TxFlag = FALSE;                                   //停止发送，关发送标志
+ 618                                   Uart0Enflag = 0;
+ 619                          }
+ 620                  }
+ 621                  CloseUart0();
+ 622                  CloseTimer0Interrupt();
+ 623                  TI0 = 0;
+ 624                  Uart0Enflag = 0;
+ 625                  Uart0TxFlag = FALSE;                            
+ 626          }
+ 627          */
+ 628          /***********************************************************************
+ 629          *
+ 630          * 函数原型：float GetKCAGC(void)
+ 631          *
+ 632          * 入口参数：无
+ 633          *
+ 634          * 出口参数：float agc，从串口得到AGC
+ 635          *
+ 636          * 功能描述：得到信标接收机AGC
+ 637          *
+ 638          ***********************************************************************/
+ 639          float GetKCAGC(void)
+ 640          {
+ 641   1              float agc;
+ 642   1      
+ 643   1              Uart0Enflag     = 0;
+ 644   1              Uart0RNum       = 0;    
+ 645   1              Uart0StartF     = '>';
+ 646   1              
+ 647   1              OpenTimer0Interrupt();
+ 648   1              SelectXinBiao();
+ 649   1              while((OverflowT0 < 10) && Uart0RNum < 7)               //得到gradient的值，放入Uart0R[]中
+ 650   1              {
+ 651   2                      ;
+ 652   2              }
+ 653   1              CloseUart0();
+ 654   1              CloseTimer0Interrupt();
+ 655   1              Uart0Enflag = 0;
+ 656   1              if(OverflowT0 > 9 || Uart0RNum < 7)
+ 657   1              {
+ 658   2                      return 0.0;
+ 659   2              }
+ 660   1              if(Uart0R[1] == 'D')
+ 661   1              {
+ 662   2                      return 0.5;
+ 663   2              }
+ 664   1              agc = (Uart0R[2] - '0') +               \
+ 665   1                        (Uart0R[4] - '0') * 0.1 + \
+ 666   1                        (Uart0R[5] - '0') * 0.01;
+ 667   1              if(Uart0R[1] == 'T')
+ 668   1              {
+ 669   2                      return AGC;     
+ 670   2              }
+ 671   1      
+ 672   1              return agc;                             
+ 673   1      }
+ 674          
+ 675          
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 12  
 
- 676   1                                              (Uart0R[6] - '0') * 0.1   + \
- 677   1                                              (Uart0R[7] - '0') * 0.01;
- 678   1              }
- 679   1      */
- 680   1              if((Uart0R[6] == '+') || (Uart0R[6] == '-'))
- 681   1              {
- 682   2                      GradientY = (Uart0R[7] - '0') * 10.0  + \                
- 683   2                                              (Uart0R[8] - '0')                 + \
- 684   2                                              (Uart0R[9] - '0') * 0.1   + \
- 685   2                                              (Uart0R[10] - '0') * 0.01;
- 686   2                      if(Uart0R[6] == '-')
- 687   2                              GradientY = -GradientY;
- 688   2              }
- 689   1              
- 690   1              if(Uart0R[0] != '$'     || \
- 691   1                      Uart0RNum < 10          || \
- 692   1                      OverflowT0 > 14         || \
- 693   1                      GradientY > 104.5)
- 694   1              {
- 695   2                      GradientNormal = 0;
- 696   2                      GradientY = StationEl;
- 697   2              }
- 698   1              else
- 699   1              {
- 700   2      //              if((Uart0R[3] == '+') || (Uart0R[3] == '-'))
- 701   2      //              {
- 702   2      //                      if(Uart0R[3] == '-')
- 703   2      //                      {
- 704   2      //                              GradientY = -GradientY; 
- 705   2      //                      }
- 706   2      //              }
- 707   2      //              else if((Uart0R[1] == '+') || (Uart0R[1] == '-'))
- 708   2      //              {
- 709   2      //                      if(Uart0R[1] == '-')
- 710   2      //                      {
- 711   2      //                              GradientY = -GradientY; 
- 712   2      //                      }
- 713   2      //              }
- 714   2      
- 715   2                      GradientY += 44.5;                              //151227  由于机器倾斜仪安装位置的该变，31.6改为44.5
- 716   2                      GradientY += GradientRightR;
- 717   2                      GradientNormal = 1;
- 718   2              } 
- 719   1              return;
- 720   1      }
- 721          
- 722          
- 723          /***********************************************************************
- 724          *
- 725          * 函数原型：void ReadGPS(void)
- 726          *
- 727          * 入口参数：无
- 728          *
- 729          * 出口参数：无
- 730          *
- 731          * 功能描述：打开串口0中断，接收GPS数据
- 732          *
- 733          ***********************************************************************/
- 734          void ReadGPS(void)
- 735          {
- 736   1              Uart0Enflag = 0;
- 737   1              Uart0RNum       = 0;                                                      //串口0接受到的字符数，此处初始化为0
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 13  
+ 676          /***********************************************************************
+ 677          *
+ 678          * 函数原型：void ReadGradient(void)
+ 679          *
+ 680          * 入口参数：无
+ 681          *
+ 682          * 出口参数：无
+ 683          *
+ 684          * 功能描述：打开串口0中断,接收倾斜仪数据
+ 685          *
+ 686          ***********************************************************************/
+ 687          void ReadGradient(void)
+ 688          {
+ 689   1              Uart0Enflag             = 0;
+ 690   1              GradientNormal  = 0;    
+ 691   1      
+ 692   1              for(Uart0RNum = MAXLENGTH-1; Uart0RNum >= 0; Uart0RNum--)
+ 693   1                      Uart0R[Uart0RNum] = '\0';
+ 694   1              Uart0RNum               = 0;
+ 695   1              Uart0StartF             = '$';                                                  //倾斜仪开始标志
+ 696   1              OpenTimer0Interrupt();
+ 697   1              SelectGradient();
+ 698   1      
+ 699   1              while(OverflowT0 < 15 && Uart0RNum < 12)                //得到gradient的值，放入Uart0R[]中
+ 700   1              {
+ 701   2                      ;
+ 702   2              }
+ 703   1              CloseUart0();
+ 704   1              CloseTimer0Interrupt();
+ 705   1              Uart0Enflag     = 0;
+ 706   1      
+ 707   1      /*
+ 708   1              if((Uart0R[3] == '+') || (Uart0R[3] == '-'))
+ 709   1              {
+ 710   1                      GradientY = (Uart0R[4] - '0') * 10.0  + \                
+ 711   1                                              (Uart0R[5] - '0')                 + \
+ 712   1                                              (Uart0R[6] - '0') * 0.1   + \
+ 713   1                                              (Uart0R[7] - '0') * 0.01;
+ 714   1              }
+ 715   1      */
+ 716   1              if((Uart0R[6] == '+') || (Uart0R[6] == '-'))
+ 717   1              {
+ 718   2                      GradientY = (Uart0R[7] - '0') * 10.0  + \                
+ 719   2                                              (Uart0R[8] - '0')                 + \
+ 720   2                                              (Uart0R[9] - '0') * 0.1   + \
+ 721   2                                              (Uart0R[10] - '0') * 0.01;
+ 722   2                      if(Uart0R[6] == '-')
+ 723   2                              GradientY = -GradientY;
+ 724   2              }
+ 725   1              
+ 726   1              if(Uart0R[0] != '$'     || \
+ 727   1                      Uart0RNum < 10          || \
+ 728   1                      OverflowT0 > 14         || \
+ 729   1                      GradientY > 104.5)
+ 730   1              {
+ 731   2                      GradientNormal = 0;
+ 732   2                      GradientY = StationEl;
+ 733   2              }
+ 734   1              else
+ 735   1              {
+ 736   2      //              if((Uart0R[3] == '+') || (Uart0R[3] == '-'))
+ 737   2      //              {
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 13  
 
- 738   1              GPSNormal       = 0;
- 739   1              Uart0StartF     = '$';                                                    //GPS信息头标志
- 740   1              
- 741   1              OpenTimer0Interrupt();
- 742   1              SelectGPS();
- 743   1      
- 744   1              SFRPAGE = UART0_PAGE;
- 745   1              
- 746   1              while((OverflowT0 < 20) && !(SBUF0 == 0x0a && Uart0RNum > 0))   //读取串口0的数据时间约为20s，20s内如果接收
+ 738   2      //                      if(Uart0R[3] == '-')
+ 739   2      //                      {
+ 740   2      //                              GradientY = -GradientY; 
+ 741   2      //                      }
+ 742   2      //              }
+ 743   2      //              else if((Uart0R[1] == '+') || (Uart0R[1] == '-'))
+ 744   2      //              {
+ 745   2      //                      if(Uart0R[1] == '-')
+ 746   2      //                      {
+ 747   2      //                              GradientY = -GradientY; 
+ 748   2      //                      }
+ 749   2      //              }
+ 750   2      
+ 751   2                      GradientY += 43.5;                              //151227  由于机器倾斜仪安装位置的该变，31.6改为44.5
+ 752   2      //              GradientY += GradientRightR;
+ 753   2                      GradientNormal = 1;
+ 754   2              } 
+ 755   1              return;
+ 756   1      }
+ 757          
+ 758          
+ 759          /***********************************************************************
+ 760          *
+ 761          * 函数原型：void ReadGPS(void)
+ 762          *
+ 763          * 入口参数：无
+ 764          *
+ 765          * 出口参数：无
+ 766          *
+ 767          * 功能描述：打开串口0中断，接收GPS数据
+ 768          *
+ 769          ***********************************************************************/
+ 770          void ReadGPS(void)
+ 771          {
+ 772   1              Uart0Enflag = 0;
+ 773   1              flagG = 0;
+ 774   1              flagP = 0;
+ 775   1              flagR = 0;
+ 776   1              flagM = 0;
+ 777   1              flagC = 0;
+ 778   1              Uart0RNum       = 0;                                                      //串口0接受到的字符数，此处初始化为0
+ 779   1              GPSNormal       = 0;
+ 780   1              Uart0StartF     = '$';                                                    //GPS信息头标志
+ 781   1              
+ 782   1              OpenTimer0Interrupt();
+ 783   1              SelectGPS();
+ 784   1      
+ 785   1              SFRPAGE = UART0_PAGE;
+ 786   1              
+ 787   1              while((OverflowT0 < 20) && !(SBUF0 == 0x0a && Uart0RNum > 0))   //读取串口0的数据时间约为20s，20s内如果接收
              -到字符0x0a(回车标志)并且数组元素个数大于0，也会直接退出循坏
- 747   1              {
- 748   2                      ;
- 749   2              }
- 750   1              CloseUart0();
- 751   1              CloseTimer0Interrupt();
- 752   1              Uart0Enflag     = 0;
- 753   1      
- 754   1              if(Uart0R[42] == 'E')
- 755   1              {
- 756   2                      GPSEastFlag = EAST;
- 757   2              }
- 758   1              if(Uart0R[42 ] == 'W')
- 759   1              {
- 760   2                      GPSEastFlag = WEST;
- 761   2              }
- 762   1              if(Uart0R[29] == 'N')
- 763   1              {
- 764   2                      GPSNorthFlag = NORTH;
- 765   2              }
- 766   1              if(Uart0R[29] == 'S')
- 767   1              {
- 768   2                      GPSNorthFlag = SOUTH;
- 769   2              }
- 770   1              GPSLat = (Uart0R[19] - '0') *   \
- 771   1                      10.0 + (Uart0R[20] - '0') + \
- 772   1                      (Uart0R[21] - '0') * 0.1 +  \
- 773   1                      (Uart0R[22] - '0') * 0.01;
- 774   1              
- 775   1              GPSLong = (Uart0R[31] - '0') *   \
- 776   1                      100.0 + (Uart0R[32] - '0') * \
- 777   1                      10.0 + (Uart0R[33] - '0') +  \
- 778   1                      (Uart0R[34] - '0') * 0.1 +   \
- 779   1                      (Uart0R[35] - '0') * 0.01;
- 780   1              
- 781   1              if(Uart0R[17] == 'V' && OverflowT0 < 15)
- 782   1              {
- 783   2                      GPSNormal = 2;
- 784   2                      return;
- 785   2              }
- 786   1              if(Uart0R[17] == 'A' && OverflowT0 < 15)
- 787   1              {
- 788   2                      GPSNormal = 1;
- 789   2              }
- 790   1      }
- 791          
- 792          
- 793          /***********************************************************************
- 794          *
- 795          * 函数原型：void Uart1Init(void)
- 796          *
- 797          * 入口参数：无
- 798          *
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 14  
+ 788   1              {
+ 789   2                      ;
+ 790   2              }
+ 791   1              CloseUart0();
+ 792   1              CloseTimer0Interrupt();
+ 793   1              Uart0Enflag     = 0;
+ 794   1      
+ 795   1              if(Uart0R[39] == 'E')
+ 796   1              {
+ 797   2                      GPSEastFlag = EAST;
+ 798   2              }
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 14  
 
- 799          * 出口参数：无
- 800          *
- 801          * 功能描述：串口1初始化,定时器4作为时钟源，初值自动重装
- 802          *
- 803          ***********************************************************************/
- 804          void Uart1Init(void)
- 805          {
- 806   1              EA=0;                         //禁止所有终端  
- 807   1              SFRPAGE = TIMER01_PAGE;  
- 808   1      
- 809   1              CKCON &= 0xEC;  //12分频
- 810   1          TMOD |= 0x20;  //T1工作方式2：8位自动重载
- 811   1              TMOD &=~0x40;   //定时器功能 
- 812   1              TH1  = 256-(SYSCLK/12/UARTBR9600/2);    //根据波特率设置定时器1重载值     
- 813   1              TL1  = TH1;
- 814   1              
- 815   1              SFRPAGE = UART1_PAGE;
- 816   1      
- 817   1          SCON1 |= 0x10;      //方式0：波特率可编程的8 位UART1,并且UART1 接收允许
- 818   1      
- 819   1              SFRPAGE = TIMER01_PAGE;                                         
- 820   1              TCON |= 0x40;   //定时器1允许      
- 821   1              OpenUart1();
- 822   1              EA=1;
- 823   1      }
- 824          
- 825          /***********************************************************************
- 826          *
- 827          * 函数原型：void OpenUart0(void)
- 828          *
- 829          * 入口参数：无
- 830          *
- 831          * 出口参数：无
- 832          *
- 833          * 功能描述：打开串口1中断
- 834          *
- 835          ***********************************************************************/
- 836          static void OpenUart1(void)
- 837          {
- 838   1              SFRPAGE = UART1_PAGE;
- 839   1              SCON1 &= ~BIT0;
- 840   1              SCON1 &= ~BIT1;
- 841   1              EIE2  |=  0x40;                                                                 //开启串口1
- 842   1      }                                                               
- 843          
- 844          /***********************************************************************
- 845          *
- 846          * 函数原型：void CloseUart0(void)
- 847          *
- 848          * 入口参数：无
- 849          *
- 850          * 出口参数：无
- 851          *
- 852          * 功能描述：关闭串口1中断
- 853          *
- 854          ***********************************************************************/
- 855          static void CloseUart1(void)
- 856          {
- 857   1              EIE2 &= ~0x40;                   //关闭串口1中断
- 858   1      }
- 859          
- 860          
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 15  
+ 799   1              if(Uart0R[39] == 'W')
+ 800   1              {
+ 801   2                      GPSEastFlag = WEST;
+ 802   2              }
+ 803   1              if(Uart0R[25] == 'N')
+ 804   1              {
+ 805   2                      GPSNorthFlag = NORTH;
+ 806   2              }
+ 807   1              if(Uart0R[25] == 'S')
+ 808   1              {
+ 809   2                      GPSNorthFlag = SOUTH;
+ 810   2              }
+ 811   1              GPSLat = (Uart0R[14] - '0') *   \
+ 812   1                      10.0 + (Uart0R[15] - '0') + \
+ 813   1                      (Uart0R[16] - '0') * 0.17 +  \
+ 814   1                      (Uart0R[17] - '0') * 0.017;
+ 815   1              
+ 816   1              GPSLong = (Uart0R[27] - '0') *   \
+ 817   1                      100.0 + (Uart0R[28] - '0') * \
+ 818   1                      10.0 + (Uart0R[29] - '0') +  \
+ 819   1                      (Uart0R[30] - '0') * 0.17 +   \
+ 820   1                      (Uart0R[31] - '0') * 0.017;
+ 821   1              
+ 822   1              if(Uart0R[12] == 'V' && OverflowT0 < 15)
+ 823   1              {
+ 824   2                      GPSNormal = 2;
+ 825   2                      return;
+ 826   2              }
+ 827   1              if(Uart0R[12] == 'A' && OverflowT0 < 15)
+ 828   1              {
+ 829   2                      GPSNormal = 1;
+ 830   2              }
+ 831   1      
+ 832   1      
+ 833   1      /*
+ 834   1              if(Uart0R[42] == 'E')
+ 835   1              {
+ 836   1                      GPSEastFlag = EAST;
+ 837   1              }
+ 838   1              if(Uart0R[42 ] == 'W')
+ 839   1              {
+ 840   1                      GPSEastFlag = WEST;
+ 841   1              }
+ 842   1              if(Uart0R[29] == 'N')
+ 843   1              {
+ 844   1                      GPSNorthFlag = NORTH;
+ 845   1              }
+ 846   1              if(Uart0R[29] == 'S')
+ 847   1              {
+ 848   1                      GPSNorthFlag = SOUTH;
+ 849   1              }
+ 850   1              GPSLat = (Uart0R[19] - '0') *   \
+ 851   1                      10.0 + (Uart0R[20] - '0') + \
+ 852   1                      (Uart0R[21] - '0') * 0.1 +  \
+ 853   1                      (Uart0R[22] - '0') * 0.01;
+ 854   1              
+ 855   1              GPSLong = (Uart0R[31] - '0') *   \
+ 856   1                      100.0 + (Uart0R[32] - '0') * \
+ 857   1                      10.0 + (Uart0R[33] - '0') +  \
+ 858   1                      (Uart0R[34] - '0') * 0.1 +   \
+ 859   1                      (Uart0R[35] - '0') * 0.01;
+ 860   1              
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 15  
 
- 861          /***********************************************************************
- 862          *
- 863          * 函数原型：void Uart1Interrupt(void)
- 864          *
- 865          * 入口参数：无
- 866          *
- 867          * 出口参数：无
- 868          *
- 869          * 功能描述：串口1中断，发送Uart1SendDataLength长度的Uart1SendData
- 870          *
- 871          ***********************************************************************/
- 872          void Uart1Interrupt(void) interrupt UART1INTNUMBER
- 873          {
- 874   1              TEMPAGE = SFRPAGE;                //120修改
- 875   1              SFRPAGE = UART1_PAGE;     //页1   120修改、
- 876   1      
- 877   1              if((SCON1 & BIT0) == BIT0)
- 878   1              {
- 879   2                      SCON1 &= ~BIT0;//清除RI1
- 880   2                      //--------------------------------------------------------------------------
- 881   2                      if(WireFlag > 0)
- 882   2                      {
- 883   3                              WireBuff[len] = SBUF1;
- 884   3                              len++;
- 885   3                      }
- 886   2                      //--------------------------------------------------------------------------
- 887   2                      else
- 888   2                      {
- 889   3                              if(Uart1ReceDataLength < MAXLENGTH)
- 890   3                              {
- 891   4                                      Uart1ReceData[Uart1ReceDataLength] = SBUF1;
- 892   4                                      if(Uart1ReceData[Uart1ReceDataLength] == '\r')
- 893   4                                      {
- 894   5                                              NumberOfComand++;
- 895   5                                      }
- 896   4                                      Uart1ReceDataLength++;
- 897   4                              }
- 898   3                      }
- 899   2              }
- 900   1              if((SCON1&BIT1)==BIT1)
- 901   1              {
- 902   2                      SCON1&=~BIT1;//清除TI1
- 903   2      
- 904   2                      if((WireFlag == 1) && (WireBuff[0] != '*') && (WireBuff[len - 1] != 'z'))
- 905   2                      {
- 906   3                              Delay(1825);
- 907   3                              SBUF1 = 'z';
- 908   3                      }
- 909   2                      else if((WireFlag == 2) && (WireBuff[1] != '\n'))
- 910   2                      {
- 911   3                              SBUF1 = '\n';
- 912   3                      }
- 913   2                      else if((WireFlag == 3) && (WireBuff[3] != '\n'))
- 914   2                      {
- 915   3                              SBUF1 = Buff[len1++];
- 916   3                      }
- 917   2                      else if((WireFlag == 4) && (len1 <= len2))
- 918   2                      {
- 919   3                              SBUF1 = WireBuff[len1++];
- 920   3                      }
- 921   2                      else
- 922   2                      {
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 16  
+ 861   1              if(Uart0R[17] == 'V' && OverflowT0 < 15)
+ 862   1              {
+ 863   1                      GPSNormal = 2;
+ 864   1                      return;
+ 865   1              }
+ 866   1              if(Uart0R[17] == 'A' && OverflowT0 < 15)
+ 867   1              {
+ 868   1                      GPSNormal = 1;
+ 869   1              }  */
+ 870   1      
+ 871   1      }
+ 872          
+ 873          
+ 874          /***********************************************************************
+ 875          *
+ 876          * 函数原型：void Uart1Init(void)
+ 877          *
+ 878          * 入口参数：无
+ 879          *
+ 880          * 出口参数：无
+ 881          *
+ 882          * 功能描述：串口1初始化,定时器4作为时钟源，初值自动重装
+ 883          *
+ 884          ***********************************************************************/
+ 885          void Uart1Init(void)
+ 886          {
+ 887   1              EA=0;                         //禁止所有终端  
+ 888   1              SFRPAGE = TIMER01_PAGE;  
+ 889   1      
+ 890   1              CKCON &= 0xEC;  //12分频
+ 891   1          TMOD |= 0x20;  //T1工作方式2：8位自动重载
+ 892   1              TMOD &=~0x40;   //定时器功能 
+ 893   1              TH1  = 256-(SYSCLK/12/UARTBR9600/2);    //根据波特率设置定时器1重载值     
+ 894   1              TL1  = TH1;
+ 895   1              
+ 896   1              SFRPAGE = UART1_PAGE;
+ 897   1      
+ 898   1          SCON1 |= 0x10;      //方式0：波特率可编程的8 位UART1,并且UART1 接收允许
+ 899   1      
+ 900   1              SFRPAGE = TIMER01_PAGE;                                         
+ 901   1              TCON |= 0x40;   //定时器1允许      
+ 902   1              OpenUart1();
+ 903   1              EA=1;
+ 904   1      }
+ 905          
+ 906          /***********************************************************************
+ 907          *
+ 908          * 函数原型：void OpenUart0(void)
+ 909          *
+ 910          * 入口参数：无
+ 911          *
+ 912          * 出口参数：无
+ 913          *
+ 914          * 功能描述：打开串口1中断
+ 915          *
+ 916          ***********************************************************************/
+ 917          static void OpenUart1(void)
+ 918          {
+ 919   1              SFRPAGE = UART1_PAGE;
+ 920   1              SCON1 &= ~BIT0;
+ 921   1              SCON1 &= ~BIT1;
+ 922   1              EIE2  |=  0x40;                                                                 //开启串口1
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 16  
 
- 923   3                              Uart1SendDataLength++;
- 924   3                              if(Uart1SendDataLength>=Uart1TXMAXLenth)
- 925   3                              {
- 926   4                                      Uart1SendDataLength=0;
- 927   4                                      Uart1TXMAXLenth = 0;
- 928   4                              }
- 929   3                              else
- 930   3                              {
- 931   4                                      SBUF1 = Uart1SendData[Uart1SendDataLength];                     
- 932   4                              }
- 933   3                      }
- 934   2              }
- 935   1              SFRPAGE = TEMPAGE;  //120修改
- 936   1      }
- 937          
- 938          
- 939          /***********************************************************************
- 940          *
- 941          * 函数原型：void Uart1TX(void)
- 942          *
- 943          * 入口参数：无
- 944          *
- 945          * 出口参数：无
- 946          *
- 947          * 功能描述：串口1发送Uart1SendData中的数据 ，注意如果要循环发送一串数据一
- 948          *
- 949          * 定要等待Uart1TXMAXLenth       变成0
- 950          *
- 951          ***********************************************************************/
- 952          void Uart1TX(void)
- 953          {
- 954   1              OpenUart1();
- 955   1              Uart1SendDataLength = 0;
- 956   1      
- 957   1              SFRPAGE = UART1_PAGE;
- 958   1              if(Uart1TXMAXLenth > 0)                                                 //当前缓冲区有发送数据
+ 923   1      }                                                               
+ 924          
+ 925          /***********************************************************************
+ 926          *
+ 927          * 函数原型：void CloseUart0(void)
+ 928          *
+ 929          * 入口参数：无
+ 930          *
+ 931          * 出口参数：无
+ 932          *
+ 933          * 功能描述：关闭串口1中断
+ 934          *
+ 935          ***********************************************************************/
+ 936          static void CloseUart1(void)
+ 937          {
+ 938   1              EIE2 &= ~0x40;                   //关闭串口1中断
+ 939   1      }
+ 940          
+ 941          
+ 942          /***********************************************************************
+ 943          *
+ 944          * 函数原型：void Uart1Interrupt(void)
+ 945          *
+ 946          * 入口参数：无
+ 947          *
+ 948          * 出口参数：无
+ 949          *
+ 950          * 功能描述：串口1中断，发送Uart1SendDataLength长度的Uart1SendData
+ 951          *
+ 952          ***********************************************************************/
+ 953          void Uart1Interrupt(void) interrupt UART1INTNUMBER
+ 954          {
+ 955   1              TEMPAGE = SFRPAGE;                //120修改
+ 956   1              SFRPAGE = UART1_PAGE;     //页1   120修改、
+ 957   1      
+ 958   1              if((SCON1 & BIT0) == BIT0)
  959   1              {
- 960   2                      SBUF1 = Uart1SendData[Uart1SendDataLength];     //从Uart1SendDataLength发起
- 961   2              }
- 962   1              while(Uart1TXMAXLenth != 0)
- 963   1                      ;                                                                                       //等待发送结束
- 964   1      }
- 965          
- 966          
- 967          /*以下是有无线切换相关函数*/
- 968          void watchwire(void)
- 969          {
- 970   1              int ret;
- 971   1              char Flag;
- 972   1              char temp;
- 973   1      
- 974   1              temp = ReadEEPROM(wireaddr);
- 975   1              if((SWWIPORT == 0) && (temp != '0'))
- 976   1              {
- 977   2                      WriteEEPROM('0', wireaddr);
- 978   2                      ret = GetG8();
- 979   2                      if(ret == -1)
- 980   2                      {
- 981   3                              InitWire();
- 982   3                              return;
- 983   3                      }
- 984   2                      Flag = GetG8Flag();
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 17  
+ 960   2                      SCON1 &= ~BIT0;//清除RI1
+ 961   2                      //--------------------------------------------------------------------------
+ 962   2                      if(WireFlag > 0)
+ 963   2                      {
+ 964   3                              WireBuff[len] = SBUF1;
+ 965   3                              len++;
+ 966   3                      }
+ 967   2                      //--------------------------------------------------------------------------
+ 968   2                      else
+ 969   2                      {
+ 970   3                              if(Uart1ReceDataLength < MAXLENGTH)
+ 971   3                              {
+ 972   4                                      Uart1ReceData[Uart1ReceDataLength] = SBUF1;
+ 973   4                                      if(Uart1ReceData[Uart1ReceDataLength] == '\r')
+ 974   4                                      {
+ 975   5                                              NumberOfComand++;
+ 976   5                                      }
+ 977   4                                      Uart1ReceDataLength++;
+ 978   4                              }
+ 979   3                      }
+ 980   2              }
+ 981   1              if((SCON1&BIT1)==BIT1)
+ 982   1              {
+ 983   2                      SCON1&=~BIT1;//清除TI1
+ 984   2      
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 17  
 
- 985   2                      if((Flag & BIT0) != 0)
+ 985   2                      if((WireFlag == 1) && (WireBuff[0] != '*') && (WireBuff[len - 1] != 'z'))
  986   2                      {
- 987   3                              Flag &= ~BIT0;
- 988   3                              SetFlag(Flag);
+ 987   3                              Delay(1825);
+ 988   3                              SBUF1 = 'z';
  989   3                      }
- 990   2              }
- 991   1              if((SWWIPORT == BIT4) && (temp != '1'))
- 992   1              {
- 993   2                      WriteEEPROM('1', wireaddr);
- 994   2                      ret = GetG8();
- 995   2                      if(ret == -1)
- 996   2                      {
- 997   3                              InitWire();
- 998   3                              return;
- 999   3                      }
-1000   2                      Flag = GetG8Flag();
-1001   2                      if((Flag & BIT0) != 1)
-1002   2                      {
-1003   3                              Flag |= BIT0;
-1004   3                              SetFlag(Flag);
-1005   3                      }
-1006   2              }
-1007   1              InitWire();
-1008   1              return;
-1009   1      }
-1010          
-1011          static int GetG8(void)
-1012          {
-1013   1              InitWire();
-1014   1              WireFlag = 1;
-1015   1              SFRPAGE = UART1_PAGE;
-1016   1              SBUF1 = 'z';
-1017   1              
-1018   1              
-1019   1              OpenTimer0Interrupt();
-1020   1              while((OverflowT0 < 40) && (WireBuff[len - 1] != '>') && (WireBuff[len - 1] != 'z'))
-1021   1                      ;
-1022   1              CloseTimer0Interrupt(); 
-1023   1              if(OverflowT0 > 38)
-1024   1              {
-1025   2      
-1026   2                      return -1;
-1027   2              }
-1028   1              
-1029   1              for(len; len >= 0; len--)
-1030   1              {
-1031   2                      WireBuff[len] = '\0';
-1032   2              }
-1033   1              
-1034   1              Delay(60000);
-1035   1              len = 0;
-1036   1              WireFlag = 2;
-1037   1              SBUF1 = '\r';
-1038   1              while(WireBuff[len - 1] != '>')
-1039   1                      ;
-1040   1              
-1041   1              for(len; len >= 0; len--)
-1042   1              {
-1043   2                      WireBuff[len] = '\0';
-1044   2              }
-1045   1              Delay(60000);
-1046   1              len1 = 1;
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 18  
+ 990   2                      else if((WireFlag == 2) && (WireBuff[1] != '\n'))
+ 991   2                      {
+ 992   3                              SBUF1 = '\n';
+ 993   3                      }
+ 994   2                      else if((WireFlag == 3) && (WireBuff[3] != '\n'))
+ 995   2                      {
+ 996   3                              SBUF1 = Buff[len1++];
+ 997   3                      }
+ 998   2                      else if((WireFlag == 4) && (len1 <= len2))
+ 999   2                      {
+1000   3                              SBUF1 = WireBuff[len1++];
+1001   3                      }
+1002   2                      else
+1003   2                      {
+1004   3                              Uart1SendDataLength++;
+1005   3                              if(Uart1SendDataLength>=Uart1TXMAXLenth)
+1006   3                              {
+1007   4                                      Uart1SendDataLength=0;
+1008   4                                      Uart1TXMAXLenth = 0;
+1009   4                              }
+1010   3                              else
+1011   3                              {
+1012   4                                      SBUF1 = Uart1SendData[Uart1SendDataLength];                     
+1013   4                              }
+1014   3                      }
+1015   2              }
+1016   1              SFRPAGE = TEMPAGE;  //120修改
+1017   1      }
+1018          
+1019          
+1020          /***********************************************************************
+1021          *
+1022          * 函数原型：void Uart1TX(void)
+1023          *
+1024          * 入口参数：无
+1025          *
+1026          * 出口参数：无
+1027          *
+1028          * 功能描述：串口1发送Uart1SendData中的数据 ，注意如果要循环发送一串数据一
+1029          *
+1030          * 定要等待Uart1TXMAXLenth       变成0
+1031          *
+1032          ***********************************************************************/
+1033          void Uart1TX(void)
+1034          {
+1035   1              OpenUart1();
+1036   1              Uart1SendDataLength = 0;
+1037   1      
+1038   1              SFRPAGE = UART1_PAGE;
+1039   1              if(Uart1TXMAXLenth > 0)                                                 //当前缓冲区有发送数据
+1040   1              {
+1041   2                      SBUF1 = Uart1SendData[Uart1SendDataLength];     //从Uart1SendDataLength发起
+1042   2              }
+1043   1              while(Uart1TXMAXLenth != 0)
+1044   1                      ;                                                                                       //等待发送结束
+1045   1      }
+1046          
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 18  
 
-1047   1              len = 0;
-1048   1              WireFlag = 3;
-1049   1              Buff[0] = 'G';
-1050   1              Buff[1] = '8';
-1051   1              Buff[2] = '\r';
-1052   1              Buff[3] = '\n';
-1053   1      
-1054   1              SFRPAGE = UART1_PAGE;
-1055   1              SBUF1 = 'G';
-1056   1              while(WireBuff[len - 1] != '>')
-1057   1                      ;
-1058   1              return 0;
-1059   1      }
-1060          
-1061          static char GetG8Flag(void)
-1062          {
-1063   1              char Flag;
-1064   1              
-1065   1              //char to int
-1066   1              if(WireBuff[14] >= '0' && WireBuff[14] <= '9')
-1067   1              {
-1068   2                      Flag = WireBuff[14] - '0';
-1069   2              }
-1070   1              else
-1071   1              {
-1072   2                      Flag = WireBuff[14] - 'A' + 10;
-1073   2              }       
-1074   1              return Flag;
-1075   1      }
-1076          
-1077          static void SetFlag(char TFlag)
-1078          {
-1079   1              char Flag;
-1080   1              if(TFlag > 9)
-1081   1              {
-1082   2                      Flag = TFlag - 10 + 'A';
-1083   2              }
-1084   1              else
-1085   1              {
-1086   2                      Flag = TFlag + '0';
+1047          
+1048          /*以下是有无线切换相关函数*/
+1049          void watchwire(void)
+1050          {
+1051   1              int ret;
+1052   1              char Flag;
+1053   1              char temp;
+1054   1      
+1055   1              temp = ReadEEPROM(wireaddr);
+1056   1              if((SWWIPORT == 0) && (temp != '0'))
+1057   1              {
+1058   2                      WriteEEPROM('0', wireaddr);
+1059   2                      ret = GetG8();
+1060   2                      if(ret == -1)
+1061   2                      {
+1062   3                              InitWire();
+1063   3                              return;
+1064   3                      }
+1065   2                      Flag = GetG8Flag();
+1066   2                      if((Flag & BIT0) != 0)
+1067   2                      {
+1068   3                              Flag &= ~BIT0;
+1069   3                              SetFlag(Flag);
+1070   3                      }
+1071   2              }
+1072   1              if((SWWIPORT == BIT4) && (temp != '1'))
+1073   1              {
+1074   2                      WriteEEPROM('1', wireaddr);
+1075   2                      ret = GetG8();
+1076   2                      if(ret == -1)
+1077   2                      {
+1078   3                              InitWire();
+1079   3                              return;
+1080   3                      }
+1081   2                      Flag = GetG8Flag();
+1082   2                      if((Flag & BIT0) != 1)
+1083   2                      {
+1084   3                              Flag |= BIT0;
+1085   3                              SetFlag(Flag);
+1086   3                      }
 1087   2              }
-1088   1              
-1089   1              len2 = len;
-1090   1              len = 0;
-1091   1              len1 = 1;
-1092   1              WireBuff[14] = Flag;
-1093   1              WireFlag         = 4;
-1094   1              SFRPAGE = UART1_PAGE;
-1095   1              SBUF1            = 'S';
-1096   1          while(len1 != len2)
-1097   1                      ;
-1098   1              Delay(60000);
-1099   1              CloseUart1();
-1100   1              return;
-1101   1      }
-1102          
-1103          static void InitWire(void)
-1104          {
-1105   1              len = 0;
-1106   1              len1 = 0;
-1107   1              len2 = 0;
-1108   1              WireFlag = 0;
-C51 COMPILER V9.00   UART                                                                  03/29/2016 14:57:52 PAGE 19  
+1088   1              InitWire();
+1089   1              return;
+1090   1      }
+1091          
+1092          static int GetG8(void)
+1093          {
+1094   1              InitWire();
+1095   1              WireFlag = 1;
+1096   1              SFRPAGE = UART1_PAGE;
+1097   1              SBUF1 = 'z';
+1098   1              
+1099   1              
+1100   1              OpenTimer0Interrupt();
+1101   1              while((OverflowT0 < 40) && (WireBuff[len - 1] != '>') && (WireBuff[len - 1] != 'z'))
+1102   1                      ;
+1103   1              CloseTimer0Interrupt(); 
+1104   1              if(OverflowT0 > 38)
+1105   1              {
+1106   2      
+1107   2                      return -1;
+1108   2              }
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 19  
 
-1109   1              CloseUart1();
-1110   1              TimeTest(4);
-1111   1      
-1112   1              POWERCLOSE;
-1113   1              TimeTest(4);
-1114   1              POWEROPEN;
-1115   1              Delay(430);
-1116   1      
-1117   1              OpenUart1();
-1118   1      
-1119   1              return;
-1120   1      }
-1121          /*
-1122          9>G8
-1123          :2000001059A100414B4454455354370000000000000000000000000000000000000000008F
-1124          :2000201000000000414B445445535437000000000000000000000000000000000000000069
-1125          :20004010000000000000000000000000000000000000000000000000000000000000000090
-1126          :1E00601000000000000000000000000000000000000000000000000000000000000072
-1127          :00000001FF                                                                                               
+1109   1              
+1110   1              for(len; len >= 0; len--)
+1111   1              {
+1112   2                      WireBuff[len] = '\0';
+1113   2              }
+1114   1              
+1115   1              Delay(60000);
+1116   1              len = 0;
+1117   1              WireFlag = 2;
+1118   1              SBUF1 = '\r';
+1119   1              while(WireBuff[len - 1] != '>')
+1120   1                      ;
+1121   1              
+1122   1              for(len; len >= 0; len--)
+1123   1              {
+1124   2                      WireBuff[len] = '\0';
+1125   2              }
+1126   1              Delay(60000);
+1127   1              len1 = 1;
+1128   1              len = 0;
+1129   1              WireFlag = 3;
+1130   1              Buff[0] = 'G';
+1131   1              Buff[1] = '8';
+1132   1              Buff[2] = '\r';
+1133   1              Buff[3] = '\n';
+1134   1      
+1135   1              SFRPAGE = UART1_PAGE;
+1136   1              SBUF1 = 'G';
+1137   1              while(WireBuff[len - 1] != '>')
+1138   1                      ;
+1139   1              return 0;
+1140   1      }
+1141          
+1142          static char GetG8Flag(void)
+1143          {
+1144   1              char Flag;
+1145   1              
+1146   1              //char to int
+1147   1              if(WireBuff[14] >= '0' && WireBuff[14] <= '9')
+1148   1              {
+1149   2                      Flag = WireBuff[14] - '0';
+1150   2              }
+1151   1              else
+1152   1              {
+1153   2                      Flag = WireBuff[14] - 'A' + 10;
+1154   2              }       
+1155   1              return Flag;
+1156   1      }
+1157          
+1158          static void SetFlag(char TFlag)
+1159          {
+1160   1              char Flag;
+1161   1              if(TFlag > 9)
+1162   1              {
+1163   2                      Flag = TFlag - 10 + 'A';
+1164   2              }
+1165   1              else
+1166   1              {
+1167   2                      Flag = TFlag + '0';
+1168   2              }
+1169   1              
+1170   1              len2 = len;
+C51 COMPILER V9.01   UART                                                                  12/06/2016 17:32:33 PAGE 20  
+
+1171   1              len = 0;
+1172   1              len1 = 1;
+1173   1              WireBuff[14] = Flag;
+1174   1              WireFlag         = 4;
+1175   1              SFRPAGE = UART1_PAGE;
+1176   1              SBUF1            = 'S';
+1177   1          while(len1 != len2)
+1178   1                      ;
+1179   1              Delay(60000);
+1180   1              CloseUart1();
+1181   1              return;
+1182   1      }
+1183          
+1184          static void InitWire(void)
+1185          {
+1186   1              len = 0;
+1187   1              len1 = 0;
+1188   1              len2 = 0;
+1189   1              WireFlag = 0;
+1190   1              CloseUart1();
+1191   1              TimeTest(4);
+1192   1      
+1193   1              POWERCLOSE;
+1194   1              TimeTest(4);
+1195   1              POWEROPEN;
+1196   1              Delay(430);
+1197   1      
+1198   1              OpenUart1();
+1199   1      
+1200   1              return;
+1201   1      }
+1202          /*
+1203          9>G8
+1204          :2000001059A100414B4454455354370000000000000000000000000000000000000000008F
+1205          :2000201000000000414B445445535437000000000000000000000000000000000000000069
+1206          :20004010000000000000000000000000000000000000000000000000000000000000000090
+1207          :1E00601000000000000000000000000000000000000000000000000000000000000072
+1208          :00000001FF                                                                                               
              -                                                                                                                        
              -                                                                                 
-1128          */
-1129          
+1209          */
+1210          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   4467    ----
+   CODE SIZE        =   4693    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =    459    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      8    ----
+   DATA SIZE        =     20    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.

@@ -38,7 +38,7 @@
 #define MANUALMODE 		4		//手动工作模式
 #define STORESTATUS 	5		//收藏状态
 
-#define ELDOWNlimitDef	33.0     //下降到最底
+#define ELDOWNlimitDef	32.0     //下降到最底
 
 
 //#define LEDLOCK 	(P6&=~BIT6)						//锁定灯亮(测试机用)
@@ -205,7 +205,7 @@ extern xdata int len2;
 
 
 extern void TimeTest(int count);
-extern void Delay(UINT16 t);						//大致延迟
+extern void Delay(UINT32 t);						//大致延迟
 extern void itoa(int i, char *p, int jinzhishu);
 extern void FindAnt(float slong, float slat, float starlong, BOOL plomode);
 extern void PolarAngleInit(void);

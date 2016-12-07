@@ -1,9 +1,9 @@
-C51 COMPILER V9.00   POLAR                                                                 03/29/2016 14:57:53 PAGE 1   
+C51 COMPILER V9.01   POLAR                                                                 12/06/2016 17:32:34 PAGE 1   
 
 
-C51 COMPILER V9.00, COMPILATION OF MODULE POLAR
+C51 COMPILER V9.01, COMPILATION OF MODULE POLAR
 OBJECT MODULE PLACED IN polar.OBJ
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE polar.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Applications\Keil\C51\BIN\C51.EXE polar.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
 
 line level    source
 
@@ -32,82 +32,89 @@ line level    source
   23          UINT16 xdata PolarFlag = 0;             //极化是否可转动标志
   24          UINT16 xdata PloarNormal = 0;   //极化正常标志
   25          UINT8 xdata PloarAngleStage = 0;         //极化角所处台阶
-  26          
-  27          /***********************************************************************
-  28          *
-  29          * 函数原型：void GotoPolarAngle(float angle)
-  30          *
-  31          * 入口参数：目标角度
-  32          *
-  33          * 出口参数：无
-  34          *
-  35          * 功能描述：转到目标极化角度
-  36          *
-  37          * 注    意：PolarDst全局变量!!!
-  38          *
-  39          ***********************************************************************/
-  40          void GotoPolarAngle(float angle)
-  41          {
-  42   1              if((PolarFlag == 0) && \
-  43   1                      ((ReadEEPROM(PolCompensateAddress) == '+') || \
-  44   1                      (ReadEEPROM(PolCompensateAddress) == '-')))
-  45   1              {
-  46   2                      PolarFlag = 2;
-  47   2                      if(ReadEEPROM(PolCompensateAddress) == '+')
-  48   2                      {
-  49   3                              AngleCom = ReadEEPROM(PolCompensateAddress + 1);
-  50   3                      }
-  51   2                      if(ReadEEPROM(PolCompensateAddress) == '-')
-  52   2                      {
-  53   3                              AngleCom = 0.0 - ReadEEPROM(PolCompensateAddress + 1);
-  54   3                      }
-  55   2              }
-C51 COMPILER V9.00   POLAR                                                                 03/29/2016 14:57:53 PAGE 2   
+  26          UINT16 tempmin = 4000;
+  27          UINT16 tempmax = 0;
+  28          UINT8 maxnumber = 0;
+  29          UINT8 minnumber = 0;
+  30          UINT8 maxflag = 0;
+  31          UINT8 minflag = 0;
+  32          UINT8 initplorangle = 0;
+  33          
+  34          /***********************************************************************
+  35          *
+  36          * 函数原型：void GotoPolarAngle(float angle)
+  37          *
+  38          * 入口参数：目标角度
+  39          *
+  40          * 出口参数：无
+  41          *
+  42          * 功能描述：转到目标极化角度
+  43          *
+  44          * 注    意：PolarDst全局变量!!!
+  45          *
+  46          ***********************************************************************/
+  47          void GotoPolarAngle(float angle)
+  48          {
+  49   1              if((PolarFlag == 0) && \
+  50   1                      ((ReadEEPROM(PolCompensateAddress) == '+') || \
+  51   1                      (ReadEEPROM(PolCompensateAddress) == '-')))
+  52   1              {
+  53   2                      PolarFlag = 2;
+  54   2                      if(ReadEEPROM(PolCompensateAddress) == '+')
+  55   2                      {
+C51 COMPILER V9.01   POLAR                                                                 12/06/2016 17:32:34 PAGE 2   
 
-  56   1      
-  57   1              PolarFlag = 2;                                                                   //2012
-  58   1      
-  59   1              if(PolarFlag == 2)
-  60   1              {
-  61   2                      PolarRightFlag = 0;                             //极化角未到位
-  62   2      //*----------------------------------------------------------------
-  63   2      //              if(angle < -90.0)                                       //保护
-  64   2      //              {
-  65   2      //                      angle = -90.0;
-  66   2      //              }
-  67   2      //              if(angle > 90.0)
-  68   2      //              {
-  69   2      //                      angle = 90.0;
-  70   2      //              }
-  71   2      //---------------------------------------------------------------*/
-  72   2                      PolarDst = angle;
-  73   2      //---------------------------------------------------------------*/
-  74   2      
-  75   2                      OpenTimer0Interrupt();
-  76   2                      OpenTimer2Interrupt();
-  77   2                      while(PolarRightFlag == 0 && OverflowT0 < 5000)
-  78   2                      {
-  79   3                              ;
-  80   3                      }
-  81   2                      POLAR_STOP;
-  82   2                      CloseTimer2Interrupt();
-  83   2                      CloseTimer0Interrupt();
-  84   2                      if(OverflowT0 > 4999)
+  56   3                              AngleCom = ReadEEPROM(PolCompensateAddress + 1);
+  57   3                      }
+  58   2                      if(ReadEEPROM(PolCompensateAddress) == '-')
+  59   2                      {
+  60   3                              AngleCom = 0.0 - ReadEEPROM(PolCompensateAddress + 1);
+  61   3                      }
+  62   2              }
+  63   1      
+  64   1              PolarFlag = 2;                                                                   //2012
+  65   1      
+  66   1              if(PolarFlag == 2)
+  67   1              {
+  68   2                      PolarRightFlag = 0;                             //极化角未到位
+  69   2      //*----------------------------------------------------------------
+  70   2      //              if(angle < -90.0)                                       //保护
+  71   2      //              {
+  72   2      //                      angle = -90.0;
+  73   2      //              }
+  74   2      //              if(angle > 90.0)
+  75   2      //              {
+  76   2      //                      angle = 90.0;
+  77   2      //              }
+  78   2      //---------------------------------------------------------------*/
+  79   2                      PolarDst = angle;
+  80   2      //---------------------------------------------------------------*/
+  81   2      
+  82   2                      OpenTimer0Interrupt();
+  83   2                      OpenTimer2Interrupt();
+  84   2                      while(PolarRightFlag == 0 && OverflowT0 < 5000)
   85   2                      {
-  86   3                              PloarNormal = 0;
+  86   3                              ;
   87   3                      }
-  88   2                      else
-  89   2                      {
-  90   3                              PloarNormal = 1;
-  91   3                      }
-  92   2              }
-  93   1      }
+  88   2                      POLAR_STOP;
+  89   2                      CloseTimer2Interrupt();
+  90   2                      CloseTimer0Interrupt();
+  91   2                      if(OverflowT0 > 4999)
+  92   2                      {
+  93   3                              PloarNormal = 0;
+  94   3                      }
+  95   2                      else
+  96   2                      {
+  97   3                              PloarNormal = 1;
+  98   3                      }
+  99   2              }
+ 100   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =    222    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =      9    ----
+   XDATA SIZE       =     18    ----
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

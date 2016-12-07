@@ -1,9 +1,9 @@
-C51 COMPILER V9.00   STATION                                                               03/29/2016 14:57:53 PAGE 1   
+C51 COMPILER V9.01   STATION                                                               12/06/2016 15:25:39 PAGE 1   
 
 
-C51 COMPILER V9.00, COMPILATION OF MODULE STATION
+C51 COMPILER V9.01, COMPILATION OF MODULE STATION
 OBJECT MODULE PLACED IN station.OBJ
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE station.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Applications\Keil\C51\BIN\C51.EXE station.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   53          
   54          
   55          UINT8 xdata status;                                                             //天线工作状态
-C51 COMPILER V9.00   STATION                                                               03/29/2016 14:57:53 PAGE 2   
+C51 COMPILER V9.01   STATION                                                               12/06/2016 15:25:39 PAGE 2   
 
   56          float xdata AZSearchRange = 30.0;                               //方位搜索范围
   57          float xdata ELSearchRange = 5.0;                                //俯仰搜索范围
@@ -126,7 +126,7 @@ line level    source
  115          float   xdata XinBiaoThresholdS;                                //信标门限
  116          float   xdata SrcStarKbS;                                               //当前符号率
  117          //*********************2009-6-19实时卫星参数****************/
-C51 COMPILER V9.00   STATION                                                               03/29/2016 14:57:53 PAGE 3   
+C51 COMPILER V9.01   STATION                                                               12/06/2016 15:25:39 PAGE 3   
 
  118          
  119          
@@ -174,10 +174,10 @@ line level    source
  161          *
  162          * 出口参数：无
  163          *
- 164          * 功能描述：大概延时。
+ 164          * 功能描述：大概延时。24MHz, about 0.5us per machine circle or 12MHz, about 1us per machine circle
  165          *
  166          ***********************************************************************/
- 167          void Delay(UINT16 t)
+ 167          void Delay(UINT32 t)
  168          {
  169   1              while(--t)
  170   1              {
@@ -190,7 +190,7 @@ line level    source
  177          *
  178          * 函数原型：void itoa(int i,char *p,int weishu)
  179          *
-C51 COMPILER V9.00   STATION                                                               03/29/2016 14:57:53 PAGE 4   
+C51 COMPILER V9.01   STATION                                                               12/06/2016 15:25:39 PAGE 4   
 
  180          * 入口参数：i为要转换的十进制有符号整形数据，weishu为限定位数
  181          *
@@ -254,7 +254,7 @@ line level    source
  239   1      
  240   1              if(SatLongEastFlagS == WEST)    //如果卫星是在西半球
  241   1              {
-C51 COMPILER V9.00   STATION                                                               03/29/2016 14:57:53 PAGE 5   
+C51 COMPILER V9.01   STATION                                                               12/06/2016 15:25:39 PAGE 5   
 
  242   2                      starlong = 360.0 - starlong;    
  243   2              }
@@ -291,7 +291,7 @@ line level    source
  274   1      
  275   1              if(plomode == V)
  276   1              {
- 277   2                      StationPolCal = 45;
+ 277   2                      StationPolCal = 235;
  278   2      //              if(StationPolCal < 0.0)
  279   2      //              {
  280   2      //                      StationPolCal += 90.0;
@@ -303,7 +303,7 @@ line level    source
  286   2              }
  287   1              if(plomode == H)
  288   1              {
- 289   2                      StationPolCal = 315;
+ 289   2                      StationPolCal = 145;
  290   2              }
  291   1      
  292   1              if(StationNorthFlag == SOUTH)      //如果是南半球
@@ -315,10 +315,10 @@ line level    source
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1144    ----
+   CODE SIZE        =   1142    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =    960    ----
-C51 COMPILER V9.00   STATION                                                               03/29/2016 14:57:53 PAGE 6   
+   XDATA SIZE       =    962    ----
+C51 COMPILER V9.01   STATION                                                               12/06/2016 15:25:39 PAGE 6   
 
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----

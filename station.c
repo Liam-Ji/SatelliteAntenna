@@ -164,7 +164,7 @@ void TimeTest(int count)
 * 功能描述：大概延时。24MHz, about 0.5us per machine circle or 12MHz, about 1us per machine circle
 *
 ***********************************************************************/
-void Delay(UINT16 t)
+void Delay(UINT32 t)
 {
 	while(--t)
 	{
@@ -274,7 +274,7 @@ void FindAnt(float slong, float slat, float starlong, BOOL plomode)
 
 	if(plomode == V)
 	{
-		StationPolCal = 45;
+		StationPolCal = 235;
 //		if(StationPolCal < 0.0)
 //		{
 //			StationPolCal += 90.0;
@@ -286,7 +286,7 @@ void FindAnt(float slong, float slat, float starlong, BOOL plomode)
 	}
 	if(plomode == H)
 	{
-		StationPolCal = 315;
+		StationPolCal = 145;
 	}
 
 	if(StationNorthFlag == SOUTH)	   //如果是南半球

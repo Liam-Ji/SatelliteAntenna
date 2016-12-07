@@ -23,6 +23,13 @@
 UINT16 xdata PolarFlag = 0;		//极化是否可转动标志
 UINT16 xdata PloarNormal = 0;	//极化正常标志
 UINT8 xdata PloarAngleStage = 0;	 //极化角所处台阶
+UINT16 tempmin = 4000;
+UINT16 tempmax = 0;
+UINT8 maxnumber = 0;
+UINT8 minnumber = 0;
+UINT8 maxflag = 0;
+UINT8 minflag = 0;
+UINT8 initplorangle = 0;
 
 /***********************************************************************
 *

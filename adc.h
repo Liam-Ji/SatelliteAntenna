@@ -35,5 +35,15 @@ extern float GetPolarAngle(void);
 extern float GetComPolA(void);
 extern float GetT(void);
 
+extern UINT16 tempmin;
+extern UINT16 tempmax;
+
+/******2016/12/4加入极化角计算辅助参数*******/
+extern UINT8 xdata PloarAngleStage;
+extern UINT8 maxnumber;
+extern UINT8 minnumber;
+extern UINT8 maxflag;
+extern UINT8 minflag;
+extern UINT8 initplorangle;
 
 #endif

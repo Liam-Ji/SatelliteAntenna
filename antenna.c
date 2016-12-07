@@ -359,18 +359,30 @@ static void ParaProtect(void)
 *
 * 出口参数：无
 *
-* 功能描述：极化角初始化，电位器与极化器的转圈比为3：1，因此将圆极化器的角度分为3段，此函数将极化器转到限位，并将段数初始化为0
+* 功能描述：极化角初始化，电位器与极化器的转圈比为3：1，因此将圆极化器的角度分为3段，此函数将极化器转到限位，并将段数初始化为0,并且得到初始化角度
 *
 ***********************************************************************/
 void PolarAngleInit(void)
 {
+//	POLAR_RIGHT;
+//	LEDRED;
+//	Delay(100000);
+//	LEDCLOSE;
+//	while(ELMidLimit)
+//	{
+//		initplorangle = GetComPolA();
+//	}
 	POLAR_LEFT;
+	LEDRED;
+	Delay(100000);
+	LEDCLOSE;
 	while(ELMidLimit)
 	{
 		;
 	}
 	POLAR_STOP;
 	PloarAngleStage = 0;
+	initplorangle = GetComPolA();
 	return;
 }
 
@@ -424,7 +436,7 @@ void AntennaInit(void)
 		{
 			Delay(20);
 			OpenTimer0Interrupt();
-			while(OverflowT0 < 1200 && ChangeKit == 0)		//aproximately 276s/4.6minite
+			while(OverflowT0 < 1200 && ChangeKit == 0)		//1200 aproximately 276s/4.6minite
 			{
 				if((OverflowT0 & 7) == 0)
 				{
@@ -452,9 +464,7 @@ void AntennaInit(void)
 	NoMonitorF = 1;											//默认无监控
 	AntReadySearchF = 1;									//初始化准备搜索标致位(2009/10/12)
 
-	PolarAngleInit();
-	StationPol = GetComPolA();
-	GotoPolarAngle(45);										//
+									
 
 	Abnormal = ReadEEPROM(AbnormalFlagAddress);				//读取是否正常开机标志，Abnormal=0为正常开机，Abnormal=1为不正常开机
 	
@@ -557,7 +567,12 @@ void AntennaInit(void)
 			TimeTest(2);
 			AzLimitTest(); 									//2010-7-8加入对限位的测试；
 			GotoAzMid();
-			BianBanFlag = 0;
+			
+			/* 以下三条是极化的初始化，从原来的开机按键后初始化转移到目前位置，和等待装边瓣放在一起，节省时间 */
+
+
+
+			BianBanFlag = 0;								
 			SetBianBan();									//等待装边瓣		
 		}
 		else
@@ -568,11 +583,14 @@ void AntennaInit(void)
 	}//end (GradientNormal == 1)
 	else
 	{
-		Delay(10);
-		StationEl = -73.0;
-		MotorCtrl(UPDOWN, 40.0, GetElS1());
+		/* 下面3条用来提示使用者未从收藏状态加电使用，2016-11-20注释掉 */
+//		Delay(10);
+//		StationEl = -73.0;
+//		MotorCtrl(UPDOWN, 40.0, GetElS1());
 	}//end (GradientNormal != 1)
-
+	PolarAngleInit();
+	StationPol = GetComPolA();
+	GotoPolarAngle(45);
    	BaseStarFlagThree = 0;									//使用参考卫星标志位
 	EnStorSrcPara = 1;
 	status = SEARCHREADY;
@@ -680,8 +698,8 @@ void AntennaReadySearch(void)
 	
 	if(ReceiverKindFlagS == XINBIAOREC)
 	{
-//		SetXinBiaoFreqKC(XinBiaoRecFreqS);							//设置信标频率
-		SetXinBiaoFreqKC(1300.0);							//设置信标频率	
+		SetXinBiaoFreqKC(XinBiaoRecFreqS);							//设置信标频率
+//		SetXinBiaoFreqKC(1300.0);							//设置信标频率	
 	}	
 	else
 	{
@@ -1368,7 +1386,7 @@ void AntennaStore(void)
 	if(AZDir == AZLEFT)											//如果从右边过来，再继续转,因为中间限位较偏
 	{
 		temp = (float)ReadEEPROM(rightONE) / 10.0;
-		temp = 4;
+		temp = 5;
 		if(temp < 10.0)
 		{
 			MotorCtrl(RIGHTLEFT, AZ180 - temp, GetAzS2());
@@ -1432,9 +1450,9 @@ void AntennaStore(void)
 /*2008-11-14加入，收藏上下可调*/
 	TimeTest(5);
 	temp = (float)ReadEEPROM(rightSIX);
-	if(temp > 99.0)
+	if(temp > 85.0)
 	{
-		temp = 90.0; 
+		temp = 85.0; 
 	}
 	
 	if(temp < 50.0)
@@ -1926,39 +1944,48 @@ static void TestXianWei(void)
 }
 static void TestPolar(void)
 {
+	PolarAngleInit();
 	StationPol = GetComPolA();
-	if(StationPol > 30.0 || StationPol < -30.0)
-	{
-		while(1)
-		{
-			LEDRED;
-			Delay(40000);
-			LEDCLOSE;
-			Delay(40000);
-		}
-	}
+	GotoPolarAngle(45);	
+	GotoPolarAngle(315);
+	PolarAngleInit();	
 
-	POLAR_LEFT;
-	TimeTest(7);
-	POLAR_STOP;
 
-	if(StationPol > GetPolarAngle())
-	{
-		while(1)
-		{
-			LEDRED;
-			Delay(40000);
-			LEDCLOSE;
-			Delay(40000);
-		}
-	}
-	TimeTest(TIME3);
-	POLAR_RIGHT;
-	while(GetPolarAngle() /* - StationPol */ > 0.1)
-	{
-		;
-	}
-	POLAR_STOP;
+
+
+//	StationPol = GetComPolA();
+//	if(StationPol > 30.0 || StationPol < -30.0)
+//	{
+//		while(1)
+//		{
+//			LEDRED;
+//			Delay(40000);
+//			LEDCLOSE;
+//			Delay(40000);
+//		}
+//	}
+//
+//	POLAR_LEFT;
+//	TimeTest(7);
+//	POLAR_STOP;
+//
+//	if(StationPol > GetPolarAngle())
+//	{
+//		while(1)
+//		{
+//			LEDRED;
+//			Delay(40000);
+//			LEDCLOSE;
+//			Delay(40000);
+//		}
+//	}
+//	TimeTest(TIME3);
+//	POLAR_RIGHT;
+//	while(GetPolarAngle() /* - StationPol */ > 0.1)
+//	{
+//		;
+//	}
+//	POLAR_STOP;
 	TimeTest(TIME3);
 	return;
 }

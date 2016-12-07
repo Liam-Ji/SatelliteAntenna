@@ -1,9 +1,9 @@
-C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 1   
+C51 COMPILER V9.01   ADC                                                                   12/06/2016 15:25:39 PAGE 1   
 
 
-C51 COMPILER V9.00, COMPILATION OF MODULE ADC
+C51 COMPILER V9.01, COMPILATION OF MODULE ADC
 OBJECT MODULE PLACED IN adc.OBJ
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE adc.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Applications\Keil\C51\BIN\C51.EXE adc.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
 
 line level    source
 
@@ -25,275 +25,304 @@ line level    source
   16          #include "uart.h"
   17          #include "station.h"
   18          
-  19          extern INT32 tempmin;
-  20          extern INT32 tempmax;
-  21          extern UINT8 xdata PloarAngleStage;
-  22          
-  23          /*全局变量*/
-  24          UINT16 xdata ReceiverKindFlag;  //接收机类别判断标志
-  25          float xdata AngleCom = 0;               //极化补偿值
-  26          float xdata StationPol;                 //地球站极化角度
-  27          
-  28          
-  29          /*静态函数*/
-  30          static float GetSharpAGC(void);
-  31          static float GetXinbiaoAGC(void);
-  32          
-  33          
-  34          /***********************************************************************
+  19          
+  20          
+  21          /*全局变量*/
+  22          UINT16 xdata ReceiverKindFlag;  //接收机类别判断标志
+  23          float xdata AngleCom = 0;               //极化补偿值
+  24          float xdata StationPol;                 //地球站极化角度
+  25          
+  26          
+  27          /*静态函数*/
+  28          static float GetSharpAGC(void);
+  29          static float GetXinbiaoAGC(void);
+  30          
+  31          
+  32          /***********************************************************************
+  33          *
+  34          * 函数原型：void ADC0Init(void)
   35          *
-  36          * 函数原型：void ADC0Init(void)
+  36          * 入口参数：无
   37          *
-  38          * 入口参数：无
+  38          * 出口参数：无
   39          *
-  40          * 出口参数：无
+  40          * 功能描述：ADC0初始化通过向 AD0BUSY 写‘1’启
   41          *
-  42          * 功能描述：ADC0初始化通过向 AD0BUSY 写‘1’启
-  43          *
-  44          ***********************************************************************/
-  45          void ADC0Init(void)
-  46          {
-  47   1              EA      =  0;
-  48   1              SFRPAGE = ADC0_PAGE;
-  49   1              ADC0CN  =  0x80;                        //10000000B,配置含义见下，ADC0 使能，
-  50   1              ADC0GTH =  0x0;                         //向AD0BUSY 写1 启动ADC0 转换，ADC0H:ADC0L 寄存器数据右对齐
-  51   1              ADC0GTL =  0x0;
-  52   1              ADC0LTH =  0x0F;
-  53   1              ADC0LTL =  0xFF;
-  54   1              ADC0CF  =  0x50;                        //配置PGA，转换时钟周期配置为10，即：22118400 /（10 + 1） 
-  55   1              AMX0CF  =  0x0;                         //全部为独立的单端输入
-C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 2   
+  42          ***********************************************************************/
+  43          void ADC0Init(void)
+  44          {
+  45   1              EA      =  0;
+  46   1              SFRPAGE = ADC0_PAGE;
+  47   1              ADC0CN  =  0x80;                        //10000000B,配置含义见下，ADC0 使能，
+  48   1              ADC0GTH =  0x0;                         //向AD0BUSY 写1 启动ADC0 转换，ADC0H:ADC0L 寄存器数据右对齐
+  49   1              ADC0GTL =  0x0;
+  50   1              ADC0LTH =  0x0F;
+  51   1              ADC0LTL =  0xFF;
+  52   1              ADC0CF  =  0x50;                        //配置PGA，转换时钟周期配置为10，即：22118400 /（10 + 1） 
+  53   1              AMX0CF  =  0x0;                         //全部为独立的单端输入
+  54   1              REF0CN  =  0x02;                //使用电压基准2.5V
+  55   1              EIE2   &= ~0x02;                        //禁止ADC0 转换结束中断。
+C51 COMPILER V9.01   ADC                                                                   12/06/2016 15:25:39 PAGE 2   
 
-  56   1              REF0CN  =  0x02;                //使用电压基准2.5V
-  57   1              EIE2   &= ~0x02;                        //禁止ADC0 转换结束中断。
-  58   1              EIE1   &= ~0x04;                        //禁止ADC0窗口比较中断
-  59   1              EA          =  1;       
-  60   1      }
-  61          
-  62          
-  63          /***********************************************************************
+  56   1              EIE1   &= ~0x04;                        //禁止ADC0窗口比较中断
+  57   1              EA          =  1;       
+  58   1      }
+  59          
+  60          
+  61          /***********************************************************************
+  62          *
+  63          * 函数原型：float GetAGC(void)
   64          *
-  65          * 函数原型：float GetAGC(void)
+  65          * 入口参数：无
   66          *
-  67          * 入口参数：无
+  67          * 出口参数：UINT16型数据，返回当前电压的4倍值
   68          *
-  69          * 出口参数：UINT16型数据，返回当前电压的4倍值
+  69          * 功能描述：可从不同接收机得到AGC
   70          *
-  71          * 功能描述：可从不同接收机得到AGC
-  72          *
-  73          ***********************************************************************/
-  74          float GetAGC(void)
-  75          {       
-  76   1              float returnvalue;
-  77   1              if(ReceiverKindFlagS == XINBIAOREC)                                     //若当前选择为信标接收机
-  78   1              {
-  79   2      //              return GetXinbiaoAGC();
-  80   2      //              return GetKCAGC();
-  81   2                      returnvalue=GetKCAGC();
-  82   2              }
-  83   1              else
-  84   1              {
-  85   2      //              return GetSharpAGC();
-  86   2                      returnvalue=GetSharpAGC();
-  87   2              }
-  88   1              return returnvalue;     
-  89   1      }
-  90          
-  91          
-  92          /***********************************************************************
+  71          ***********************************************************************/
+  72          float GetAGC(void)
+  73          {       
+  74   1              float returnvalue;
+  75   1              if(ReceiverKindFlagS == XINBIAOREC)                                     //若当前选择为信标接收机
+  76   1              {
+  77   2      //              return GetXinbiaoAGC();
+  78   2      //              return GetKCAGC();
+  79   2                      returnvalue=GetKCAGC();
+  80   2              }
+  81   1              else
+  82   1              {
+  83   2      //              return GetSharpAGC();
+  84   2                      returnvalue=GetSharpAGC();
+  85   2              }
+  86   1              return returnvalue;     
+  87   1      }
+  88          
+  89          
+  90          /***********************************************************************
+  91          *
+  92          * 函数原型：float GetXinbiaoAGC(void)
   93          *
-  94          * 函数原型：float GetXinbiaoAGC(void)
+  94          * 入口参数：无
   95          *
-  96          * 入口参数：无
+  96          * 出口参数：UINT16型数据，返回当前电压的4倍值
   97          *
-  98          * 出口参数：UINT16型数据，返回当前电压的4倍值
+  98          * 功能描述：采一次通道0信标接收机返回的采样值
   99          *
- 100          * 功能描述：采一次通道0信标接收机返回的采样值
+ 100          * 修    改：2008-12-9，将得到AGC函数分开为两个主函数，修改人：杨淳雯
  101          *
- 102          * 修    改：2008-12-9，将得到AGC函数分开为两个主函数，修改人：杨淳雯
- 103          *
- 104          ***********************************************************************/
- 105          /*
- 106          static float GetXinbiaoAGC(void)
- 107          {
- 108                  UINT32  i, tempAGC = 0;
- 109                  float AverAgc;
+ 102          ***********************************************************************/
+ 103          /*
+ 104          static float GetXinbiaoAGC(void)
+ 105          {
+ 106                  UINT32  i, tempAGC = 0;
+ 107                  float AverAgc;
+ 108          
+ 109                  AMX0SL = CHXINBIAO;                                                                     //旧信标
  110          
- 111                  AMX0SL = CHXINBIAO;                                                                     //旧信标
- 112          
- 113                  for(i = 0; i < 5; i++)
- 114                  {
- 115                          AD0INT  = 0;                                                                    //ad转换开始
- 116                          AD0BUSY = 1;
- 117                          while(!AD0INT)
-C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 3   
+ 111                  for(i = 0; i < 5; i++)
+ 112                  {
+ 113                          AD0INT  = 0;                                                                    //ad转换开始
+ 114                          AD0BUSY = 1;
+ 115                          while(!AD0INT)
+ 116                                  ;
+ 117                          tempAGC += ADC0H * 256 + ADC0L;
+C51 COMPILER V9.01   ADC                                                                   12/06/2016 15:25:39 PAGE 3   
 
- 118                                  ;
- 119                          tempAGC += ADC0H * 256 + ADC0L;
- 120                  }
- 121                  tempAGC /= i;
- 122                          
- 123                  AverAgc = (float)(tempAGC) * 10.0 / 4096.0;                     //将采样的值转换为电平值
- 124                  
- 125                  return AverAgc;
- 126          }
- 127          */
- 128          
- 129          
- 130          /***********************************************************************
+ 118                  }
+ 119                  tempAGC /= i;
+ 120                          
+ 121                  AverAgc = (float)(tempAGC) * 10.0 / 4096.0;                     //将采样的值转换为电平值
+ 122                  
+ 123                  return AverAgc;
+ 124          }
+ 125          */
+ 126          
+ 127          
+ 128          /***********************************************************************
+ 129          *
+ 130          * 函数原型：float GetSharpAGC(void)
  131          *
- 132          * 函数原型：float GetSharpAGC(void)
+ 132          * 入口参数：无
  133          *
- 134          * 入口参数：无
+ 134          * 出口参数：UINT16型数据，返回当前电压的4倍值
  135          *
- 136          * 出口参数：UINT16型数据，返回当前电压的4倍值
+ 136          * 功能描述：采一次通道1夏普接收机返回的采样值
  137          *
- 138          * 功能描述：采一次通道1夏普接收机返回的采样值
+ 138          * 修    改：2008-12-9，将得到AGC函数分开为两个主函数，修改人：杨淳雯
  139          *
- 140          * 修    改：2008-12-9，将得到AGC函数分开为两个主函数，修改人：杨淳雯
- 141          *
- 142          ***********************************************************************/
- 143          static float GetSharpAGC(void)
- 144          {
- 145   1              UINT32  i, tempAGC = 0;
- 146   1              float AverAgc;
- 147   1              
- 148   1              SFRPAGE = ADC0_PAGE;    
- 149   1              AMX0SL  = CHSHARP;                                                                      //选择夏普接收机通道
- 150   1      
- 151   1              for(i = 0; i < 5; i++)
- 152   1              {
- 153   2                      AD0INT  = 0;                                                                    //AD转换开始
- 154   2                      AD0BUSY = 1;
- 155   2                      while(!AD0INT)
- 156   2                              ;
- 157   2                      tempAGC += ADC0H * 256 + ADC0L;
- 158   2              }
- 159   1              tempAGC /= i;
- 160   1                      
- 161   1              AverAgc = (float)(tempAGC) * 10.0 / 4096.0;                     //将采样的值转换为电平值
- 162   1              
- 163   1              return AverAgc;
- 164   1      }
- 165          
- 166          
- 167          /***********************************************************************
+ 140          ***********************************************************************/
+ 141          static float GetSharpAGC(void)
+ 142          {
+ 143   1              UINT32  i, tempAGC = 0;
+ 144   1              float AverAgc;
+ 145   1              
+ 146   1              SFRPAGE = ADC0_PAGE;    
+ 147   1              AMX0SL  = CHSHARP;                                                                      //选择夏普接收机通道
+ 148   1      
+ 149   1              for(i = 0; i < 5; i++)
+ 150   1              {
+ 151   2                      AD0INT  = 0;                                                                    //AD转换开始
+ 152   2                      AD0BUSY = 1;
+ 153   2                      while(!AD0INT)
+ 154   2                              ;
+ 155   2                      tempAGC += ADC0H * 256 + ADC0L;
+ 156   2              }
+ 157   1              tempAGC /= i;
+ 158   1                      
+ 159   1              AverAgc = (float)(tempAGC) * 10.0 / 4096.0;                     //将采样的值转换为电平值
+ 160   1              
+ 161   1              return AverAgc;
+ 162   1      }
+ 163          
+ 164          
+ 165          /***********************************************************************
+ 166          *
+ 167          * 函数原型：float   GetPolarAngle(void)
  168          *
- 169          * 函数原型：float   GetPolarAngle(void)
+ 169          * 入口参数：无
  170          *
- 171          * 入口参数：无
+ 171          * 出口参数：角度
  172          *
- 173          * 出口参数：角度
+ 173          * 功能描述：根据极化电平计算极化角度.
  174          *
- 175          * 功能描述：根据极化电平计算极化角度.
+ 175          * 注：根据不同的电机进行换算,AngleCom为补尝值.  
  176          *
- 177          * 注：根据不同的电机进行换算,AngleCom为补尝值.  
- 178          *
- 179          ***********************************************************************/
-C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 4   
+ 177          ***********************************************************************/
+ 178          float GetPolarAngle(void)
+ 179          {
+C51 COMPILER V9.01   ADC                                                                   12/06/2016 15:25:39 PAGE 4   
 
- 180          float GetPolarAngle(void)
- 181          {
- 182   1              UINT16  i;
- 183   1              static tempagc = 0;                        //存储本次的取样值
- 184   1              static tempagcB = 0;               //存储上一次的取样值
- 185   1              float Angle;
- 186   1              float AngleTemp;
- 187   1      
- 188   1              tempagcB = tempagc;
- 189   1              SFRPAGE = ADC0_PAGE;            
- 190   1              AMX0SL  = CHPOLAR;
- 191   1              tempagcB = tempagc;
- 192   1              tempagc = 0;
- 193   1              for(i = 0; i < 5; i++)
- 194   1              {
- 195   2                      AD0INT = 0;                                //ADC0转换结束中断标志，上一次转换成功自动变为1，要用软件清零这一位
- 196   2                      AD0BUSY = 1;                       //启动AD转换
- 197   2                      while(!AD0INT)                     //等待转换结束
- 198   2                              ;
- 199   2                      tempagc += ADC0H * 256 + ADC0L;
- 200   2              }
- 201   1              tempagc /= i;                              //采集5次求平均值，滤波
- 202   1      
- 203   1      //      if(tempagc > tempmax)
- 204   1      //              tempmax = tempagc;
- 205   1      //      if(tempagc < tempmin)
- 206   1      //              tempmin = tempagc;
- 207   1              if(tempagc - tempagcB < -2000)                                     //判断取样值是否从最大跳变到最小，上升一个台阶
- 208   1                      PloarAngleStage = PloarAngleStage + 1;
- 209   1              if(tempagc - tempagcB > 2000)                                      //判断取样值是否从最小跳变到最大，下降一个台阶
- 210   1                      PloarAngleStage = PloarAngleStage - 1;
- 211   1      //      Angle = -0.10405 * ((float)(tempagc) - 1295.0) + AngleCom;   //通用型25KG
- 212   1      //      Angle = 0.026857654431512981199641897940913 * ((float)(tempagc) - 2093.0) + AngleCom;   //通用型25KG
- 213   1              AngleTemp = 0.1091239769627159745377 * ((float)(tempagc) - 426.0);   //通用型25KG
- 214   1              AngleTemp /= 3;
- 215   1              Angle = PloarAngleStage * 120 + AngleTemp - 12;
- 216   1              return Angle;   
- 217   1      }
- 218          
- 219          
- 220          /***********************************************************************
- 221          *
- 222          * 函数原型：float GetT(void)
- 223          *
- 224          * 入口参数：无
- 225          *
- 226          * 出口参数：float型数据，返回当前温度
- 227          *
- 228          * 功能描述：返回当前温度，来控制风扇
- 229          *
- 230          ***********************************************************************/
- 231          float GetT(void)
- 232          {
- 233   1              UINT32  i, tempAGC = 0;
- 234   1              float AverAgc;
- 235   1      
- 236   1              SFRPAGE = ADC0_PAGE;
- 237   1              AMX0SL  = 0xf;                                                                          //旧信标
- 238   1              REF0CN = 7;
- 239   1      
- 240   1              for(i = 0; i < 5; i++)
- 241   1              {
-C51 COMPILER V9.00   ADC                                                                   03/29/2016 14:57:52 PAGE 5   
+ 180   1              UINT16  i;
+ 181   1              static tempagc = 0;                        //存储本次的取样值
+ 182   1              static tempagcA = 0;
+ 183   1      //      static tempagcB = 0;               //存储上一次的取样值
+ 184   1      //      static tempagcC = 0;
+ 185   1      //      static tempagcD = 0;
+ 186   1      //      static tempagcE = 0;
+ 187   1              float Angle;
+ 188   1              float AngleTemp;
+ 189   1      
+ 190   1              tempagcA = tempagc;
+ 191   1      //      tempagcB = tempagcC;
+ 192   1      //      tempagcC = tempagcD;
+ 193   1      //      tempagcD = tempagcE;
+ 194   1      //      tempagcE = tempagc;
+ 195   1              SFRPAGE = ADC0_PAGE;            
+ 196   1              AMX0SL  = CHPOLAR;
+ 197   1      
+ 198   1              tempagc = 0;
+ 199   1              for(i = 0; i < 5; i++)
+ 200   1              {
+ 201   2                      AD0INT = 0;                                //ADC0转换结束中断标志，上一次转换成功自动变为1，要用软件清零这一位
+ 202   2                      AD0BUSY = 1;                       //启动AD转换
+ 203   2                      while(!AD0INT)                     //等待转换结束
+ 204   2                              ;
+ 205   2                      tempagc += ADC0H * 256 + ADC0L;
+ 206   2              }
+ 207   1              tempagc /= i;                              //采集5次求平均值，滤波
+ 208   1      
+ 209   1              if(tempagc > tempmax)
+ 210   1                      tempmax = tempagc;
+ 211   1              if(tempagc < tempmin)
+ 212   1                      tempmin = tempagc;
+ 213   1      
+ 214   1      
+ 215   1      //      if(tempagc > tempmax - 100)
+ 216   1      //              maxnumber = maxnumber + 1;
+ 217   1      //      if(tempagc < tempmin + 100)
+ 218   1      //              minnumber = minnumber + 1;
+ 219   1      //      if(maxnumber > 10)
+ 220   1      //              maxflag = 1;
+ 221   1      //      if(minnumber > 10)
+ 222   1      //              minflag = 1;
+ 223   1      //      if(maxflag == 1) {
+ 224   1      //              if(minflag == 1) {
+ 225   1      //                      
+ 226   1      //              }
+ 227   1      //      }
+ 228   1      
+ 229   1              if(tempagc - tempagcA < -2200)                                     //判断取样值是否从最大跳变到最小，上升一个台阶
+ 230   1                      PloarAngleStage = PloarAngleStage + 1;
+ 231   1              if(tempagc - tempagcA > 2200)                                      //判断取样值是否从最小跳变到最大，下降一个台阶
+ 232   1                      PloarAngleStage = PloarAngleStage - 1;
+ 233   1      //      Angle = -0.10405 * ((float)(tempagc) - 1295.0) + AngleCom;   //通用型25KG
+ 234   1      //      Angle = 0.026857654431512981199641897940913 * ((float)(tempagc) - 2093.0) + AngleCom;   //通用型25KG
+ 235   1              AngleTemp = 120.0/(float)(3737-427) * ((float)(tempagc) - 427);   //通用型25KG
+ 236   1              if(PloarAngleStage < 0 || PloarAngleStage > 4)
+ 237   1                      PloarAngleStage = 0;
+ 238   1      //      if(PloarAngleStage == 0)
+ 239   1      //              Angle = AngleTemp;               //第一个阶梯使用原值
+ 240   1      //      else            
+ 241   1                      Angle = PloarAngleStage * 120 + AngleTemp - 55;    //后两个阶梯要加上每个阶梯的度数120，减去初始化角度，
+C51 COMPILER V9.01   ADC                                                                   12/06/2016 15:25:39 PAGE 5   
 
- 242   2                      AD0INT  = 0;                                                                    //ad转换开始
- 243   2                      AD0BUSY = 1;
- 244   2                      while(!AD0INT)
- 245   2                              ;
- 246   2                      tempAGC += ADC0H * 256 + ADC0L;
- 247   2              }
- 248   1              tempAGC /= i;
- 249   1              REF0CN = 2;
- 250   1                      
- 251   1              AverAgc = ((float)tempAGC * 2.5 / 4096.0 - 0.776) / 0.00286;//将采样的值转换为电平值
- 252   1              
- 253   1              return AverAgc;
- 254   1      }
- 255          
- 256          
- 257          /***********************************************************************
- 258          *
- 259          * 函数原型：float   GetComPolA(void)
- 260          *
- 261          * 入口参数：无
- 262          *
- 263          * 出口参数：角度
- 264          *
- 265          * 功能描述：得到通用的极化角度. 
- 266          *
- 267          ***********************************************************************/
- 268          float GetComPolA(void)
- 269          {
- 270   1              float angle;
- 271   1      
- 272   1              angle = GetPolarAngle();
- 273   1      
- 274   1              return angle;
- 275   1      }
+             -因为第一个阶梯没有整个走过
+ 242   1              return Angle;   
+ 243   1      }
+ 244          
+ 245          
+ 246          /***********************************************************************
+ 247          *
+ 248          * 函数原型：float GetT(void)
+ 249          *
+ 250          * 入口参数：无
+ 251          *
+ 252          * 出口参数：float型数据，返回当前温度
+ 253          *
+ 254          * 功能描述：返回当前温度，来控制风扇
+ 255          *
+ 256          ***********************************************************************/
+ 257          float GetT(void)
+ 258          {
+ 259   1              UINT32  i, tempAGC = 0;
+ 260   1              float AverAgc;
+ 261   1      
+ 262   1              SFRPAGE = ADC0_PAGE;
+ 263   1              AMX0SL  = 0xf;                                                                          //旧信标
+ 264   1              REF0CN = 7;
+ 265   1      
+ 266   1              for(i = 0; i < 5; i++)
+ 267   1              {
+ 268   2                      AD0INT  = 0;                                                                    //ad转换开始
+ 269   2                      AD0BUSY = 1;
+ 270   2                      while(!AD0INT)
+ 271   2                              ;
+ 272   2                      tempAGC += ADC0H * 256 + ADC0L;
+ 273   2              }
+ 274   1              tempAGC /= i;
+ 275   1              REF0CN = 2;
+ 276   1                      
+ 277   1              AverAgc = ((float)tempAGC * 2.5 / 4096.0 - 0.776) / 0.00286;//将采样的值转换为电平值
+ 278   1              
+ 279   1              return AverAgc;
+ 280   1      }
+ 281          
+ 282          
+ 283          /***********************************************************************
+ 284          *
+ 285          * 函数原型：float   GetComPolA(void)
+ 286          *
+ 287          * 入口参数：无
+ 288          *
+ 289          * 出口参数：角度
+ 290          *
+ 291          * 功能描述：得到通用的极化角度. 
+ 292          *
+ 293          ***********************************************************************/
+ 294          float GetComPolA(void)
+ 295          {
+ 296   1              float angle;
+ 297   1      
+ 298   1              angle = GetPolarAngle();
+ 299   1      
+ 300   1              return angle;
+ 301   1      }
+
+C51 COMPILER V9.01   ADC                                                                   12/06/2016 15:25:39 PAGE 6   
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1060    ----
+   CODE SIZE        =   1118    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =     56    ----
    PDATA SIZE       =   ----    ----

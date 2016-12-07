@@ -1,9 +1,9 @@
-A51 MACRO ASSEMBLER  L51_BANK                                                             03/29/2016 14:57:51 PAGE     1
+A51 MACRO ASSEMBLER  L51_BANK                                                             12/06/2016 15:25:38 PAGE     1
 
 
-MACRO ASSEMBLER A51 V8.01
+MACRO ASSEMBLER A51 V8.02
 OBJECT MODULE PLACED IN L51_BANK.OBJ
-ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE L51_BANK.A51 SET(LARGE) DEBUG EP
+ASSEMBLER INVOKED BY: C:\Applications\Keil\C51\BIN\A51.EXE L51_BANK.A51 SET(LARGE) DEBUG EP
 
 LOC  OBJ            LINE     SOURCE
 
@@ -65,7 +65,7 @@ LOC  OBJ            LINE     SOURCE
                       56     ;     mode cannot be used.                                                    *
                       57     ;                                                                             *
   00B1                58     PSBANK          DATA    0B1H           ; PSBANK Address                       *
-A51 MACRO ASSEMBLER  L51_BANK                                                             03/29/2016 14:57:51 PAGE     2
+A51 MACRO ASSEMBLER  L51_BANK                                                             12/06/2016 15:25:38 PAGE     2
 
                       59     ;                                                                             *
                       60     SWITCH0         MACRO                  ; Switch to Memory Bank #0             *
@@ -133,7 +133,7 @@ LOC  OBJ            LINE     SOURCE
   00F0               122     B       DATA    0F0H
   0082               123     DPL     DATA    82H
   0083               124     DPH     DATA    83H
-A51 MACRO ASSEMBLER  L51_BANK                                                             03/29/2016 14:57:51 PAGE     3
+A51 MACRO ASSEMBLER  L51_BANK                                                             12/06/2016 15:25:38 PAGE     3
 
   00A8               125     IE      DATA    0A8H
   00AF               126     EA      BIT     IE.7
@@ -201,7 +201,7 @@ LOC  OBJ            LINE     SOURCE
                              ENDIF
                      255     
                      256     
-A51 MACRO ASSEMBLER  L51_BANK                                                             03/29/2016 14:57:51 PAGE     4
+A51 MACRO ASSEMBLER  L51_BANK                                                             12/06/2016 15:25:38 PAGE     4
 
                      257     
                      258     COMMON_XDATA    MACRO     ; Switch back to common XDATA bank
@@ -250,7 +250,7 @@ LOC  OBJ            LINE     SOURCE
                      309     ENDIF  ; close block IF ?B_MODE = 4 *******************************************
                      310     
                      311     
-A51 MACRO ASSEMBLER  L51_BANK                                                             03/29/2016 14:57:51 PAGE     5
+A51 MACRO ASSEMBLER  L51_BANK                                                             12/06/2016 15:25:38 PAGE     5
 
 SYMBOL TABLE LISTING
 ------ ----- -------

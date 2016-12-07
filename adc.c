@@ -16,9 +16,7 @@
 #include "uart.h"
 #include "station.h"
 
-extern INT32 tempmin;
-extern INT32 tempmax;
-extern UINT8 xdata PloarAngleStage;
+
 
 /*全局变量*/
 UINT16 xdata ReceiverKindFlag;	//接收机类别判断标志
@@ -181,14 +179,22 @@ float GetPolarAngle(void)
 {
 	UINT16 	i;
 	static tempagc = 0;			   //存储本次的取样值
-	static tempagcB = 0;		   //存储上一次的取样值
+	static tempagcA = 0;
+//	static tempagcB = 0;		   //存储上一次的取样值
+//	static tempagcC = 0;
+//	static tempagcD = 0;
+//	static tempagcE = 0;
 	float Angle;
 	float AngleTemp;
 
-	tempagcB = tempagc;
+	tempagcA = tempagc;
+//	tempagcB = tempagcC;
+//	tempagcC = tempagcD;
+//	tempagcD = tempagcE;
+//	tempagcE = tempagc;
 	SFRPAGE = ADC0_PAGE;		
 	AMX0SL  = CHPOLAR;
-	tempagcB = tempagc;
+
 	tempagc = 0;
 	for(i = 0; i < 5; i++)
 	{
@@ -200,19 +206,39 @@ float GetPolarAngle(void)
 	}
 	tempagc /= i;				   //采集5次求平均值，滤波
 
-//	if(tempagc > tempmax)
-//		tempmax = tempagc;
-//	if(tempagc < tempmin)
-//		tempmin = tempagc;
-	if(tempagc - tempagcB < -2000)					   //判断取样值是否从最大跳变到最小，上升一个台阶
+	if(tempagc > tempmax)
+		tempmax = tempagc;
+	if(tempagc < tempmin)
+		tempmin = tempagc;
+
+
+//	if(tempagc > tempmax - 100)
+//		maxnumber = maxnumber + 1;
+//	if(tempagc < tempmin + 100)
+//		minnumber = minnumber + 1;
+//	if(maxnumber > 10)
+//		maxflag = 1;
+//	if(minnumber > 10)
+//		minflag = 1;
+//	if(maxflag == 1) {
+//		if(minflag == 1) {
+//			
+//		}
+//	}
+
+	if(tempagc - tempagcA < -2200)					   //判断取样值是否从最大跳变到最小，上升一个台阶
 		PloarAngleStage = PloarAngleStage + 1;
-	if(tempagc - tempagcB > 2000)					   //判断取样值是否从最小跳变到最大，下降一个台阶
+	if(tempagc - tempagcA > 2200)					   //判断取样值是否从最小跳变到最大，下降一个台阶
 		PloarAngleStage = PloarAngleStage - 1;
 //	Angle = -0.10405 * ((float)(tempagc) - 1295.0) + AngleCom;   //通用型25KG
 //	Angle = 0.026857654431512981199641897940913 * ((float)(tempagc) - 2093.0) + AngleCom;   //通用型25KG
-	AngleTemp = 0.1091239769627159745377 * ((float)(tempagc) - 426.0);   //通用型25KG
-	AngleTemp /= 3;
-	Angle = PloarAngleStage * 120 +	AngleTemp - 12;
+	AngleTemp = 120.0/(float)(3737-427) * ((float)(tempagc) - 427);   //通用型25KG
+	if(PloarAngleStage < 0 || PloarAngleStage > 4)
+		PloarAngleStage = 0;
+//	if(PloarAngleStage == 0)
+//		Angle = AngleTemp;		 //第一个阶梯使用原值
+//	else		
+		Angle = PloarAngleStage * 120 +	AngleTemp - 55;	   //后两个阶梯要加上每个阶梯的度数120，减去初始化角度，因为第一个阶梯没有整个走过
 	return Angle;	
 }
 

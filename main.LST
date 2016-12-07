@@ -1,9 +1,9 @@
-C51 COMPILER V9.00   MAIN                                                                  03/29/2016 14:57:52 PAGE 1   
+C51 COMPILER V9.01   MAIN                                                                  12/06/2016 17:32:33 PAGE 1   
 
 
-C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
 OBJECT MODULE PLACED IN main.OBJ
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Applications\Keil\C51\BIN\C51.EXE main.c LARGE OPTIMIZE(0,SPEED) BROWSE DEBUG OBJECTEXTEND
 
 line level    source
 
@@ -32,84 +32,105 @@ line level    source
   23          #include "polar.h"
   24          #include "public.h"
   25          
-  26          //INT32 tempmin;
-  27          //INT32 tempmax;
-  28          
-  29          int main(void)
-  30          {
-  31   1      //      UINT16 plorF;
-  32   1              CPU020Init();                                                   //MCU初始化
-  33   1              ADC0Init();                                                             //ADC初始化
-  34   1              Timer0Init();                                                   //timer0初始化
-  35   1              Timer2Init();                                                   //timer2初始化
-  36   1              Timer3Init();                                                   //timer3初始化
-  37   1              Uart0Init();                                                    //串口0初始化
-  38   1              Uart1Init();                                                    //串口1初始化
-  39   1      
-  40   1      
-  41   1      //      plorF = 1;                                                                      //极化转动标志，plorF==1转动，plorF==0停止      
-  42   1              status = INIT;                                                  //天线开始状态为天线初始化
-  43   1      //      tempmin = 5000;
-  44   1      //      tempmax = -1;
-  45   1      //      POLAR_LEFT;
-  46   1              while(1)
-  47   1              {
-  48   2      /*              ;
-  49   2                      StationPol = GetComPolA();
-  50   2                      if(PloarAngleStage == 1)
-  51   2                              plorF++;
-  52   2                      while(!plorF)
-  53   2                      {
-  54   2                              LEDRED;
-  55   2                              Delay(40000);
-C51 COMPILER V9.00   MAIN                                                                  03/29/2016 14:57:52 PAGE 2   
+  26          
+  27          
+  28          int main(void)
+  29          {
+  30   1              UINT16 plorF = 0;
+  31   1      //      float AGC1 = 0;
+  32   1      //      float AGC2 = 0;
+  33   1      //      float AGC3 = 0;
+  34   1              CPU020Init();                                                   //MCU初始化
+  35   1              ADC0Init();                                                             //ADC初始化
+  36   1              Timer0Init();                                                   //timer0初始化
+  37   1              Timer2Init();                                                   //timer2初始化
+  38   1              Timer3Init();                                                   //timer3初始化
+  39   1              Uart0Init();                                                    //串口0初始化
+  40   1              Uart1Init();                                                    //串口1初始化
+  41   1      
+  42   1      
+  43   1      //      plorF = 1;                                                                      //极化转动标志，plorF==1转动，plorF==0停止      
+  44   1              status = INIT;                                                  //天线开始状态为天线初始化
+  45   1      //      tempmin = 5000;
+  46   1      //      tempmax = -1;
+  47   1      //      POLAR_LEFT;
+  48   1      //      PolarAngleInit();
+  49   1              while(1)
+  50   1              {       
+  51   2      //              GotoPolarAngle(145);
+  52   2      //              GotoPolarAngle(235);
+  53   2      //              AGC1 = GetKCAGC();
+  54   2      //              AGC2 = GetSharpAGC();
+  55   2      //              AGC3 = GetAGC();
+C51 COMPILER V9.01   MAIN                                                                  12/06/2016 17:32:33 PAGE 2   
 
-  56   2                              LEDCLOSE;
-  57   2                              Delay(40000);
-  58   2                              StationPol = GetComPolA();
-  59   2                      }
-  60   2                      while(!ELMidLimit)
-  61   2                      {
-  62   2                              plorF = 0;
-  63   2                              POLAR_STOP;
-  64   2                              break;
-  65   2                      }
-  66   2      */
-  67   2      
-  68   2                      if(status == INIT)
-  69   2                      {
-  70   3                              AntennaInit();                                  //天线初始化函数
-  71   3                      }
-  72   2                      if(status == SEARCHREADY)
-  73   2                      {
-  74   3                              AntennaReadySearch();                   //天线准备搜索函数
-  75   3                      }
-  76   2                      if(status == SEARCHING)
-  77   2                      {
-  78   3                              AntennaTimeSearch();                    //天线搜索函数
-  79   3                      }
-  80   2                      if(status == TRACKING)
-  81   2                      {
-  82   3                              AntennaTracking();                              //天线跟踪函数
-  83   3                      }
-  84   2                      if(status == MANUALMODE)
-  85   2                      {
-  86   3                              AntennaManual();                                //天线手动函数
-  87   3                      }
-  88   2                      if(status == STORESTATUS)
-  89   2                      {
-  90   3                              AntennaStore();                                 //天线收藏函数
-  91   3                      }
-  92   2              
-  93   2              }
-  94   1              return 0;
-  95   1      }
+  56   2      //              POLAR_RIGHT;
+  57   2      //              Delay(100000);
+  58   2      //              StationPol = GetComPolA();
+  59   2      //
+  60   2      //              if(PloarAngleStage != plorF){
+  61   2      //                      POLAR_STOP;
+  62   2      //                      LEDRED;
+  63   2      //                      Delay(40000);
+  64   2      //                      LEDCLOSE;
+  65   2      //                      Delay(40000);
+  66   2      //              }
+  67   2      //              POLAR_RIGHT;
+  68   2      //              Delay(100000);
+  69   2      //              plorF = PloarAngleStage;
+  70   2      //              while(!plorF)
+  71   2      //              {
+  72   2      //                      LEDRED;
+  73   2      //                      Delay(40000);
+  74   2      //                      LEDCLOSE;
+  75   2      //                      Delay(40000);
+  76   2      //                      StationPol = GetComPolA();
+  77   2      //              }
+  78   2      //              while(!ELMidLimit)
+  79   2      //              {
+  80   2      //                      plorF = 0;
+  81   2      //                      PloarAngleStage = 0;
+  82   2      //                      POLAR_STOP;
+  83   2      //                      break;
+  84   2      //              }
+  85   2      
+  86   2      
+  87   2                      if(status == INIT)
+  88   2                      {
+  89   3                              AntennaInit();                                  //天线初始化函数
+  90   3                      }
+  91   2                      if(status == SEARCHREADY)
+  92   2                      {
+  93   3                              AntennaReadySearch();                   //天线准备搜索函数
+  94   3                      }
+  95   2                      if(status == SEARCHING)
+  96   2                      {
+  97   3                              AntennaTimeSearch();                    //天线搜索函数
+  98   3                      }
+  99   2                      if(status == TRACKING)
+ 100   2                      {
+ 101   3                              AntennaTracking();                              //天线跟踪函数
+ 102   3                      }
+ 103   2                      if(status == MANUALMODE)
+ 104   2                      {
+ 105   3                              AntennaManual();                                //天线手动函数
+ 106   3                      }
+ 107   2                      if(status == STORESTATUS)
+ 108   2                      {
+ 109   3                              AntennaStore();                                 //天线收藏函数
+ 110   3                      }
+ 111   2              
+ 112   2              }
+ 113   1              return 0;
+ 114   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    105    ----
+C51 COMPILER V9.01   MAIN                                                                  12/06/2016 17:32:33 PAGE 3   
+
+   CODE SIZE        =    113    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =   ----    ----
+   XDATA SIZE       =      2    ----
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

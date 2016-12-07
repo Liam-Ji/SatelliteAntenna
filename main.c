@@ -23,12 +23,14 @@
 #include "polar.h"
 #include "public.h"
 
-//INT32 tempmin;
-//INT32 tempmax;
+
 
 int main(void)
 {
-//	UINT16 plorF;
+	UINT16 plorF = 0;
+//	float AGC1 = 0;
+//	float AGC2 = 0;
+//	float AGC3 = 0;
 	CPU020Init();   						//MCU初始化
 	ADC0Init();								//ADC初始化
 	Timer0Init();							//timer0初始化
@@ -43,27 +45,44 @@ int main(void)
 //	tempmin = 5000;
 //	tempmax = -1;
 //	POLAR_LEFT;
+//	PolarAngleInit();
 	while(1)
-	{
-/*		;
-		StationPol = GetComPolA();
-		if(PloarAngleStage == 1)
-		   	plorF++;
-		while(!plorF)
-		{
-			LEDRED;
-			Delay(40000);
-			LEDCLOSE;
-			Delay(40000);
-			StationPol = GetComPolA();
-		}
-		while(!ELMidLimit)
-		{
-			plorF = 0;
-			POLAR_STOP;
-			break;
-		}
-*/
+	{	
+//		GotoPolarAngle(145);
+//		GotoPolarAngle(235);
+//		AGC1 = GetKCAGC();
+//		AGC2 = GetSharpAGC();
+//		AGC3 = GetAGC();
+//		POLAR_RIGHT;
+//		Delay(100000);
+//		StationPol = GetComPolA();
+//
+//		if(PloarAngleStage != plorF){
+//			POLAR_STOP;
+//			LEDRED;
+//			Delay(40000);
+//			LEDCLOSE;
+//			Delay(40000);
+//		}
+//		POLAR_RIGHT;
+//		Delay(100000);
+//		plorF = PloarAngleStage;
+//		while(!plorF)
+//		{
+//			LEDRED;
+//			Delay(40000);
+//			LEDCLOSE;
+//			Delay(40000);
+//			StationPol = GetComPolA();
+//		}
+//		while(!ELMidLimit)
+//		{
+//			plorF = 0;
+//			PloarAngleStage = 0;
+//			POLAR_STOP;
+//			break;
+//		}
+
 
 		if(status == INIT)
 		{
